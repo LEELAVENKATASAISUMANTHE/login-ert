@@ -5,10 +5,10 @@ const { Pool } = pkg;
 
 // Database configuration
 const dbConfig = {
-  user: 'postgres',           // Replace with your PostgreSQL username
+  user: 'admin',           // Replace with your PostgreSQL username
   host: 'localhost',          // Replace with your database host
-  database: 'login_app',      // Replace with your database name  
-  password: 'password',       // Replace with your PostgreSQL password
+  database: 'placement',      // Replace with your database name  
+  password: 'sumanth123',       // Replace with your PostgreSQL password
   port: 5432,                 // PostgreSQL default port
   
   // Connection pool settings
