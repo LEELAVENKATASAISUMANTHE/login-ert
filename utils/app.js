@@ -3,6 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import logger from './logger.js';
+import pool from '../db/connection.js'; // Import database connection
 
 // Import routes
 import rolesRoutes from '../routes/roles.route.js';
@@ -55,7 +56,132 @@ app.get('/health', (req, res) => {
     success: true,
     message: 'Server is healthy',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    status: 'OK'
+  });
+});
+
+// ===== DATABASE HEALTH CHECK ROUTE =====
+app.get('/health/database', async (req, res) => {
+  logger.info('Database health check requested');
+  
+  try {
+    // Test database connection
+    const startTime = Date.now();
+    const client = await pool.connect();
+    
+    // Run a simple query to test connectivity
+    const result = await client.query('SELECT NOW() as current_time, version() as version');
+    const endTime = Date.now();
+    const responseTime = endTime - startTime;
+    
+    // Release the client back to the pool
+    client.release();
+    
+    logger.info('Database health check successful', {
+      responseTime: `${responseTime}ms`,
+      timestamp: result.rows[0].current_time
+    });
+    
+    res.status(200).json({
+      success: true,
+      message: 'Database connection is healthy',
+      database: {
+        status: 'CONNECTED',
+        responseTime: `${responseTime}ms`,
+        timestamp: result.rows[0].current_time,
+        version: result.rows[0].version.split(' ').slice(0, 2).join(' '), // PostgreSQL version
+        poolInfo: {
+          totalConnections: pool.totalCount,
+          idleConnections: pool.idleCount,
+          waitingClients: pool.waitingCount
+        }
+      }
+    });
+    
+  } catch (error) {
+    logger.error('Database health check failed', {
+      error: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    
+    res.status(503).json({
+      success: false,
+      message: 'Database connection failed',
+      database: {
+        status: 'DISCONNECTED',
+        error: error.message,
+        code: error.code || 'UNKNOWN_ERROR',
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+});
+
+// ===== COMPREHENSIVE HEALTH CHECK =====
+app.get('/health/complete', async (req, res) => {
+  logger.info('Complete health check requested');
+  
+  const healthStatus = {
+    server: {
+      status: 'OK',
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      timestamp: new Date().toISOString()
+    },
+    database: {
+      status: 'UNKNOWN',
+      responseTime: null,
+      error: null
+    }
+  };
+  
+  let overallStatus = 200;
+  
+  // Test database connectivity
+  try {
+    const startTime = Date.now();
+    const client = await pool.connect();
+    const result = await client.query('SELECT NOW() as current_time');
+    const endTime = Date.now();
+    
+    client.release();
+    
+    healthStatus.database = {
+      status: 'CONNECTED',
+      responseTime: `${endTime - startTime}ms`,
+      timestamp: result.rows[0].current_time,
+      poolInfo: {
+        totalConnections: pool.totalCount,
+        idleConnections: pool.idleCount,
+        waitingClients: pool.waitingCount
+      }
+    };
+    
+  } catch (error) {
+    logger.error('Database check failed in complete health check', {
+      error: error.message
+    });
+    
+    healthStatus.database = {
+      status: 'DISCONNECTED',
+      error: error.message,
+      code: error.code || 'UNKNOWN_ERROR'
+    };
+    
+    overallStatus = 503; // Service Unavailable
+  }
+  
+  // Determine overall health
+  const isHealthy = healthStatus.database.status === 'CONNECTED';
+  
+  res.status(overallStatus).json({
+    success: isHealthy,
+    message: isHealthy ? 'All systems operational' : 'Some systems are down',
+    overall_status: isHealthy ? 'HEALTHY' : 'DEGRADED',
+    checks: healthStatus,
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -71,6 +197,8 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: {
       health: '/health',
+      database_health: '/health/database',
+      complete_health: '/health/complete',
       roles: '/api/roles'
     }
   });
@@ -89,7 +217,13 @@ app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
     message: 'Endpoint not found',
-    error: `Cannot ${req.method} ${req.originalUrl}`
+    error: `Cannot ${req.method} ${req.originalUrl}`,
+    availableEndpoints: {
+      health: 'GET /health',
+      database_health: 'GET /health/database',
+      complete_health: 'GET /health/complete',
+      roles: 'GET /api/roles'
+    }
   });
 });
 
