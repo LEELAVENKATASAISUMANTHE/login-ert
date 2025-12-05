@@ -12,13 +12,11 @@ jobs:
       - name: 🚀 Connect and Deploy
         uses: appleboy/ssh-action@v1.0.0
         with:
-          # You still need these secrets in GitHub Settings > Secrets
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          port: 22 # or ${{ secrets.PORT }}
+          port: 22
           
-          # This script runs on YOUR server
           script: |
             echo "--- Starting Deployment ---"
             
@@ -27,7 +25,6 @@ jobs:
             cd ~/my-app
             
             # 2. Pull the latest code
-            # Note: If your repo is private, you might need a token or SSH key setup on the server
             if [ -d ".git" ]; then
               git pull origin main
             else
@@ -38,14 +35,12 @@ jobs:
             docker build -t node-app-3225 .
             
             # 4. Stop and Remove the old container (if it exists)
-            # '|| true' prevents the error if the container doesn't exist yet
             docker stop running-app || true
             docker rm running-app || true
             
-            # 5. Run the new Container on Port 3225
-            # -d = background
-            # --restart unless-stopped = auto-restart if server reboots
+            # 5. Run the new Container with host.docker.internal enabled
             docker run -d \
+              --add-host=host.docker.internal:host-gateway \
               -p 3225:3225 \
               --name running-app \
               --restart unless-stopped \
