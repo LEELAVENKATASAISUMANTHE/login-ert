@@ -6,7 +6,7 @@ const { Pool } = pkg;
 // Database configuration
 const dbConfig = {
   user: 'admin',           // Replace with your PostgreSQL username
-  host: 'localhost',          // Replace with your database host
+  host: 'host.docker.internal',          // Replace with your database host
   database: 'placement',      // Replace with your database name  
   password: 'sumanth123',       // Replace with your PostgreSQL password
   port: 5432,                 // PostgreSQL default port
