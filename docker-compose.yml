@@ -8,8 +8,8 @@ services:
       - "3225:3225"
     environment:
       - NODE_ENV=production
-      - LOKI_URL=http://172.19.0.2:3100
       - LOG_LEVEL=info
+      - LOKI_HOST=http://172.19.0.2:3100
     networks:
       - monitoring
     restart: unless-stopped
