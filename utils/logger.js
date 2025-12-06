@@ -1,13 +1,10 @@
 import winston from 'winston';
 import LokiTransport from 'winston-loki';
 
-// Env variables
 const NODE_ENV = process.env.NODE_ENV || 'production';
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 
-// Loki must point to push endpoint
-const LOKI_HOST =
-  (process.env.LOKI_HOST || 'http://loki:3100') + '/loki/api/v1/push';
+const LOKI_HOST = process.env.LOKI_HOST || 'http://loki:3100';
 
 const jsonFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
