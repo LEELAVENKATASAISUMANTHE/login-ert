@@ -26,16 +26,6 @@ router.use((req, res, next) => {
 // ===== ROLE ROUTES =====
 
 /**
- * @route   POST /api/roles
- * @desc    Create a new role
- * @access  Public (you can add authentication middleware later)
- * @body    { role_name: string, role_description?: string }
- * @example POST /api/roles
- *          Body: { "role_name": "admin", "role_description": "Administrator role" }
- */
-router.post('/', createRole);
-
-/**
  * @route   GET /api/roles
  * @desc    Get all roles with pagination
  * @access  Public
@@ -66,35 +56,6 @@ router.get('/:role_id', (req, res, next) => {
   getRoleById(req, res, next);
 });
 
-/**
- * @route   PUT /api/roles/:role_id
- * @desc    Update a role by ID (Updated to use role_id)
- * @access  Public (you can add authentication middleware later)
- * @params  role_id (number) - The role ID from your database
- * @body    { role_name: string, role_description?: string }
- * @example PUT /api/roles/1
- *          Body: { "role_name": "super_admin", "role_description": "Super administrator" }
- */
-router.put('/:role_id', (req, res, next) => {
-  // Convert role_id parameter to match controller expectation
-  req.params.id = req.params.role_id;
-  updateRole(req, res, next);
-});
-
-/**
- * @route   DELETE /api/roles/:role_id
- * @desc    Delete a role by ID (Updated to use role_id - HARD DELETE)
- * @access  Public (you can add authentication middleware later)
- * @params  role_id (number) - The role ID from your database
- * @example DELETE /api/roles/1
- */
-router.delete('/:role_id', (req, res, next) => {
-  // Convert role_id parameter to match controller expectation
-  req.params.id = req.params.role_id;
-  deleteRole(req, res, next);
-});
-
-// ===== ADDITIONAL HELPFUL ROUTES =====
 
 /**
  * @route   GET /api/roles/search/:searchTerm
@@ -188,6 +149,46 @@ router.use('*', (req, res) => {
     }
   });
 });
+
+/**
+ * @route   POST /api/roles
+ * @desc    Create a new role
+ * @access  Public (you can add authentication middleware later)
+ * @body    { role_name: string, role_description?: string }
+ * @example POST /api/roles
+ *          Body: { "role_name": "admin", "role_description": "Administrator role" }
+ */
+router.post('/', createRole);
+
+/**
+ * @route   PUT /api/roles/:role_id
+ * @desc    Update a role by ID (Updated to use role_id)
+ * @access  Public (you can add authentication middleware later)
+ * @params  role_id (number) - The role ID from your database
+ * @body    { role_name: string, role_description?: string }
+ * @example PUT /api/roles/1
+ *          Body: { "role_name": "super_admin", "role_description": "Super administrator" }
+ */
+router.put('/:role_id', (req, res, next) => {
+  // Convert role_id parameter to match controller expectation
+  req.params.id = req.params.role_id;
+  updateRole(req, res, next);
+});
+
+/**
+ * @route   DELETE /api/roles/:role_id
+ * @desc    Delete a role by ID (Updated to use role_id - HARD DELETE)
+ * @access  Public (you can add authentication middleware later)
+ * @params  role_id (number) - The role ID from your database
+ * @example DELETE /api/roles/1
+ */
+router.delete('/:role_id', (req, res, next) => {
+  // Convert role_id parameter to match controller expectation
+  req.params.id = req.params.role_id;
+  deleteRole(req, res, next);
+});
+
+// ===== ADDITIONAL HELPFUL ROUTES =====
 
 // Handle errors in role routes
 router.use((error, req, res, next) => {
