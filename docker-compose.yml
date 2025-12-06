@@ -3,81 +3,65 @@ version: '3.8'
 services:
   # Main Application
   app:
-    build: .
-    container_name: login-app
+    image: node-app-3225
+    container_name: running-app
     ports:
-      - "3001:3001"
+      - "3225:3225"
     environment:
       - NODE_ENV=production
-      - PORT=3001
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=login_app
-      - DB_USER=postgres
-      - DB_PASSWORD=password123
+      - LOKI_HOST=http://loki:3100
+      - LOG_LEVEL=info
     volumes:
       - ./logs:/app/logs
-      - app_node_modules:/app/node_modules
+    networks:
+      - monitoring
     depends_on:
-      - postgres
+      - loki
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    networks:
-      - app-network
 
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: login-db
+  # Loki (already running, but adding for completeness)
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    networks:
+      - monitoring
+    volumes:
+      - loki_data:/loki
+    restart: unless-stopped
+
+  # Promtail (already running)
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    volumes:
+      - /var/log:/var/log:ro
+      - ./promtail-config.yml:/etc/promtail/config.yml
+    networks:
+      - monitoring
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+  # Grafana (already running)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "8080:3000"
+    networks:
+      - monitoring
+    volumes:
+      - grafana_data:/var/lib/grafana
     environment:
-      - POSTGRES_DB=login_app
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password123
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - app-network
-
-  # Redis (Optional - for sessions, caching)
-  redis:
-    image: redis:7-alpine
-    container_name: login-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    networks:
-      - app-network
 
 volumes:
-  postgres_data:
-    driver: local
-  redis_data:
-    driver: local
-  app_node_modules:
-    driver: local
+  loki_data:
+  grafana_data:
 
 networks:
-  app-network:
+  monitoring:
     driver: bridge
