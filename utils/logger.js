@@ -1,30 +1,31 @@
 import winston from 'winston';
 import LokiTransport from 'winston-loki';
 
-// Env variables (with safe defaults)
+// Env variables
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
-const LOKI_HOST = process.env.LOKI_HOST || 'http://loki:3100';
 
-// Common log format
+// Loki must point to push endpoint
+const LOKI_HOST =
+  (process.env.LOKI_HOST || 'http://loki:3100') + '/loki/api/v1/push';
+
 const jsonFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
   winston.format.json()
 );
 
-// Console format
 const consoleFormat = winston.format.combine(
   winston.format.colorize(),
   winston.format.timestamp({ format: 'HH:mm:ss' }),
   winston.format.printf(({ timestamp, level, message, ...meta }) => {
-    return `${timestamp} [${level}]: ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ''}`;
+    return `${timestamp} [${level}]: ${message} ${
+      Object.keys(meta).length ? JSON.stringify(meta) : ''
+    }`;
   })
 );
 
-// Logger output targets (transports)
 const transports = [
-  // Loki output
   new LokiTransport({
     host: LOKI_HOST,
     labels: {
@@ -41,7 +42,6 @@ const transports = [
   })
 ];
 
-// Only show console logs in development
 if (NODE_ENV !== 'production') {
   transports.push(
     new winston.transports.Console({
@@ -51,7 +51,6 @@ if (NODE_ENV !== 'production') {
   );
 }
 
-// Create Winston logger
 const logger = winston.createLogger({
   level: LOG_LEVEL,
   format: jsonFormat,
@@ -64,4 +63,3 @@ const logger = winston.createLogger({
 });
 
 export default logger;
-  
