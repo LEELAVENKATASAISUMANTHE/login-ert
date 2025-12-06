@@ -5,17 +5,17 @@ const { Pool } = pkg;
 
 // Database configuration
 const dbConfig = {
-  user: 'admin',           // Replace with your PostgreSQL username
-  host: 'host.docker.internal',          // Replace with your database host
-  database: 'placement',      // Replace with your database name  
-  password: 'sumanth123',       // Replace with your PostgreSQL password
-  port: 5432,                 // PostgreSQL default port
-  
-  // Connection pool settings
-  max: 20,                    // Maximum number of connections in pool
-  idleTimeoutMillis: 30000,   // How long a client is allowed to remain idle
-  connectionTimeoutMillis: 2000, // How long to wait when connecting
+  user: 'admin',
+  host: '172.17.0.1',     // <--- replace this
+  database: 'placement',
+  password: 'sumanth123',
+  port: 5432,
+
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 };
+
 
 // Create connection pool
 const pool = new Pool(dbConfig);
