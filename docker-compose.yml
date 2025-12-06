@@ -8,7 +8,7 @@ services:
       - "3225:3225"
     environment:
       - NODE_ENV=production
-      - LOKI_URL=http://loki:3100
+      - LOKI_HOST=http://loki:3100
       - LOG_LEVEL=info
     networks:
       - monitoring
