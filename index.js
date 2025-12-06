@@ -11,7 +11,3 @@ app.listen(PORT, () => {
   logger.info(`Server started on port ${PORT} `);
 });
 
-app.get('/', (req, res) => {
-  res.send('Hello, World!');
-  logger.info('Root endpoint accessed by the client with IP: ' + req.ip);
-});
