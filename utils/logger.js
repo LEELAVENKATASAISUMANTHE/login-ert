@@ -2,7 +2,7 @@ import winston from 'winston';
 import LokiTransport from 'winston-loki';
 
 // Env variables
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const NODE_ENV = process.env.NODE_ENV || 'production';
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 
 // Loki must point to push endpoint
