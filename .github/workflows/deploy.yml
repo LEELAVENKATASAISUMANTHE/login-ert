@@ -10,6 +10,7 @@ jobs:
 
     steps:
       - name: 🚀 Connect and Deploy
+      # SSH into server and deploy
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.HOST }}
@@ -20,30 +21,32 @@ jobs:
           script: |
             echo "--- Starting Deployment ---"
             
-            # 1. Create folder if missing and enter it
             mkdir -p ~/my-app
             cd ~/my-app
             
-            # 2. Pull the latest code
+            # Pull latest code
             if [ -d ".git" ]; then
               git pull origin main
             else
               git clone ${{ github.server_url }}/${{ github.repository }} .
             fi
             
-            # 3. Build the Docker Image
+            # Build new backend image
             docker build -t node-app-3225 .
             
-            # 4. Stop and Remove the old container (if it exists)
+            # Stop old container if running
             docker stop running-app || true
             docker rm running-app || true
             
-            # 5. Run the new Container with host.docker.internal enabled
+            # Run backend with Loki connection
             docker run -d \
-              --add-host=host.docker.internal:host-gateway \
               -p 3225:3225 \
+              --network monitoring_default \
+              -e NODE_ENV=production \
+              -e LOG_LEVEL=info \
+              -e LOKI_HOST=http://172.19.0.2:3100 \
               --name running-app \
               --restart unless-stopped \
               node-app-3225
-              
+
             echo "--- Deployment Complete on Port 3225 ---"
