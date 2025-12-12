@@ -1,29 +1,22 @@
 import pool from './connection.js';  // Fixed import path
 import logger from '../utils/logger.js';
 
-/**
- * create a new role in the database 
- * @param {Object} data - The role data
- * @param {string} data.role_name - The name of the role
- * @param {string} data.role_description - The description of the role
- * @returns {Object} The newly created role
- * @throws Will throw an error if the role creation fails or if the role already exists
- */
 
+//create a new role in the database 
 export const createRole = async (data) => {
-    // Fixed: Use your actual table name and column names
     const Query = `INSERT INTO roles (role_name, role_description) VALUES ($1, $2) RETURNING *`;
     const values = [data.role_name, data.role_description || null]; // Handle optional description
-    
+
     try {
         logger.info("createRole: Attempting to create a new role with name: " + data.role_name);
         const res = await pool.query(Query, values);
-        
-        if (res.rows.length === 0) { // Fixed: was res.row.length
+
+        //check if role was created
+        if (res.rows.length === 0) {
             logger.error("createRole: Failed to create role with name: " + data.role_name);
             throw new Error('Role creation failed');
         }
-        
+
         logger.info("createRole: Successfully created role with ID: " + res.rows[0].role_id);
         return {
             success: true,
@@ -36,29 +29,22 @@ export const createRole = async (data) => {
             role_name: data.role_name,
             error_message: error.message
         });
-        
+
         if (error.code === '23505') { // Unique constraint violation
             throw new Error('Role name already exists');
         }
-        
+
         throw new Error('Role creation failed due to an unexpected error');
     }
 };
 
 
-/**
- * Update role by ID
- * @param {String} role_id 
- * @param {object} data 
- * @param {string} data.role_name
- * @param {string} data.role_description
- * @returns {Object} The updated role details
- */
+
 export const updateRole = async (role_id, data) => {
     // Fixed: Match your table structure - no updated_at column, use role_id
     const Query = `UPDATE roles SET role_name=$1, role_description=$2 WHERE role_id=$3 RETURNING *`;
     const values = [data.role_name, data.role_description || null, role_id];
-    
+
     try {
         logger.debug("updateRole: Attempting to update role with ID: " + role_id);
         const res = await pool.query(Query, values);
@@ -71,7 +57,7 @@ export const updateRole = async (role_id, data) => {
                 message: 'Role not found'
             };
         }
-        
+
         logger.info("updateRole: Successfully updated role with ID: " + role_id);
         return {
             success: true,
@@ -84,7 +70,7 @@ export const updateRole = async (role_id, data) => {
             role_id: role_id,
             error_message: error.message
         });
-        
+
         if (error.code === '23505') {
             throw new Error('Role with this name already exists');
         }
@@ -109,17 +95,17 @@ export const getAllRoles = async (options = {}) => {
         sortBy = 'created_at',
         sortOrder = 'DESC'
     } = options;
-    
+
     const offset = (page - 1) * limit;
-    
+
     // Updated allowed fields to match your table structure
     const allowedSortFields = ['role_id', 'role_name', 'role_description', 'created_at'];
     const allowedSortOrders = ['ASC', 'DESC'];
-    
+
     if (!allowedSortFields.includes(sortBy) || !allowedSortOrders.includes(sortOrder.toUpperCase())) {
         throw new Error('Invalid sort parameters');
     }
-    
+
     // Fixed: Match your table structure - no deleted_at column
     const queryText = `
         SELECT role_id, role_name, role_description, created_at,
@@ -127,24 +113,24 @@ export const getAllRoles = async (options = {}) => {
         FROM roles 
         ORDER BY ${sortBy} ${sortOrder.toUpperCase()}
         LIMIT $1 OFFSET $2`;
-    
+
     const values = [limit, offset];
-    
+
     try {
         logger.debug(`Fetching roles: page=${page}, limit=${limit}, sortBy=${sortBy}`);
         const result = await pool.query(queryText, values);
-        
+
         const totalCount = result.rows.length > 0 ? parseInt(result.rows[0].total_count) : 0;
         const totalPages = Math.ceil(totalCount / limit);
-        
+
         // Remove total_count from individual rows
         const roles = result.rows.map(row => {
             const { total_count, ...role } = row;
             return role;
         });
-        
+
         logger.info(`Retrieved ${roles.length} roles (page ${page}/${totalPages})`);
-        
+
         return {
             success: true,
             data: roles,
@@ -182,11 +168,11 @@ export const getRoleById = async (roleId) => {
         SELECT role_id, role_name, role_description, created_at 
         FROM roles 
         WHERE role_id = $1`;
-    
+
     try {
         logger.debug(`Fetching role by ID: ${roleId}`);
         const result = await pool.query(queryText, [roleId]);
-        
+
         if (result.rows.length === 0) {
             logger.warn(`Role not found: ID ${roleId}`);
             return {
@@ -195,7 +181,7 @@ export const getRoleById = async (roleId) => {
                 message: 'Role not found'
             };
         }
-        
+
         logger.info(`Role retrieved: ${result.rows[0].role_name} (ID: ${roleId})`);
         return {
             success: true,
@@ -223,11 +209,11 @@ export const deleteRole = async (roleId) => {
         DELETE FROM roles 
         WHERE role_id = $1
         RETURNING role_id, role_name`;
-    
+
     try {
         logger.debug(`Deleting role ID: ${roleId}`);
         const result = await pool.query(queryText, [roleId]);
-        
+
         if (result.rows.length === 0) {
             logger.warn(`Role not found for deletion: ID ${roleId}`);
             return {
@@ -236,7 +222,7 @@ export const deleteRole = async (roleId) => {
                 message: 'Role not found'
             };
         }
-        
+
         logger.info(`Role deleted: ${result.rows[0].role_name} (ID: ${roleId})`);
         return {
             success: true,
@@ -264,7 +250,7 @@ export const roleExistsByName = async (roleName) => {
     const queryText = `
         SELECT role_id FROM roles 
         WHERE LOWER(role_name) = LOWER($1)`;
-    
+
     try {
         const result = await pool.query(queryText, [roleName]);
         return result.rows.length > 0;

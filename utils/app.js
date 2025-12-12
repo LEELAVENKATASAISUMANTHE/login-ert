@@ -7,6 +7,7 @@ import pool from '../db/connection.js'; // Import database connection
 
 // Import routes
 import rolesRoutes from '../routes/roles.route.js';
+import permissionsRoutes from '../routes/permissions.route.js';
 
 const app = express();
 
@@ -187,6 +188,7 @@ app.get('/health/complete', async (req, res) => {
 
 // API Routes
 app.use('/api/roles', rolesRoutes);
+app.use('/api/permissions', permissionsRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

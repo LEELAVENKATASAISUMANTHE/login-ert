@@ -1,0 +1,13 @@
+for writing code for db contoller
+  ->first write the const query
+  ->then extract the values from the data
+  ->then write try catch block
+  ->then log the attempt message
+  ->then query the database
+  ->see if the data is retured or not
+  ->then log the success message
+  ->else log the error message
+  ->if inserting data then check for unique constraint violation
+  ->if updating data then check for unique constraint violation
+  ->if deleting data then check for foreign key constraint violation
+  ->then write the return statement 
