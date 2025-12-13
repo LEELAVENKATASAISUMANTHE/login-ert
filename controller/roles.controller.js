@@ -264,9 +264,10 @@ export const updateRole = async (req, res) => {
       });
     }
 
-    // Check if role exists
-    const existingRole = await roleDB.getRoleById(roleId);
-    if (!existingRole.success) {
+    // Optimized: Use combined query to reduce 3 DB calls to 1
+    const validation = await roleDB.validateRoleUpdate(roleId, value.role_name);
+    
+    if (!validation.roleExists) {
       logger.warn('Role not found for update', { roleId });
       return res.status(404).json({
         success: false,
@@ -274,20 +275,16 @@ export const updateRole = async (req, res) => {
       });
     }
 
-    // Check if new name already exists (excluding current role)
-    if (value.role_name !== existingRole.data.role_name) {
-      const nameExists = await roleDB.roleExistsByName(value.role_name);
-      if (nameExists) {
-        logger.warn('Role update failed - name already exists', {
-          roleId,
-          existing_name: existingRole.data.role_name,
-          new_name: value.role_name
-        });
-        return res.status(409).json({
-          success: false,
-          message: 'Role name already exists'
-        });
-      }
+    if (validation.nameExists) {
+      logger.warn('Role update failed - name already exists', {
+        roleId,
+        existing_name: validation.oldName,
+        new_name: value.role_name
+      });
+      return res.status(409).json({
+        success: false,
+        message: 'Role name already exists'
+      });
     }
 
     // Update the role
@@ -303,7 +300,7 @@ export const updateRole = async (req, res) => {
 
     logger.info('Role updated successfully', {
       roleId,
-      old_name: existingRole.data.role_name,
+      old_name: validation.oldName,
       new_name: result.data.role_name
     });
 
@@ -352,9 +349,10 @@ export const deleteRole = async (req, res) => {
       });
     }
 
-    // Check if role exists before deletion
-    const existingRole = await roleDB.getRoleById(roleId);
-    if (!existingRole.success) {
+    // Optimized: Use combined query to reduce 2 DB calls to 1
+    const validation = await roleDB.validateRoleDelete(roleId);
+    
+    if (!validation.roleExists) {
       logger.warn('Role not found for deletion', { roleId });
       return res.status(404).json({
         success: false,
@@ -375,7 +373,7 @@ export const deleteRole = async (req, res) => {
 
     logger.info('Role deleted successfully', {
       roleId,
-      role_name: existingRole.data.role_name
+      role_name: validation.roleName
     });
 
     return res.status(200).json({

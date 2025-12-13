@@ -259,3 +259,82 @@ export const roleExistsByName = async (roleName) => {
         throw new Error(`Failed to check role existence: ${error.message}`);
     }
 };
+
+/**
+ * Combined validation query for role updates (optimized to reduce N+1 queries)
+ * @param {number} roleId - Role ID to update
+ * @param {string} newRoleName - New role name to check
+ * @returns {Object} Validation results
+ */
+export const validateRoleUpdate = async (roleId, newRoleName) => {
+    const combinedQuery = `
+        WITH existing_role AS (
+            SELECT role_id, role_name, role_description
+            FROM roles WHERE role_id = $1
+        ),
+        name_check AS (
+            SELECT role_id FROM roles 
+            WHERE LOWER(role_name) = LOWER($2) AND role_id != $1
+        )
+        SELECT 
+            (SELECT COUNT(*) FROM existing_role) as role_exists,
+            (SELECT COUNT(*) FROM name_check) as name_exists,
+            (SELECT role_name FROM existing_role) as old_name,
+            (SELECT role_description FROM existing_role) as old_description
+    `;
+
+    try {
+        const result = await pool.query(combinedQuery, [roleId, newRoleName]);
+        const row = result.rows[0];
+        
+        return {
+            roleExists: parseInt(row.role_exists) > 0,
+            nameExists: parseInt(row.name_exists) > 0,
+            oldName: row.old_name,
+            oldDescription: row.old_description
+        };
+    } catch (error) {
+        logger.error(`Error in validateRoleUpdate: ${error.message}`, {
+            roleId,
+            newRoleName,
+            error: error.message
+        });
+        throw new Error(`Failed to validate role update: ${error.message}`);
+    }
+};
+
+/**
+ * Combined validation query for role deletion (optimized to reduce N+1 queries)
+ * @param {number} roleId - Role ID to delete
+ * @returns {Object} Validation results
+ */
+export const validateRoleDelete = async (roleId) => {
+    const queryText = `
+        SELECT role_id, role_name, role_description
+        FROM roles 
+        WHERE role_id = $1
+    `;
+
+    try {
+        const result = await pool.query(queryText, [roleId]);
+        
+        if (result.rows.length === 0) {
+            return {
+                roleExists: false,
+                roleName: null
+            };
+        }
+        
+        return {
+            roleExists: true,
+            roleName: result.rows[0].role_name,
+            roleDescription: result.rows[0].role_description
+        };
+    } catch (error) {
+        logger.error(`Error in validateRoleDelete: ${error.message}`, {
+            roleId,
+            error: error.message
+        });
+        throw new Error(`Failed to validate role deletion: ${error.message}`);
+    }
+};
