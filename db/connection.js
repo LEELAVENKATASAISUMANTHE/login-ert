@@ -19,8 +19,8 @@ const dbConfig = {
   
   // ADDITIONAL OPTIMIZATIONS
   allowExitOnIdle: false,           // ✅ Keep pool alive
-  statement_timeout: 30000,         // ✅ Kill queries running longer than 30s
-  query_timeout: 30000,             // ✅ Client-side query timeout
+  statement_timeout: 30000,         // ✅ PostgreSQL server-side timeout - kills queries running longer than 30s
+  query_timeout: 30000,             // ✅ Client-side timeout - provides additional safety layer
 };
 
 

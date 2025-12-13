@@ -57,7 +57,7 @@ app.use((req, res, next) => {
   res.on('finish', () => {
     const duration = Date.now() - startTime;
     const cpuUsage = process.cpuUsage(startUsage);
-    const cpuPercent = (cpuUsage.user + cpuUsage.system) / 1000; // Convert to milliseconds
+    const cpuTimeMs = (cpuUsage.user + cpuUsage.system) / 1000; // Convert microseconds to milliseconds
 
     // Log slow requests (over 1 second)
     if (duration > 1000) {
@@ -66,7 +66,7 @@ app.use((req, res, next) => {
         url: req.originalUrl,
         duration: `${duration}ms`,
         statusCode: res.statusCode,
-        cpuTime: `${cpuPercent.toFixed(2)}ms`,
+        cpuTime: `${cpuTimeMs.toFixed(2)}ms`,
         ip: req.ip,
         userAgent: req.get('User-Agent')
       });
