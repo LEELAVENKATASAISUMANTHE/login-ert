@@ -13,8 +13,7 @@ const dbConfig = {
 
   // OPTIMIZED POOL SETTINGS
   max: 50,                          // ✅ Increased from 20 to handle more concurrent requests
-  min: 5,                           // ✅ Keep minimum connections alive
-  idleTimeoutMillis: 10000,         // ✅ Reduced from 30s to 10s - release idle connections faster
+  min: 5,                           // ✅ Keep minimum connections alive         // ✅ Reduced from 30s to 10s - release idle connections faster
   connectionTimeoutMillis: 10000,   // ✅ Increased from 2s to 10s - prevent premature timeouts
   
   // ADDITIONAL OPTIMIZATIONS
@@ -22,7 +21,6 @@ const dbConfig = {
   statement_timeout: 30000,         // ✅ PostgreSQL server-side timeout - kills queries running longer than 30s
   query_timeout: 30000,             // ✅ Client-side timeout - provides additional safety layer
 };
-
 
 // Create connection pool
 const pool = new Pool(dbConfig);
