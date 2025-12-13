@@ -106,28 +106,25 @@ export const getAllRoles = async (options = {}) => {
         throw new Error('Invalid sort parameters');
     }
 
-    // Fixed: Match your table structure - no deleted_at column
-    const queryText = `
-        SELECT role_id, role_name, role_description, created_at,
-               COUNT(*) OVER() as total_count
-        FROM roles 
-        ORDER BY ${sortBy} ${sortOrder.toUpperCase()}
-        LIMIT $1 OFFSET $2`;
-
-    const values = [limit, offset];
-
     try {
         logger.debug(`Fetching roles: page=${page}, limit=${limit}, sortBy=${sortBy}`);
-        const result = await pool.query(queryText, values);
-
-        const totalCount = result.rows.length > 0 ? parseInt(result.rows[0].total_count) : 0;
+        
+        // Query 1: Fast count using index (no window function)
+        const countQuery = 'SELECT COUNT(*) as total FROM roles';
+        const countResult = await pool.query(countQuery);
+        const totalCount = parseInt(countResult.rows[0].total);
         const totalPages = Math.ceil(totalCount / limit);
 
-        // Remove total_count from individual rows
-        const roles = result.rows.map(row => {
-            const { total_count, ...role } = row;
-            return role;
-        });
+        // Query 2: Paginated data without window function
+        const dataQuery = `
+            SELECT role_id, role_name, role_description, created_at
+            FROM roles 
+            ORDER BY ${sortBy} ${sortOrder.toUpperCase()}
+            LIMIT $1 OFFSET $2`;
+        
+        const values = [limit, offset];
+        const result = await pool.query(dataQuery, values);
+        const roles = result.rows;
 
         logger.info(`Retrieved ${roles.length} roles (page ${page}/${totalPages})`);
 

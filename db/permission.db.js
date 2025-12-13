@@ -92,27 +92,25 @@ export const getAllPermissions = async (options = {}) => {
         throw new Error('Invalid sort parameters');
     }
 
-    const queryText = `
-        SELECT permission_id, permission_name, module, description,
-               COUNT(*) OVER() as total_count
-        FROM permissions 
-        ORDER BY ${sortBy} ${sortOrder.toUpperCase()}
-        LIMIT $1 OFFSET $2`;
-
-    const values = [limit, offset];
-
     try {
         logger.debug(`Fetching permissions: page=${page}, limit=${limit}, sortBy=${sortBy}`);
-        const result = await pool.query(queryText, values);
-
-        const totalCount = result.rows.length > 0 ? parseInt(result.rows[0].total_count) : 0;
+        
+        // Query 1: Fast count using index (no window function)
+        const countQuery = 'SELECT COUNT(*) as total FROM permissions';
+        const countResult = await pool.query(countQuery);
+        const totalCount = parseInt(countResult.rows[0].total);
         const totalPages = Math.ceil(totalCount / limit);
 
-        // Remove total_count from individual rows
-        const permissions = result.rows.map(row => {
-            const { total_count, ...permission } = row;
-            return permission;
-        });
+        // Query 2: Paginated data without window function
+        const dataQuery = `
+            SELECT permission_id, permission_name, module, description
+            FROM permissions 
+            ORDER BY ${sortBy} ${sortOrder.toUpperCase()}
+            LIMIT $1 OFFSET $2`;
+        
+        const values = [limit, offset];
+        const result = await pool.query(dataQuery, values);
+        const permissions = result.rows;
 
         logger.info(`Retrieved ${permissions.length} permissions (page ${page}/${totalPages})`);
 
