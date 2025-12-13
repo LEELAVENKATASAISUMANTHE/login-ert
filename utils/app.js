@@ -48,6 +48,41 @@ app.use((req, res, next) => {
   next();
 });
 
+// ===== PERFORMANCE MONITORING MIDDLEWARE =====
+app.use((req, res, next) => {
+  const startTime = Date.now();
+  const startUsage = process.cpuUsage();
+
+  // Capture response finish event
+  res.on('finish', () => {
+    const duration = Date.now() - startTime;
+    const cpuUsage = process.cpuUsage(startUsage);
+    const cpuPercent = (cpuUsage.user + cpuUsage.system) / 1000; // Convert to milliseconds
+
+    // Log slow requests (over 1 second)
+    if (duration > 1000) {
+      logger.warn('⚠️ SLOW REQUEST DETECTED', {
+        method: req.method,
+        url: req.originalUrl,
+        duration: `${duration}ms`,
+        statusCode: res.statusCode,
+        cpuTime: `${cpuPercent.toFixed(2)}ms`,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+    } else {
+      logger.debug('Request completed', {
+        method: req.method,
+        url: req.originalUrl,
+        duration: `${duration}ms`,
+        statusCode: res.statusCode
+      });
+    }
+  });
+
+  next();
+});
+
 // ===== ROUTES =====
 
 // Health check endpoint

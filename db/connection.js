@@ -6,14 +6,21 @@ const { Pool } = pkg;
 // Database configuration
 const dbConfig = {
   user: 'admin',
-  host: '172.17.0.1',     // <--- replace this
+  host: '172.17.0.1',
   database: 'placement',
   password: 'sumanth123',
   port: 5432,
 
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  // OPTIMIZED POOL SETTINGS
+  max: 50,                          // ✅ Increased from 20 to handle more concurrent requests
+  min: 5,                           // ✅ Keep minimum connections alive
+  idleTimeoutMillis: 10000,         // ✅ Reduced from 30s to 10s - release idle connections faster
+  connectionTimeoutMillis: 10000,   // ✅ Increased from 2s to 10s - prevent premature timeouts
+  
+  // ADDITIONAL OPTIMIZATIONS
+  allowExitOnIdle: false,           // ✅ Keep pool alive
+  statement_timeout: 30000,         // ✅ Kill queries running longer than 30s
+  query_timeout: 30000,             // ✅ Client-side query timeout
 };
 
 

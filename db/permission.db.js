@@ -92,33 +92,29 @@ export const getAllPermissions = async (options = {}) => {
         throw new Error('Invalid sort parameters');
     }
 
-    const queryText = `
-        SELECT permission_id, permission_name, module, description,
-               COUNT(*) OVER() as total_count
-        FROM permissions 
-        ORDER BY ${sortBy} ${sortOrder.toUpperCase()}
-        LIMIT $1 OFFSET $2`;
-
-    const values = [limit, offset];
-
     try {
         logger.debug(`Fetching permissions: page=${page}, limit=${limit}, sortBy=${sortBy}`);
-        const result = await pool.query(queryText, values);
+        
+        // OPTIMIZATION: Separate count query
+        const countQuery = 'SELECT COUNT(*) as total FROM permissions';
+        const countResult = await pool.query(countQuery);
+        const totalCount = parseInt(countResult.rows[0].total);
 
-        const totalCount = result.rows.length > 0 ? parseInt(result.rows[0].total_count) : 0;
+        // OPTIMIZATION: Paginated data query without window function
+        const dataQuery = `
+            SELECT permission_id, permission_name, module, description
+            FROM permissions 
+            ORDER BY ${sortBy} ${sortOrder.toUpperCase()}
+            LIMIT $1 OFFSET $2`;
+        
+        const dataResult = await pool.query(dataQuery, [limit, offset]);
         const totalPages = Math.ceil(totalCount / limit);
 
-        // Remove total_count from individual rows
-        const permissions = result.rows.map(row => {
-            const { total_count, ...permission } = row;
-            return permission;
-        });
-
-        logger.info(`Retrieved ${permissions.length} permissions (page ${page}/${totalPages})`);
+        logger.info(`Retrieved ${dataResult.rows.length} permissions (page ${page}/${totalPages})`);
 
         return {
             success: true,
-            data: permissions,
+            data: dataResult.rows,
             pagination: {
                 currentPage: page,
                 totalPages,
@@ -131,9 +127,6 @@ export const getAllPermissions = async (options = {}) => {
         };
     } catch (error) {
         logger.error(`Error fetching permissions: ${error.message}`, {
-            page,
-            limit,
-            sortBy,
             error: error.message,
             stack: error.stack
         });

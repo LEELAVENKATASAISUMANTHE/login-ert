@@ -31,11 +31,19 @@ const transports = [
       environment: NODE_ENV
     },
     json: true,
-    replaceTimestamp: true,
-    interval: 2,
+    
+    // CRITICAL OPTIMIZATIONS
+    batching: true,              // Enable batching
+    interval: 5,                 // Send logs every 5 seconds
+    timeout: 3000,               // Timeout after 3 seconds
     onConnectionError: (err) => {
-      console.error('🔥 Loki connection error:', err);
-    }
+      console.error('Loki connection error:', err.message);
+    },
+    
+    // Reduce network overhead
+    format: winston.format.json(),
+    replaceTimestamp: true,
+    gracefulShutdown: true,
   })
 ];
 

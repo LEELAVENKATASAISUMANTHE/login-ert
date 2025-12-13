@@ -98,7 +98,6 @@ export const getAllRoles = async (options = {}) => {
 
     const offset = (page - 1) * limit;
 
-    // Updated allowed fields to match your table structure
     const allowedSortFields = ['role_id', 'role_name', 'role_description', 'created_at'];
     const allowedSortOrders = ['ASC', 'DESC'];
 
@@ -106,34 +105,29 @@ export const getAllRoles = async (options = {}) => {
         throw new Error('Invalid sort parameters');
     }
 
-    // Fixed: Match your table structure - no deleted_at column
-    const queryText = `
-        SELECT role_id, role_name, role_description, created_at,
-               COUNT(*) OVER() as total_count
-        FROM roles 
-        ORDER BY ${sortBy} ${sortOrder.toUpperCase()}
-        LIMIT $1 OFFSET $2`;
-
-    const values = [limit, offset];
-
     try {
         logger.debug(`Fetching roles: page=${page}, limit=${limit}, sortBy=${sortBy}`);
-        const result = await pool.query(queryText, values);
+        
+        // OPTIMIZATION: Get count separately (faster with index)
+        const countQuery = 'SELECT COUNT(*) as total FROM roles';
+        const countResult = await pool.query(countQuery);
+        const totalCount = parseInt(countResult.rows[0].total);
 
-        const totalCount = result.rows.length > 0 ? parseInt(result.rows[0].total_count) : 0;
+        // OPTIMIZATION: Get paginated data without window function
+        const dataQuery = `
+            SELECT role_id, role_name, role_description, created_at
+            FROM roles 
+            ORDER BY ${sortBy} ${sortOrder.toUpperCase()}
+            LIMIT $1 OFFSET $2`;
+        
+        const dataResult = await pool.query(dataQuery, [limit, offset]);
         const totalPages = Math.ceil(totalCount / limit);
 
-        // Remove total_count from individual rows
-        const roles = result.rows.map(row => {
-            const { total_count, ...role } = row;
-            return role;
-        });
-
-        logger.info(`Retrieved ${roles.length} roles (page ${page}/${totalPages})`);
+        logger.info(`Retrieved ${dataResult.rows.length} roles (page ${page}/${totalPages})`);
 
         return {
             success: true,
-            data: roles,
+            data: dataResult.rows,
             pagination: {
                 currentPage: page,
                 totalPages,
