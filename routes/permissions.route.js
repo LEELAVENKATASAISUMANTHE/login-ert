@@ -16,7 +16,7 @@ const router = Router();
  *            "description": "Permission to view user information"
  *          }
  */
-router.post('/', permissionController.createPermission);
+router.post('/', permissionController.createPermission); //update in postman
 
 /**
  * @route   GET /api/permissions
@@ -25,7 +25,7 @@ router.post('/', permissionController.createPermission);
  * @query   { page?: number, limit?: number, sortBy?: string, sortOrder?: 'ASC'|'DESC' }
  * @example GET /api/permissions?page=1&limit=10&sortBy=permission_name&sortOrder=ASC
  */
-router.get('/', permissionController.getAllPermissions);
+router.get('/', permissionController.getAllPermissions);//update in postman
 
 /**
  * @route   GET /api/permissions/:id
@@ -34,7 +34,7 @@ router.get('/', permissionController.getAllPermissions);
  * @param   {number} id - Permission ID
  * @example GET /api/permissions/123
  */
-router.get('/:id', permissionController.getPermissionById);
+router.get('/:id', permissionController.getPermissionById);//update in postman
 
 /**
  * @route   PUT /api/permissions/:id
@@ -48,7 +48,7 @@ router.get('/:id', permissionController.getPermissionById);
  *            "description": "Permission to create and modify users"
  *          }
  */
-router.put('/:id', permissionController.updatePermission);
+router.put('/:id', permissionController.updatePermission);//update in postman
 
 /**
  * @route   DELETE /api/permissions/:id
@@ -57,7 +57,7 @@ router.put('/:id', permissionController.updatePermission);
  * @param   {number} id - Permission ID
  * @example DELETE /api/permissions/123
  */
-router.delete('/:id', permissionController.deletePermission);
+router.delete('/:id', permissionController.deletePermission);//update in postman
 
 /**
  * @route   GET /api/permissions/check/:permission_name
@@ -66,7 +66,7 @@ router.delete('/:id', permissionController.deletePermission);
  * @param   {string} permission_name - Permission name to check
  * @example GET /api/permissions/check/users.read
  */
-router.get('/check/:permission_name', permissionController.checkPermissionExists);
+router.get('/check/:permission_name', permissionController.checkPermissionExists); //update in postman
 
 // Log all permission route registrations
 logger.info('Permission routes registered successfully', {
