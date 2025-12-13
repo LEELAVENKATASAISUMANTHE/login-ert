@@ -56,7 +56,7 @@ app.use((req, res, next) => {
   res.on('finish', () => {
     const duration = Date.now() - startTime;
     const cpuUsage = process.cpuUsage(startUsage);
-    const cpuPercent = (cpuUsage.user + cpuUsage.system) / 1000;
+    const cpuPercent = (cpuUsage.user + cpuUsage.system) / 1000; // microseconds to milliseconds
 
     if (duration > 1000) {
       logger.warn('⚠️ SLOW REQUEST DETECTED', {
