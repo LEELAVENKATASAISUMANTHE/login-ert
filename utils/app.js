@@ -48,7 +48,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ===== PERFORMANCE MONITORING MIDDLEWARE =====
+// Performance monitoring middleware
 app.use((req, res, next) => {
   const startTime = Date.now();
   const startUsage = process.cpuUsage();
@@ -56,9 +56,8 @@ app.use((req, res, next) => {
   res.on('finish', () => {
     const duration = Date.now() - startTime;
     const cpuUsage = process.cpuUsage(startUsage);
-    const cpuPercent = (cpuUsage.user + cpuUsage.system) / 1000;
+    const cpuPercent = (cpuUsage.user + cpuUsage.system) / 1000; // microseconds to milliseconds
 
-    // Log slow requests (over 1 second)
     if (duration > 1000) {
       logger.warn('⚠️ SLOW REQUEST DETECTED', {
         method: req.method,
@@ -66,19 +65,10 @@ app.use((req, res, next) => {
         duration: `${duration}ms`,
         statusCode: res.statusCode,
         cpuTime: `${cpuPercent.toFixed(2)}ms`,
-        ip: req.ip,
-        userAgent: req.get('User-Agent')
-      });
-    } else {
-      logger.debug('Request completed', {
-        method: req.method,
-        url: req.originalUrl,
-        duration: `${duration}ms`,
-        statusCode: res.statusCode
+        ip: req.ip
       });
     }
   });
-
   next();
 });
 

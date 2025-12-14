@@ -31,8 +31,11 @@ const transports = [
       environment: NODE_ENV
     },
     json: true,
-    replaceTimestamp: true,
-    interval: 2,
+    batching: true,                   // ✅ Enable batching for async logging
+    interval: 5,                      // ✅ Send batched logs every 5 seconds
+    timeout: 3000,                    // ✅ Timeout for Loki connections
+    replaceTimestamp: true,           // ✅ Optimize timestamp handling
+    gracefulShutdown: true,           // ✅ Flush logs on shutdown
     onConnectionError: (err) => {
       console.error('🔥 Loki connection error:', err);
     }
