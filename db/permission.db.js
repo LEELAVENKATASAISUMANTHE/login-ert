@@ -95,30 +95,26 @@ export const getAllPermissions = async (options = {}) => {
     try {
         logger.debug(`Fetching permissions: page=${page}, limit=${limit}, sortBy=${sortBy}`);
         
-        // Query 1: Fast count using index (no window function)
-        // Note: Separate queries may have slight race condition in high-concurrency scenarios,
-        // but this trade-off is acceptable for the significant performance improvement (40-50% faster)
+        // OPTIMIZATION: Separate count query
         const countQuery = 'SELECT COUNT(*) as total FROM permissions';
         const countResult = await pool.query(countQuery);
         const totalCount = parseInt(countResult.rows[0].total);
-        const totalPages = Math.ceil(totalCount / limit);
 
-        // Query 2: Paginated data without window function
+        // OPTIMIZATION: Paginated data query without window function
         const dataQuery = `
             SELECT permission_id, permission_name, module, description
             FROM permissions 
             ORDER BY ${sortBy} ${sortOrder.toUpperCase()}
             LIMIT $1 OFFSET $2`;
         
-        const values = [limit, offset];
-        const result = await pool.query(dataQuery, values);
-        const permissions = result.rows;
+        const dataResult = await pool.query(dataQuery, [limit, offset]);
+        const totalPages = Math.ceil(totalCount / limit);
 
-        logger.info(`Retrieved ${permissions.length} permissions (page ${page}/${totalPages})`);
+        logger.info(`Retrieved ${dataResult.rows.length} permissions (page ${page}/${totalPages})`);
 
         return {
             success: true,
-            data: permissions,
+            data: dataResult.rows,
             pagination: {
                 currentPage: page,
                 totalPages,
@@ -131,9 +127,6 @@ export const getAllPermissions = async (options = {}) => {
         };
     } catch (error) {
         logger.error(`Error fetching permissions: ${error.message}`, {
-            page,
-            limit,
-            sortBy,
             error: error.message,
             stack: error.stack
         });

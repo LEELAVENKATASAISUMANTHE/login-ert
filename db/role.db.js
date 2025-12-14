@@ -98,7 +98,6 @@ export const getAllRoles = async (options = {}) => {
 
     const offset = (page - 1) * limit;
 
-    // Updated allowed fields to match your table structure
     const allowedSortFields = ['role_id', 'role_name', 'role_description', 'created_at'];
     const allowedSortOrders = ['ASC', 'DESC'];
 
@@ -132,7 +131,7 @@ export const getAllRoles = async (options = {}) => {
 
         return {
             success: true,
-            data: roles,
+            data: dataResult.rows,
             pagination: {
                 currentPage: page,
                 totalPages,
