@@ -127,17 +127,17 @@ export const getAllRoles = async (options = {}) => {
         const result = await pool.query(dataQuery, values);
         const roles = result.rows;
 
-        logger.info(`Retrieved ${roles.length} roles (page ${page}/${totalPages})`);
+        logger.info(`Retrieved ${roles.length} roles (page ${page}/${totalCount === 0 ? 0 : totalPages})`);
 
         return {
             success: true,
-            data: dataResult.rows,
+            data: roles,
             pagination: {
                 currentPage: page,
                 totalPages,
                 totalItems: totalCount,
                 itemsPerPage: limit,
-                hasNextPage: page < totalPages,
+                hasNextPage: totalPages > 0 && page < totalPages,
                 hasPrevPage: page > 1
             },
             message: 'Roles retrieved successfully'
