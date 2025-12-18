@@ -8,6 +8,9 @@ import pool from '../db/connection.js'; // Import database connection
 // Import routes
 import rolesRoutes from '../routes/roles.route.js';
 import permissionsRoutes from '../routes/permissions.route.js';
+import usersRoutes from '../routes/users.route.js';
+import rolePermissionsRoutes from '../routes/role_permissions.route.js';
+import studentUsersRoutes from '../routes/student_users.route.js';
 
 const app = express();
 
@@ -211,8 +214,11 @@ app.get('/health/complete', async (req, res) => {
 });
 
 // API Routes
+app.use('/api/users', usersRoutes);
 app.use('/api/roles', rolesRoutes);
 app.use('/api/permissions', permissionsRoutes);
+app.use('/api/role-permissions', rolePermissionsRoutes);
+app.use('/api/student-users', studentUsersRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -225,7 +231,20 @@ app.get('/', (req, res) => {
       health: '/health',
       database_health: '/health/database',
       complete_health: '/health/complete',
-      roles: '/api/roles'
+      users: '/api/users',
+      roles: '/api/roles',
+      permissions: '/api/permissions',
+      role_permissions: '/api/role-permissions',
+      student_users: '/api/student-users'
+    },
+    documentation: {
+      register: 'POST /api/users/register',
+      login: 'POST /api/users/login',
+      users: 'GET /api/users',
+      roles: 'GET /api/roles',
+      permissions: 'GET /api/permissions',
+      role_permissions: 'GET /api/role-permissions',
+      student_users: 'GET /api/student-users'
     }
   });
 });
@@ -245,10 +264,15 @@ app.use('*', (req, res) => {
     message: 'Endpoint not found',
     error: `Cannot ${req.method} ${req.originalUrl}`,
     availableEndpoints: {
+      root: 'GET /',
       health: 'GET /health',
       database_health: 'GET /health/database',
       complete_health: 'GET /health/complete',
-      roles: 'GET /api/roles'
+      users: 'GET /api/users',
+      roles: 'GET /api/roles',
+      permissions: 'GET /api/permissions',
+      role_permissions: 'GET /api/role-permissions',
+      student_users: 'GET /api/student-users'
     }
   });
 });
