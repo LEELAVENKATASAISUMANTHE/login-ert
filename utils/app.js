@@ -78,7 +78,7 @@ app.use((req, res, next) => {
 // ===== ROUTES =====
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   logger.info('Health check requested');
   res.status(200).json({
     success: true,
@@ -90,7 +90,7 @@ app.get('/health', (req, res) => {
 });
 
 // ===== DATABASE HEALTH CHECK ROUTE =====
-app.get('/health/database', async (req, res) => {
+app.get('/api/health/database', async (req, res) => {
   logger.info('Database health check requested');
   
   try {
@@ -148,7 +148,7 @@ app.get('/health/database', async (req, res) => {
 });
 
 // ===== COMPREHENSIVE HEALTH CHECK =====
-app.get('/health/complete', async (req, res) => {
+app.get('/api/health/complete', async (req, res) => {
   logger.info('Complete health check requested');
   
   const healthStatus = {
@@ -221,7 +221,7 @@ app.use('/api/role-permissions', rolePermissionsRoutes);
 app.use('/api/student-users', studentUsersRoutes);
 
 // Root endpoint
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
   logger.info('Root endpoint accessed');
   res.status(200).json({
     success: true,
