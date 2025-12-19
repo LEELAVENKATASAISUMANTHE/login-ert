@@ -247,7 +247,7 @@ export const getAllRolePermissions = async (params) => {
                 rp.role_id,
                 rp.permission_id,
                 r.role_name,
-                r.description as role_description,
+                r.role_description,
                 p.permission_name,
                 p.module,
                 p.description as permission_description
