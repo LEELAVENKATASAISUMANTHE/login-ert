@@ -246,7 +246,7 @@ export const deleteRole = async (roleId) => {
 export const roleExistsByName = async (roleName) => {
     // Fixed: Use role_id and remove deleted_at check
     const queryText = `
-        SELECT role_id FROM roles 
+        SELECT * FROM roles 
         WHERE LOWER(role_name) = LOWER($1)`;
 
     try {
