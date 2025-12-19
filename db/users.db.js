@@ -177,7 +177,7 @@ export const getUserById = async (user_id) => {
                 u.full_name,
                 u.role_id,
                 r.role_name,
-                r.description as role_description,
+                r.role_description,
                 u.is_active,
                 u.created_at,
                 u.last_login
