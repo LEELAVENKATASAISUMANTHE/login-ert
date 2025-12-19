@@ -247,7 +247,7 @@ export const roleExistsByName = async (roleName) => {
     // Fixed: Use role_id and remove deleted_at check
     const queryText = `
         SELECT role_id FROM roles 
-        WHERE LOWER(role_name) = LOWER($1)`;
+        WHERE role_name ILIKE $1`;
 
     try {
         const result = await pool.query(queryText, [roleName]);
