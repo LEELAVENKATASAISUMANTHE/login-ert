@@ -247,11 +247,10 @@ export const roleExistsByName = async (roleName) => {
     // Fixed: Use role_id and remove deleted_at check
     const queryText = `
         SELECT role_id FROM roles 
-        WHERE role_name ILIKE $1`;
+        WHERE LOWER(role_name) = LOWER($1)`;
 
     try {
         const result = await pool.query(queryText, [roleName]);
-        logger.debug(`${result}`)
         return result.rows.length > 0;
     } catch (error) {
         logger.error(`Error checking role existence: ${error.message}`, {
