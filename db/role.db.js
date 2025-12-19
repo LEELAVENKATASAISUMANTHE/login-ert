@@ -251,7 +251,11 @@ export const roleExistsByName = async (roleName) => {
 
     try {
         const result = await pool.query(queryText, [roleName]);
-        return result.rows.length > 0;
+        if(result.rows.length > 0) {
+            logger.info(`Role exists check: Role name "${roleName}" exists.`);
+            return result.rows; // Return the existing role
+        }
+        logger.info(`Role exists check: Role name "${roleName}" does not exist.`);
     } catch (error) {
         logger.error(`Error checking role existence: ${error.message}`, {
             roleName,
