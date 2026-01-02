@@ -1,5 +1,5 @@
 import logger from "../utils/logger.js";
-import * as studentService from "../services/student.service.js";
+import * as studentService from "../db/student.db.js";
 import joi from "joi";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 
