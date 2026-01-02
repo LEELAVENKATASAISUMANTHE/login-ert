@@ -4,6 +4,7 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import logger from './logger.js';
 import pool from '../db/connection.js'; // Import database connection
+import dotenv from "dotenv";
 
 // Import routes
 import rolesRoutes from '../routes/roles.route.js';
@@ -11,13 +12,14 @@ import permissionsRoutes from '../routes/permissions.route.js';
 import usersRoutes from '../routes/users.route.js';
 import rolePermissionsRoutes from '../routes/role_permissions.route.js';
 import studentUsersRoutes from '../routes/student_users.route.js';
-
+import studentRoutes from '../routes/student.route.js';
 const app = express();
 
 // ===== MIDDLEWARE =====
 
 // Security middleware
 app.use(helmet());
+dotenv.config();
 
 // CORS middleware
 app.use(cors({
@@ -219,6 +221,7 @@ app.use('/api/roles', rolesRoutes);
 app.use('/api/permissions', permissionsRoutes);
 app.use('/api/role-permissions', rolePermissionsRoutes);
 app.use('/api/student-users', studentUsersRoutes);
+app.use('/api/students', studentRoutes);
 
 // Root endpoint
 app.get('/api', (req, res) => {

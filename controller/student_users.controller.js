@@ -3,6 +3,11 @@ import * as studentUserDB from '../db/student_users.db.js';
 import logger from '../utils/logger.js';
 
 export const createStudentUserSchema = Joi.object({
+    student_id: Joi.number().integer().min(1).required().messages({
+        'number.base': 'Student ID should be a number',
+        'number.min': 'Student ID should be a positive integer',
+        'any.required': 'Student ID is required'
+    }),
     user_id: Joi.number().integer().min(1).required().messages({
         'number.base': 'User ID should be a number',
         'number.min': 'User ID should be a positive integer',

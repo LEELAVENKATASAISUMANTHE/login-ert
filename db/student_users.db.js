@@ -6,7 +6,7 @@ export const createStudentUser = async (data) => {
     const client = await pool.connect();
     
     try {
-        logger.info(`createStudentUser: Attempting to create student association for user ID: ${data.user_id}`);
+        logger.info(`createStudentUser: Attempting to create student association for student ID: ${data.student_id} and user ID: ${data.user_id}`);
         
         await client.query('BEGIN');
         
@@ -14,6 +14,12 @@ export const createStudentUser = async (data) => {
         const userCheck = await client.query('SELECT user_id FROM users WHERE user_id = $1', [data.user_id]);
         if (userCheck.rows.length === 0) {
             throw new Error('User not found');
+        }
+
+        // Check if student ID already exists
+        const studentIdCheck = await client.query('SELECT student_id FROM student_users WHERE student_id = $1', [data.student_id]);
+        if (studentIdCheck.rows.length > 0) {
+            throw new Error('Student ID is already associated with a user');
         }
         
         // Check if student user association already exists
@@ -23,8 +29,8 @@ export const createStudentUser = async (data) => {
         }
         
         // Insert the student user association
-        const insertQuery = `INSERT INTO student_users (user_id) VALUES ($1) RETURNING *`;
-        const result = await client.query(insertQuery, [data.user_id]);
+        const insertQuery = `INSERT INTO student_users (student_id, user_id) VALUES ($1, $2) RETURNING *`;
+        const result = await client.query(insertQuery, [data.student_id, data.user_id]);
         
         await client.query('COMMIT');
         
