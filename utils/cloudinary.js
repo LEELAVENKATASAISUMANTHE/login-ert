@@ -1,6 +1,5 @@
 // utils/cloudinary.js
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -9,43 +8,38 @@ cloudinary.config({
 });
 
 /**
- * Upload file to Cloudinary
- * @param {string} filePath - local path from multer
+ * Upload file buffer to Cloudinary
+ * @param {Buffer} fileBuffer - file buffer from multer memory storage
+ * @param {string} folder - cloudinary folder name
  */
-export const uploadToCloudinary = async (filePath, folder = "uploads") => {
+export const uploadToCloudinary = async (fileBuffer, folder = "uploads") => {
   try {
-    // Check if file exists before uploading
-    if (!fs.existsSync(filePath)) {
-      throw new Error(`File not found at path: ${filePath}`);
+    if (!fileBuffer || fileBuffer.length === 0) {
+      throw new Error("File buffer is empty");
     }
 
-    // Check file size
-    const stats = fs.statSync(filePath);
-    if (stats.size === 0) {
-      throw new Error("File is empty (0 bytes)");
-    }
+    console.log(`Uploading file buffer, size: ${fileBuffer.length} bytes`);
 
-    console.log(`Uploading file: ${filePath}, size: ${stats.size} bytes`);
-
-    const result = await cloudinary.uploader.upload(filePath, {
-      folder,
-      resource_type: "auto",
+    // Upload buffer using stream
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder,
+          resource_type: "auto",
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(fileBuffer);
     });
-
-    // delete local file after successful upload
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
 
     return {
       url: result.secure_url,
       public_id: result.public_id,
     };
   } catch (error) {
-    // Clean up file if it exists
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
     console.error("Cloudinary upload error:", error.message);
     throw error;
   }
