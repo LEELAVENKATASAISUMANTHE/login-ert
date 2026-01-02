@@ -61,3 +61,106 @@ export const createStudent = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+// Get all students
+export const getAllStudents = async (req, res) => {
+    try {
+        const result = await studentService.getAllStudents();
+        res.status(200).json(result);
+    } catch (err) {
+        logger.error("Error fetching students:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// Get student by ID
+export const getStudentById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await studentService.getStudentById(id);
+        
+        if (!result.success) {
+            return res.status(404).json(result);
+        }
+        
+        res.status(200).json(result);
+    } catch (err) {
+        logger.error("Error fetching student:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// Update student (full update)
+export const updateStudentById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { error, value } = updateStudentSchema.validate(req.body);
+        
+        if (error) {
+            return res.status(400).json({ message: error.details[0].message });
+        }
+
+        // Check if file was uploaded
+        if (req.file) {
+            const cloudinaryResult = await uploadToCloudinary(req.file.path, "students");
+            value.student_photo_path = cloudinaryResult.url;
+        }
+
+        const result = await studentService.updateStudentById(id, value);
+        
+        if (!result.success) {
+            return res.status(404).json(result);
+        }
+        
+        res.status(200).json(result);
+    } catch (err) {
+        logger.error("Error updating student:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// Patch student (partial update)
+export const patchStudentById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { error, value } = updateStudentSchema.validate(req.body);
+        
+        if (error) {
+            return res.status(400).json({ message: error.details[0].message });
+        }
+
+        // Check if file was uploaded
+        if (req.file) {
+            const cloudinaryResult = await uploadToCloudinary(req.file.path, "students");
+            value.student_photo_path = cloudinaryResult.url;
+        }
+
+        const result = await studentService.patchStudentById(id, value);
+        
+        if (!result.success) {
+            return res.status(404).json(result);
+        }
+        
+        res.status(200).json(result);
+    } catch (err) {
+        logger.error("Error patching student:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// Delete student
+export const deleteStudentById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await studentService.deleteStudentById(id);
+        
+        if (!result.success) {
+            return res.status(404).json(result);
+        }
+        
+        res.status(200).json(result);
+    } catch (err) {
+        logger.error("Error deleting student:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};

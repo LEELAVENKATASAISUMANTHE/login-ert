@@ -157,7 +157,7 @@ import pool from './connection.js';
                         values.push(value);
                         index++;
                     }
-                    const updateQuery =`UPADTE students SET ${fields.join(', ')} WHERE student_id = $${index} RETURNING *`;
+                    const updateQuery = `UPDATE students SET ${fields.join(', ')} WHERE student_id = $${index} RETURNING *`;
                     values.push(studentId);
                     const result = await client.query(updateQuery, values);
 
