@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import * as studentController from '../controller/student.controller.js';
+import { upload } from '../utils/multer.js';
 import logger from '../utils/logger.js';
 
 const router = Router();
 
-// Create a new student (JSON body with optional base64 photo)
-router.post('/', studentController.createStudent);
+// Create a new student
+router.post('/', upload.single('student_photo'), studentController.createStudent);
 
 // Get all students
 router.get('/', studentController.getAllStudents);
@@ -14,10 +15,10 @@ router.get('/', studentController.getAllStudents);
 router.get('/:id', studentController.getStudentById);
 
 // Update student (full update)
-router.put('/:id', studentController.updateStudentById);
+router.put('/:id', upload.single('student_photo'), studentController.updateStudentById);
 
 // Patch student (partial update)
-router.patch('/:id', studentController.patchStudentById);
+router.patch('/:id', upload.single('student_photo'), studentController.patchStudentById);
 
 // Delete student
 router.delete('/:id', studentController.deleteStudentById);
