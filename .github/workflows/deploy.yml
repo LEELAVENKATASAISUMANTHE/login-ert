@@ -24,11 +24,25 @@ jobs:
             mkdir -p ~/my-app
             cd ~/my-app
             
+            # Backup .env file if it exists
+            if [ -f ".env" ]; then
+              echo "Backing up .env file..."
+              cp .env /tmp/.env.backup
+            fi
+            
             # Pull latest code
             if [ -d ".git" ]; then
-              git pull origin main
+              git fetch origin main
+              git reset --hard origin/main
             else
               git clone ${{ github.server_url }}/${{ github.repository }} .
+            fi
+            
+            # Restore .env file if backup exists
+            if [ -f "/tmp/.env.backup" ]; then
+              echo "Restoring .env file..."
+              cp /tmp/.env.backup .env
+              rm /tmp/.env.backup
             fi
             
             # Build new backend image
@@ -38,13 +52,14 @@ jobs:
             docker stop running-app || true
             docker rm running-app || true
             
-            # Run backend with Loki connection
+            # Run backend with Loki connection AND .env file
             docker run -d \
               -p 3225:3225 \
               --network monitoring_default \
               -e NODE_ENV=production \
               -e LOG_LEVEL=info \
               -e LOKI_HOST=http://172.19.0.2:3100 \
+              --env-file .env \
               --name running-app \
               --restart unless-stopped \
               node-app-3225
