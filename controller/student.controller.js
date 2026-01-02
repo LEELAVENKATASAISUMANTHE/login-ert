@@ -18,7 +18,8 @@ const studentSchema = joi.object({
     mobile: joi.string().pattern(/^[0-9]{10}$/).required(),
     emergency_contact: joi.string().pattern(/^[0-9]{10}$/).required(),
     nationality: joi.string().min(1).max(50).required(),
-    placement_fee_status: joi.string().valid('Paid', 'Unpaid').required()
+    placement_fee_status: joi.string().valid('Paid', 'Unpaid').required(),
+    student_photo: joi.string().optional().allow(null, '')  // base64 image
 });
 
 const updateStudentSchema = joi.object({
@@ -35,40 +36,27 @@ const updateStudentSchema = joi.object({
     emergency_contact: joi.string().pattern(/^[0-9]{10}$/).optional(),
     nationality: joi.string().min(1).max(50).optional(),
     placement_fee_status: joi.string().valid('Paid', 'Unpaid').optional(),
+    student_photo: joi.string().optional().allow(null, '')  // base64 image
 });
 
 export const createStudent = async (req, res) => {
     try {
-        // Debug: Log everything about the file
-        console.log("=== FILE DEBUG ===");
-        console.log("req.file exists:", !!req.file);
-        if (req.file) {
-            console.log("req.file.fieldname:", req.file.fieldname);
-            console.log("req.file.originalname:", req.file.originalname);
-            console.log("req.file.mimetype:", req.file.mimetype);
-            console.log("req.file.size:", req.file.size);
-            console.log("req.file.buffer exists:", !!req.file.buffer);
-            console.log("req.file.buffer length:", req.file.buffer ? req.file.buffer.length : 0);
-        }
-        console.log("=== END DEBUG ===");
-
         const { error, value } = studentSchema.validate(req.body);
         if (error) {
             return res.status(400).json({ message: error.details[0].message });
         }
 
-        // Check if file was uploaded
-        if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            console.log("File received:", req.file.originalname, "Size:", req.file.size);
-            
-            // Upload buffer to Cloudinary
-            const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "students");
+        // Check if base64 photo was provided
+        if (value.student_photo && value.student_photo.length > 0) {
+            console.log("Base64 photo received, uploading to Cloudinary...");
+            const cloudinaryResult = await uploadToCloudinary(value.student_photo, "students");
             value.student_photo_path = cloudinaryResult.url;
         } else {
-            // No file uploaded or empty buffer - set to null
-            console.log("No valid file uploaded, setting photo to null");
             value.student_photo_path = null;
         }
+        
+        // Remove student_photo from value (we only need student_photo_path for DB)
+        delete value.student_photo;
 
         const student = await studentService.createStudent(value);
         res.status(201).json(student);
@@ -116,11 +104,14 @@ export const updateStudentById = async (req, res) => {
             return res.status(400).json({ message: error.details[0].message });
         }
 
-        // Check if file was uploaded
-        if (req.file) {
-            const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "students");
+        // Check if base64 photo was provided
+        if (value.student_photo && value.student_photo.length > 0) {
+            const cloudinaryResult = await uploadToCloudinary(value.student_photo, "students");
             value.student_photo_path = cloudinaryResult.url;
         }
+        
+        // Remove student_photo from value
+        delete value.student_photo;
 
         const result = await studentService.updateStudentById(id, value);
         
@@ -145,11 +136,14 @@ export const patchStudentById = async (req, res) => {
             return res.status(400).json({ message: error.details[0].message });
         }
 
-        // Check if file was uploaded
-        if (req.file) {
-            const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "students");
+        // Check if base64 photo was provided
+        if (value.student_photo && value.student_photo.length > 0) {
+            const cloudinaryResult = await uploadToCloudinary(value.student_photo, "students");
             value.student_photo_path = cloudinaryResult.url;
         }
+        
+        // Remove student_photo from value
+        delete value.student_photo;
 
         const result = await studentService.patchStudentById(id, value);
         

@@ -8,31 +8,28 @@ cloudinary.config({
 });
 
 /**
- * Upload file buffer to Cloudinary
- * @param {Buffer} fileBuffer - file buffer from multer memory storage
+ * Upload base64 image to Cloudinary
+ * @param {string} base64String - base64 encoded image (with or without data URI prefix)
  * @param {string} folder - cloudinary folder name
  */
-export const uploadToCloudinary = async (fileBuffer, folder = "uploads") => {
+export const uploadToCloudinary = async (base64String, folder = "uploads") => {
   try {
-    if (!fileBuffer || fileBuffer.length === 0) {
-      throw new Error("File buffer is empty");
+    if (!base64String || base64String.length === 0) {
+      throw new Error("No image data provided");
     }
 
-    console.log(`Uploading file buffer, size: ${fileBuffer.length} bytes`);
+    // Ensure proper data URI format
+    let dataUri = base64String;
+    if (!base64String.startsWith('data:')) {
+      // If no prefix, assume it's a JPEG
+      dataUri = `data:image/jpeg;base64,${base64String}`;
+    }
 
-    // Upload buffer using stream
-    const result = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder,
-          resource_type: "auto",
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      );
-      uploadStream.end(fileBuffer);
+    console.log(`Uploading base64 image, length: ${dataUri.length} chars`);
+
+    const result = await cloudinary.uploader.upload(dataUri, {
+      folder,
+      resource_type: "auto",
     });
 
     return {
