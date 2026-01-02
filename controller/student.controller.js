@@ -44,8 +44,15 @@ export const createStudent = async (req, res) => {
             return res.status(400).json({ message: error.details[0].message });
         }
 
+        // Debug: Log file info
+        console.log("req.file:", req.file);
+        console.log("req.body:", req.body);
+
         // Check if file was uploaded
         if (req.file) {
+            console.log("File path:", req.file.path);
+            console.log("File size:", req.file.size);
+            
             // Upload to Cloudinary and get URL
             const cloudinaryResult = await uploadToCloudinary(req.file.path, "students");
             value.student_photo_path = cloudinaryResult.url;
