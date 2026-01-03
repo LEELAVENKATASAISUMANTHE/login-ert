@@ -42,7 +42,7 @@ const updateStudentAcademicSchema = joi.object({
     diploma_year: joi.number().integer().min(1900).max(2100).optional().allow(null),
     diploma_college: joi.string().max(200).optional().allow(null, ''),
     ug_cgpa: joi.number().precision(2).min(0).max(10).required(),
-    ug_year_of_passing: joi.number().integer().min(1900).max(2100).required().,
+    ug_year_of_passing: joi.number().integer().min(1900).max(2100).required(),
     pg_cgpa: joi.number().precision(2).min(0).max(10).optional().allow(null),
     history_of_backs: joi.number().integer().min(0).optional().allow(null),
     updated_arrears: joi.number().integer().min(0).optional().allow(null),
