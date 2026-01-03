@@ -14,6 +14,7 @@ import rolePermissionsRoutes from '../routes/role_permissions.route.js';
 import studentUsersRoutes from '../routes/student_users.route.js';
 import studentRoutes from '../routes/student.route.js';
 import studentAddressesRoutes from '../routes/student_addresses.route.js';
+import studentLanguagesRoutes from '../routes/student_languages.route.js';
 const app = express();
 
 // ===== MIDDLEWARE =====
@@ -224,6 +225,7 @@ app.use('/api/role-permissions', rolePermissionsRoutes);
 app.use('/api/student-users', studentUsersRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/student-addresses', studentAddressesRoutes);
+app.use('/api/student-languages', studentLanguagesRoutes);
 
 // Root endpoint
 app.get('/api', (req, res) => {
