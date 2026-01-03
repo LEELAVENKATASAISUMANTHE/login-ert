@@ -4,7 +4,7 @@ import joi from "joi";
 
 // Validation schema for creating student academic record
 const studentAcademicSchema = joi.object({
-    student_id: joi.number().integer().required(),
+    student_id: joi.string().required(),
     tenth_percent: joi.number().precision(2).min(0).max(100).required().allow(null),
     tenth_year: joi.number().integer().min(1900).max(2100).required().allow(null),
     tenth_board: joi.string().max(100).required(),
@@ -29,7 +29,7 @@ const studentAcademicSchema = joi.object({
 
 // Validation schema for updating student academic record
 const updateStudentAcademicSchema = joi.object({
-    student_id: joi.number().integer().required(),
+    student_id: joi.string().required(),
     tenth_percent: joi.number().precision(2).min(0).max(100).required(),
     tenth_year: joi.number().integer().min(1900).max(2100).required(),
     tenth_board: joi.string().max(100).required(),
