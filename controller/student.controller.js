@@ -57,6 +57,12 @@ export const createStudent = async (req, res) => {
             return res.status(400).json({ message: error.details[0].message });
         }
 
+        // Map college_mail to college_email for database column
+        if (value.college_mail !== undefined) {
+            value.college_email = value.college_mail;
+            delete value.college_mail;
+        }
+
         // Check if file was uploaded
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
             console.log("File received:", req.file.originalname, "Size:", req.file.size);
@@ -116,6 +122,12 @@ export const updateStudentById = async (req, res) => {
             return res.status(400).json({ message: error.details[0].message });
         }
 
+        // Map college_mail to college_email for database column
+        if (value.college_mail !== undefined) {
+            value.college_email = value.college_mail;
+            delete value.college_mail;
+        }
+
         // Check if file was uploaded
         if (req.file) {
             const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "students");
@@ -143,6 +155,12 @@ export const patchStudentById = async (req, res) => {
         
         if (error) {
             return res.status(400).json({ message: error.details[0].message });
+        }
+
+        // Map college_mail to college_email for database column
+        if (value.college_mail !== undefined) {
+            value.college_email = value.college_mail;
+            delete value.college_mail;
         }
 
         // Check if file was uploaded
