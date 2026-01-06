@@ -52,10 +52,11 @@ export const generateStudentReport = async (req, res) => {
 
         const { student, address, academics, family, languages, internships, projects, certifications, documents } = result.data;
 
-        // Create PDF document
+        // Create PDF document with buffered pages for footer support
         const doc = new PDFDocument({
             size: 'A4',
             margins: { top: 50, bottom: 50, left: 50, right: 50 },
+            bufferPages: true,
             info: {
                 Title: `Student Report - ${student.full_name}`,
                 Author: 'Placement Management System',
@@ -64,12 +65,16 @@ export const generateStudentReport = async (req, res) => {
             }
         });
 
-        // Set response headers
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=student_report_${student.student_id}.pdf`);
-
-        // Pipe the PDF to response
-        doc.pipe(res);
+        // Buffer chunks to send at the end
+        const chunks = [];
+        doc.on('data', chunk => chunks.push(chunk));
+        doc.on('end', () => {
+            const pdfBuffer = Buffer.concat(chunks);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Length', pdfBuffer.length);
+            res.setHeader('Content-Disposition', `attachment; filename=student_report_${student.student_id}.pdf`);
+            res.end(pdfBuffer);
+        });
 
         let y = 50;
 
@@ -88,7 +93,7 @@ export const generateStudentReport = async (req, res) => {
         y += 30;
 
         // ===== PERSONAL INFORMATION =====
-        y = drawSectionHeader(doc, '📋 PERSONAL INFORMATION', y);
+        y = drawSectionHeader(doc, 'PERSONAL INFORMATION', y);
         
         y = drawKeyValue(doc, 'Student ID', student.student_id, 50, y);
         y = drawKeyValue(doc, 'Full Name', student.full_name, 50, y);
@@ -105,7 +110,7 @@ export const generateStudentReport = async (req, res) => {
 
         // ===== FAMILY INFORMATION =====
         if (family) {
-            y = drawSectionHeader(doc, '👨‍👩‍👧 FAMILY INFORMATION', y);
+            y = drawSectionHeader(doc, 'FAMILY INFORMATION', y);
             
             y = drawKeyValue(doc, "Father's Name", family.father_name, 50, y);
             y = drawKeyValue(doc, "Father's Occupation", family.father_occupation, 50, y);
@@ -120,7 +125,7 @@ export const generateStudentReport = async (req, res) => {
 
         // ===== ADDRESS =====
         if (address) {
-            y = drawSectionHeader(doc, '🏠 ADDRESS', y);
+            y = drawSectionHeader(doc, 'ADDRESS', y);
             
             const permanentAddr = [
                 address.permanent_address_line1,
@@ -153,7 +158,7 @@ export const generateStudentReport = async (req, res) => {
 
         // ===== ACADEMIC INFORMATION =====
         if (academics) {
-            y = drawSectionHeader(doc, '🎓 ACADEMIC INFORMATION', y);
+            y = drawSectionHeader(doc, 'ACADEMIC INFORMATION', y);
             
             // 10th details
             doc.fillColor('#059669')
@@ -215,7 +220,7 @@ export const generateStudentReport = async (req, res) => {
 
         // ===== INTERNSHIPS =====
         if (internships && internships.length > 0) {
-            y = drawSectionHeader(doc, '💼 INTERNSHIPS', y);
+            y = drawSectionHeader(doc, 'INTERNSHIPS', y);
             
             for (let i = 0; i < internships.length; i++) {
                 const intern = internships[i];
@@ -233,7 +238,7 @@ export const generateStudentReport = async (req, res) => {
                 y = drawKeyValue(doc, 'Duration', intern.duration, 70, y);
                 y = drawKeyValue(doc, 'Period', `${formatDate(intern.start_date)} - ${formatDate(intern.end_date)}`, 70, y);
                 y = drawKeyValue(doc, 'Skills Acquired', intern.skills_acquired, 70, y);
-                y = drawKeyValue(doc, 'Stipend', intern.stipend ? `₹${intern.stipend}` : 'N/A', 70, y);
+                y = drawKeyValue(doc, 'Stipend', intern.stipend ? `Rs. ${intern.stipend}` : 'N/A', 70, y);
                 
                 if (intern.description) {
                     doc.fillColor('#374151')
@@ -259,7 +264,7 @@ export const generateStudentReport = async (req, res) => {
 
         // ===== PROJECTS =====
         if (projects && projects.length > 0) {
-            y = drawSectionHeader(doc, '🚀 PROJECTS', y);
+            y = drawSectionHeader(doc, 'PROJECTS', y);
             
             for (let i = 0; i < projects.length; i++) {
                 const project = projects[i];
@@ -303,7 +308,7 @@ export const generateStudentReport = async (req, res) => {
 
         // ===== CERTIFICATIONS =====
         if (certifications && certifications.length > 0) {
-            y = drawSectionHeader(doc, '🏆 CERTIFICATIONS', y);
+            y = drawSectionHeader(doc, 'CERTIFICATIONS', y);
             
             for (let i = 0; i < certifications.length; i++) {
                 const cert = certifications[i];
@@ -333,7 +338,7 @@ export const generateStudentReport = async (req, res) => {
 
         // ===== LANGUAGES =====
         if (languages && languages.length > 0) {
-            y = drawSectionHeader(doc, '🌐 LANGUAGES', y);
+            y = drawSectionHeader(doc, 'LANGUAGES', y);
             
             const langList = languages.map(l => {
                 const proficiency = [];
@@ -350,15 +355,15 @@ export const generateStudentReport = async (req, res) => {
             y += doc.heightOfString(langList, { width: 495 }) + 15;
         }
 
-        // ===== FOOTER =====
-        const pageCount = doc.bufferedPageRange().count;
-        for (let i = 0; i < pageCount; i++) {
+        // ===== FOOTER - Add to all pages =====
+        const pageRange = doc.bufferedPageRange();
+        for (let i = 0; i < pageRange.count; i++) {
             doc.switchToPage(i);
             doc.fillColor('#9ca3af')
                .fontSize(8)
                .font('Helvetica')
                .text(
-                   `Page ${i + 1} of ${pageCount} | Placement Management System`,
+                   `Page ${i + 1} of ${pageRange.count} | Placement Management System`,
                    50,
                    doc.page.height - 30,
                    { align: 'center', width: 495 }
@@ -372,7 +377,9 @@ export const generateStudentReport = async (req, res) => {
 
     } catch (err) {
         logger.error("Error generating student report:", err);
-        res.status(500).json({ message: "Internal server error" });
+        if (!res.headersSent) {
+            res.status(500).json({ message: "Internal server error" });
+        }
     }
 };
 

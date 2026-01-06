@@ -23,57 +23,79 @@ export const getStudentFullReport = async (studentId) => {
 
         const student = studentResult.rows[0];
 
-        // Fetch student address
-        const addressQuery = `
-            SELECT * FROM student_addresses WHERE student_id = $1
-        `;
-        const addressResult = await client.query(addressQuery, [studentId]);
+        // Initialize empty results
+        let addressResult = { rows: [] };
+        let academicsResult = { rows: [] };
+        let familyResult = { rows: [] };
+        let languagesResult = { rows: [] };
+        let internshipsResult = { rows: [] };
+        let projectsResult = { rows: [] };
+        let certificationsResult = { rows: [] };
+        let documentsResult = { rows: [] };
+
+        // Fetch student address (with try-catch for each table)
+        try {
+            const addressQuery = `SELECT * FROM student_addresses WHERE student_id = $1`;
+            addressResult = await client.query(addressQuery, [studentId]);
+        } catch (e) {
+            logger.warn('student_addresses table not found or error', { error: e.message });
+        }
 
         // Fetch student academics
-        const academicsQuery = `
-            SELECT * FROM student_academics WHERE student_id = $1
-        `;
-        const academicsResult = await client.query(academicsQuery, [studentId]);
+        try {
+            const academicsQuery = `SELECT * FROM student_academics WHERE student_id = $1`;
+            academicsResult = await client.query(academicsQuery, [studentId]);
+        } catch (e) {
+            logger.warn('student_academics table not found or error', { error: e.message });
+        }
 
         // Fetch student family
-        const familyQuery = `
-            SELECT * FROM student_family WHERE student_id = $1
-        `;
-        const familyResult = await client.query(familyQuery, [studentId]);
+        try {
+            const familyQuery = `SELECT * FROM student_family WHERE student_id = $1`;
+            familyResult = await client.query(familyQuery, [studentId]);
+        } catch (e) {
+            logger.warn('student_family table not found or error', { error: e.message });
+        }
 
         // Fetch student languages
-        const languagesQuery = `
-            SELECT * FROM student_languages WHERE student_id = $1
-        `;
-        const languagesResult = await client.query(languagesQuery, [studentId]);
+        try {
+            const languagesQuery = `SELECT * FROM student_languages WHERE student_id = $1`;
+            languagesResult = await client.query(languagesQuery, [studentId]);
+        } catch (e) {
+            logger.warn('student_languages table not found or error', { error: e.message });
+        }
 
         // Fetch student internships
-        const internshipsQuery = `
-            SELECT * FROM student_internships WHERE student_id = $1
-            ORDER BY start_date DESC
-        `;
-        const internshipsResult = await client.query(internshipsQuery, [studentId]);
+        try {
+            const internshipsQuery = `SELECT * FROM student_internships WHERE student_id = $1 ORDER BY start_date DESC`;
+            internshipsResult = await client.query(internshipsQuery, [studentId]);
+        } catch (e) {
+            logger.warn('student_internships table not found or error', { error: e.message });
+        }
 
         // Fetch student projects
-        const projectsQuery = `
-            SELECT * FROM student_projects WHERE student_id = $1
-            ORDER BY project_id DESC
-        `;
-        const projectsResult = await client.query(projectsQuery, [studentId]);
+        try {
+            const projectsQuery = `SELECT * FROM student_projects WHERE student_id = $1 ORDER BY project_id DESC`;
+            projectsResult = await client.query(projectsQuery, [studentId]);
+        } catch (e) {
+            logger.warn('student_projects table not found or error', { error: e.message });
+        }
 
         // Fetch student certifications
-        const certificationsQuery = `
-            SELECT * FROM student_certifications WHERE student_id = $1
-            ORDER BY cert_id DESC
-        `;
-        const certificationsResult = await client.query(certificationsQuery, [studentId]);
+        try {
+            const certificationsQuery = `SELECT * FROM student_certifications WHERE student_id = $1 ORDER BY cert_id DESC`;
+            certificationsResult = await client.query(certificationsQuery, [studentId]);
+        } catch (e) {
+            logger.warn('student_certifications table not found or error', { error: e.message });
+        }
 
         // Fetch student documents
-        const documentsQuery = `
-            SELECT * FROM student_documents WHERE student_id = $1
-            ORDER BY uploaded_at DESC
-        `;
-        const documentsResult = await client.query(documentsQuery, [studentId]);
+        try {
+            const documentsQuery = `SELECT * FROM student_documents WHERE student_id = $1 ORDER BY uploaded_at DESC`;
+            documentsResult = await client.query(documentsQuery, [studentId]);
+        } catch (e) {
+            logger.warn('student_documents table not found or error', { error: e.message });
+        }
 
         return {
             success: true,
