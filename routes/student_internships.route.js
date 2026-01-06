@@ -7,8 +7,17 @@ const router = Router();
 // Download Excel template (place before parameterized routes)
 router.get('/template', studentInternshipController.downloadTemplate);
 
-// Import from Excel file
+// Import from Excel file (POST only)
 router.post('/import', uploadExcel.single('file'), studentInternshipController.importFromExcel);
+
+// GET /import - return helpful error message
+router.get('/import', (req, res) => {
+    res.status(405).json({
+        success: false,
+        message: "Use POST method to import Excel file. Send file with field name 'file'.",
+        hint: "GET /api/student-internships/template to download Excel template"
+    });
+});
 
 // Create a new student internship
 router.post('/', studentInternshipController.createStudentInternship);
