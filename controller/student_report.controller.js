@@ -200,21 +200,20 @@ export const generateStudentReport = async (req, res) => {
         }
 
         // ===== LANGUAGES =====
+        checkPageBreak(doc);
+        addSectionHeader(doc, 'LANGUAGES');
+        
         if (languages && languages.length > 0) {
-            checkPageBreak(doc);
-            addSectionHeader(doc, 'LANGUAGES');
-            
-            const langList = languages.map(l => {
-                const skills = [];
-                if (l.can_read) skills.push('R');
-                if (l.can_write) skills.push('W');
-                if (l.can_speak) skills.push('S');
-                return `${l.language_name} (${skills.join('/')})`;
-            }).join(' | ');
-            
-            doc.fontSize(9).font('Helvetica').fillColor('#1f2937').text(langList);
-            doc.moveDown(0.8);
+            languages.forEach((lang) => {
+                doc.fontSize(9).font('Helvetica-Bold').fillColor('#0891b2')
+                   .text(`${lang.language || 'Language'}`, { continued: true });
+                doc.font('Helvetica').fillColor('#1f2937')
+                   .text(` - Level: ${lang.level || 'N/A'}`);
+            });
+        } else {
+            doc.fontSize(9).font('Helvetica').fillColor('#6b7280').text('No languages recorded');
         }
+        doc.moveDown(0.8);
 
         // ===== ADD FOOTER TO ALL PAGES =====
         const pageRange = doc.bufferedPageRange();
