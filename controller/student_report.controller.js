@@ -215,20 +215,6 @@ export const generateStudentReport = async (req, res) => {
         }
         doc.moveDown(0.8);
 
-        // ===== ADD FOOTER TO ALL PAGES =====
-        const pageRange = doc.bufferedPageRange();
-        for (let i = 0; i < pageRange.count; i++) {
-            doc.switchToPage(i);
-            doc.fillColor('#9ca3af')
-               .fontSize(8)
-               .font('Helvetica')
-               .text(
-                   `Page ${i + 1} of ${pageRange.count} | Placement Management System`,
-                   50, doc.page.height - 30,
-                   { align: 'center', width: doc.page.width - 100 }
-               );
-        }
-
         doc.end();
         logger.info('generateStudentReport: PDF generated', { studentId: id });
 
