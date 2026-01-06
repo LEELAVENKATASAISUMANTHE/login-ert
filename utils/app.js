@@ -22,6 +22,7 @@ import studentProjectsRoutes from '../routes/student_projects.route.js';
 import studentFamilyRoutes from '../routes/student_family.route.js';
 import studentCertificationsRoutes from '../routes/student_certifications.route.js';
 import studentReportRoutes from '../routes/student_report.route.js';
+import companiesRoutes from '../routes/companies.route.js';
 const app = express();
 
 // ===== MIDDLEWARE =====
@@ -240,6 +241,7 @@ app.use('/api/student-projects', studentProjectsRoutes);
 app.use('/api/student-family', studentFamilyRoutes);
 app.use('/api/student-certifications', studentCertificationsRoutes);
 app.use('/api/student-report', studentReportRoutes);
+app.use('/api/companies', companiesRoutes);
 
 // Root endpoint
 app.get('/api', (req, res) => {
