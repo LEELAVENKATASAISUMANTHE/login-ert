@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as companyController from '../controller/companies.controller.js';
+import { upload } from '../utils/multer.js';
 
 const router = Router();
 
@@ -7,7 +8,7 @@ const router = Router();
  * @route   POST /api/companies
  * @desc    Create a new company
  */
-router.post('/', companyController.createCompany);
+router.post('/', upload.single('company_logo'), companyController.createCompany);
 
 /**
  * @route   GET /api/companies
@@ -24,9 +25,15 @@ router.get('/:id', companyController.getCompanyById);
 
 /**
  * @route   PUT /api/companies/:id
- * @desc    Update company by ID
+ * @desc    Update company by ID (full update)
  */
-router.put('/:id', companyController.updateCompany);
+router.put('/:id', upload.single('company_logo'), companyController.updateCompany);
+
+/**
+ * @route   PATCH /api/companies/:id
+ * @desc    Partially update company by ID
+ */
+router.patch('/:id', upload.single('company_logo'), companyController.updateCompany);
 
 /**
  * @route   DELETE /api/companies/:id

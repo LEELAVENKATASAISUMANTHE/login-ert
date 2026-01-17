@@ -1,6 +1,7 @@
 import logger from "../utils/logger.js";
 import * as companyService from "../db/companies.db.js";
 import joi from "joi";
+import { uploadToCloudinary } from "../utils/cloudinary.js";
 
 // Validation schema for creating a company
 const createCompanySchema = joi.object({
@@ -9,7 +10,8 @@ const createCompanySchema = joi.object({
     website: joi.string().uri().max(255).optional().allow(null, ''),
     contact_person: joi.string().trim().max(150).optional().allow(null, ''),
     contact_email: joi.string().email().max(150).optional().allow(null, ''),
-    contact_phone: joi.string().trim().max(30).optional().allow(null, '')
+    contact_phone: joi.string().trim().max(30).optional().allow(null, ''),
+    company_logo: joi.string().trim().max(500).optional().allow(null, '')
 });
 
 // Validation schema for updating a company
@@ -19,7 +21,8 @@ const updateCompanySchema = joi.object({
     website: joi.string().uri().max(255).optional().allow(null, ''),
     contact_person: joi.string().trim().max(150).optional().allow(null, ''),
     contact_email: joi.string().email().max(150).optional().allow(null, ''),
-    contact_phone: joi.string().trim().max(30).optional().allow(null, '')
+    contact_phone: joi.string().trim().max(30).optional().allow(null, ''),
+    company_logo: joi.string().trim().max(500).optional().allow(null, '')
 });
 
 // Validation schema for query params (pagination & search)
@@ -46,6 +49,13 @@ export const createCompany = async (req, res) => {
                 success: false, 
                 message: error.details[0].message 
             });
+        }
+
+        // Check if file was uploaded for company logo
+        if (req.file && req.file.buffer && req.file.buffer.length > 0) {
+            console.log("Logo file received:", req.file.originalname, "Size:", req.file.size);
+            const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "companies");
+            value.company_logo = cloudinaryResult.url;
         }
 
         const result = await companyService.createCompany(value);
@@ -141,11 +151,18 @@ export const updateCompany = async (req, res) => {
         }
 
         // Check if at least one field is being updated
-        if (Object.keys(value).length === 0) {
+        if (Object.keys(value).length === 0 && !req.file) {
             return res.status(400).json({ 
                 success: false, 
                 message: "No fields provided for update" 
             });
+        }
+
+        // Check if file was uploaded for company logo
+        if (req.file && req.file.buffer && req.file.buffer.length > 0) {
+            console.log("Logo file received:", req.file.originalname, "Size:", req.file.size);
+            const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "companies");
+            value.company_logo = cloudinaryResult.url;
         }
 
         const { id } = req.params;

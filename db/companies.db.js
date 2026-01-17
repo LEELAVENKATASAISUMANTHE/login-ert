@@ -24,8 +24,9 @@ export const createCompany = async (company) => {
                 contact_person,
                 contact_email,
                 contact_phone,
-                created_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+                created_at,
+                company_logo
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *
         `;
 
@@ -36,7 +37,8 @@ export const createCompany = async (company) => {
             company.contact_person || null,
             company.contact_email || null,
             company.contact_phone || null,
-            new Date()
+            new Date(),
+            company.company_logo || null
         ];
 
         const result = await client.query(insertQuery, values);
@@ -196,8 +198,9 @@ export const updateCompany = async (companyId, company) => {
                 website = COALESCE($3, website),
                 contact_person = COALESCE($4, contact_person),
                 contact_email = COALESCE($5, contact_email),
-                contact_phone = COALESCE($6, contact_phone)
-            WHERE company_id = $7
+                contact_phone = COALESCE($6, contact_phone),
+                company_logo = COALESCE($7, company_logo)
+            WHERE company_id = $8
             RETURNING *
         `;
 
@@ -208,6 +211,7 @@ export const updateCompany = async (companyId, company) => {
             company.contact_person || null,
             company.contact_email || null,
             company.contact_phone || null,
+            company.company_logo || null,
             companyId
         ];
 
