@@ -7,6 +7,7 @@ const storage = multer.memoryStorage();
 
 // File filter for images and PDFs
 const fileFilter = (req, file, cb) => {
+  
   const allowedTypes = /jpeg|jpg|png|pdf/;
   const ext = allowedTypes.test(
     path.extname(file.originalname).toLowerCase()

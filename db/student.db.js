@@ -25,9 +25,10 @@ import pool from './connection.js';
                             nationality,
                             placement_fee_status,
                             student_photo_path,
-                            created_at
+                            created_at,
+                            branch
                         ) VALUES (
-                            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+                            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
                         )
                         RETURNING *
                     `;
@@ -48,7 +49,8 @@ import pool from './connection.js';
                         student.nationality || null,
                         student.placement_fee_status || null,
                         student.student_photo_path || null,
-                        student.created_at || new Date()
+                        student.created_at || new Date(),
+                        student.branch || 'Unknown'
                     ];
 
                     const result = await client.query(insertQuery, values);
@@ -208,7 +210,8 @@ import pool from './connection.js';
                             nationality,
                             placement_fee_status,
                             student_photo_path,
-                            created_at
+                            created_at,
+                            branch
                         FROM students
                         ORDER BY student_id
                     `;
@@ -254,8 +257,9 @@ import pool from './connection.js';
                             emergency_contact = $11,
                             nationality = $12,
                             placement_fee_status = $13,
-                            student_photo_path = $14
-                        WHERE student_id = $15
+                            student_photo_path = $14,
+                            branch = $15
+                        WHERE student_id = $16
                         RETURNING *
                     `;
 
@@ -274,6 +278,7 @@ import pool from './connection.js';
                         student.nationality || null,
                         student.placement_fee_status || null,
                         student.student_photo_path || null,
+                        student.branch || 'Unknown',
                         studentId
                     ];
 

@@ -6,10 +6,10 @@ import { uploadToCloudinary } from "../utils/cloudinary.js";
 
 const studentSchema = joi.object({
     student_id: joi.string().alphanum().required(),
-    first_name: joi.string().min(1).max(50).required(),
-    middle_name: joi.string().min(1).max(50).optional().allow(null, ''),
-    last_name: joi.string().min(1).max(50).required(),
-    full_name: joi.string().min(1).max(150).required(),
+    first_name: joi.string().min(1).max(100).required(),
+    middle_name: joi.string().min(1).max(100).optional().allow(null, ''),
+    last_name: joi.string().min(1).max(100).required(),
+    full_name: joi.string().min(1).max(300).required(),
     gender: joi.string().valid('Male', 'Female', 'Other').required(),
     dob: joi.date().less('now').required(),
     email: joi.string().email().required(),
@@ -18,14 +18,15 @@ const studentSchema = joi.object({
     mobile: joi.string().pattern(/^[0-9]{10}$/).required(),
     emergency_contact: joi.string().pattern(/^[0-9]{10}$/).required(),
     nationality: joi.string().min(1).max(50).required(),
-    placement_fee_status: joi.string().valid('Paid', 'Unpaid').required()
+    placement_fee_status: joi.string().min(1).max(50).required(),
+    branch: joi.string().min(1).max(100).required()
 });
 
 const updateStudentSchema = joi.object({
-    first_name: joi.string().min(1).max(50).optional(),
-    middle_name: joi.string().min(1).max(50).optional().allow(null, ''),
-    last_name: joi.string().min(1).max(50).optional(),
-    full_name: joi.string().min(1).max(150).optional(),
+    first_name: joi.string().min(1).max(100).optional(),
+    middle_name: joi.string().min(1).max(100).optional().allow(null, ''),
+    last_name: joi.string().min(1).max(100).optional(),
+    full_name: joi.string().min(1).max(300).optional(),
     gender: joi.string().valid('Male', 'Female', 'Other').optional(),
     dob: joi.date().less('now').optional(),
     email: joi.string().email().optional(),
@@ -34,7 +35,8 @@ const updateStudentSchema = joi.object({
     mobile: joi.string().pattern(/^[0-9]{10}$/).optional(),
     emergency_contact: joi.string().pattern(/^[0-9]{10}$/).optional(),
     nationality: joi.string().min(1).max(50).optional(),
-    placement_fee_status: joi.string().valid('Paid', 'Unpaid').optional(),
+    placement_fee_status: joi.string().min(1).max(50).optional(),
+    branch: joi.string().min(1).max(100).optional()
 });
 
 export const createStudent = async (req, res) => {
