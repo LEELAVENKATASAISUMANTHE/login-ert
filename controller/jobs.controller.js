@@ -1,13 +1,13 @@
 import logger from "../utils/logger.js";
 import * as jobService from "../db/jobs.db.js";
 import joi from "joi";
-
+const type=["Full-Time","Part-Time","Internship","Contract","Temporary","Remote","PBC"];
 // Validation schema for creating a job
 const createJobSchema = joi.object({
     company_id: joi.number().integer().positive().required(),
     job_title: joi.string().trim().min(1).max(200).required(),
     job_description: joi.string().trim().optional().allow(null, ''),
-    job_type: joi.string().trim().max(50).optional().allow(null, ''),
+    job_type: joi.string().trim().valid(...type).optional().allow(),
     ctc_lpa: joi.number().precision(2).min(0).max(9999999.99).optional().allow(null),
     stipend_per_month: joi.number().precision(2).min(0).max(9999999999.99).optional().allow(null),
     location: joi.string().trim().max(200).optional().allow(null, ''),
@@ -21,7 +21,7 @@ const updateJobSchema = joi.object({
     company_id: joi.number().integer().positive().optional(),
     job_title: joi.string().trim().min(1).max(200).optional(),
     job_description: joi.string().trim().optional().allow(null, ''),
-    job_type: joi.string().trim().max(50).optional().allow(null, ''),
+    job_type: joi.string().trim().valid(...type).optional().allow(null, ''),
     ctc_lpa: joi.number().precision(2).min(0).max(9999999.99).optional().allow(null),
     stipend_per_month: joi.number().precision(2).min(0).max(9999999999.99).optional().allow(null),
     location: joi.string().trim().max(200).optional().allow(null, ''),
