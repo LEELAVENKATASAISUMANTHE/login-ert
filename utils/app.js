@@ -1,3 +1,4 @@
+
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -5,6 +6,7 @@ import helmet from 'helmet';
 import logger from './logger.js';
 import pool from '../db/connection.js'; // Import database connection
 import dotenv from "dotenv";
+import cookieParser from '../middleware/cookieParser.js';
 
 // Import routes
 import rolesRoutes from '../routes/roles.route.js';
@@ -42,9 +44,13 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Cookie parsing middleware
+app.use(cookieParser());
 
 // Logging middleware
 app.use(morgan('combined', {

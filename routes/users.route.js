@@ -1,6 +1,8 @@
 import { Router } from 'express';
+
 import * as userController from '../controller/users.controller.js';
 import logger from '../utils/logger.js';
+import { authenticateWithAutoRefresh } from '../middleware/authWithRefresh.js';
 
 const router = Router();
 
@@ -31,7 +33,15 @@ router.post('/register', userController.createUser);
  *            "password": "securePassword123"
  *          }
  */
+
 router.post('/login', userController.login);
+
+/**
+ * @route   POST /api/users/logout
+ * @desc    Logout user (clear JWT cookie)
+ * @access  Public
+ */
+router.post('/logout', userController.logout);
 
 /**
  * @route   GET /api/users
@@ -40,7 +50,7 @@ router.post('/login', userController.login);
  * @query   { page?: number, limit?: number, sortBy?: string, sortOrder?: 'ASC'|'DESC', is_active?: boolean, role_id?: number, search?: string }
  * @example GET /api/users?page=1&limit=10&sortBy=username&sortOrder=ASC&is_active=true
  */
-router.get('/', userController.getAllUsers);
+router.get('/', authenticateWithAutoRefresh, userController.getAllUsers);
 
 /**
  * @route   GET /api/users/:id
@@ -49,7 +59,7 @@ router.get('/', userController.getAllUsers);
  * @params  { id: number }
  * @example GET /api/users/1
  */
-router.get('/:id', userController.getUserById);
+router.get('/:id', authenticateWithAutoRefresh, userController.getUserById);
 
 /**
  * @route   PUT /api/users/:id

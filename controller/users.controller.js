@@ -2,6 +2,7 @@ import Joi from 'joi';
 import * as userDB from '../db/users.db.js';
 import logger from '../utils/logger.js';
 import bcrypt from 'bcrypt';
+import { generateToken, generateRefreshToken } from '../utils/jwt.js';
 
 export const createUserSchema = Joi.object({
     username: Joi.string().trim().min(3).max(100).required().messages({
@@ -362,7 +363,7 @@ export const changePassword = async (req, res) => {
     }
 };
 
-// User login
+// User login with JWT access and refresh tokens
 export const login = async (req, res) => {
     try {
         const { error } = loginSchema.validate(req.body);
@@ -375,33 +376,90 @@ export const login = async (req, res) => {
         }
 
         const result = await userDB.authenticateUser(req.body.username, req.body.password);
-        
-        res.status(200).json(result);
-    } catch (error) {
-        logger.error(`login: ${error.message}`, { 
-            username: req.body.username,
-            stack: error.stack 
+        if (!result.success) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid username or password'
+            });
+        }
+
+        // Generate JWT access and refresh tokens
+        const user = result.data;
+        const token = generateToken({
+            user_id: user.user_id,
+            username: user.username,
+            role_id: user.role_id,
+            role_name: user.role_name
         });
-        
+        const refreshToken = generateRefreshToken({
+            user_id: user.user_id,
+            username: user.username,
+            role_id: user.role_id,
+            role_name: user.role_name
+        });
+
+        // Set both tokens as HttpOnly cookies
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 15 * 60 * 1000 // 15 min
+        });
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Login successful',
+            data: user
+        });
+    } catch (error) {
+        logger.error(`login: ${error.message}`, {
+            username: req.body.username,
+            stack: error.stack
+        });
+
         if (error.message.includes('Invalid credentials') || error.message.includes('not found')) {
             return res.status(401).json({
                 success: false,
                 message: 'Invalid username or password'
             });
         }
-        
+
         if (error.message.includes('inactive') || error.message.includes('disabled')) {
             return res.status(403).json({
                 success: false,
                 message: error.message
             });
         }
-        
+
         res.status(500).json({
             success: false,
             message: 'Login failed'
         });
     }
+};
+
+// User logout (clear JWT cookies)
+export const logout = (req, res) => {
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+    });
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+    });
+    res.status(200).json({
+        success: true,
+        message: 'Logged out successfully'
+    });
 };
 
 // Update last login timestamp
