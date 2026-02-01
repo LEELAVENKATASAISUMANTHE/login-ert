@@ -1,5 +1,6 @@
 import Joi from 'joi';
 import * as userDB from '../db/users.db.js';
+import * as studentUsersDB from '../db/student_users.db.js';
 import logger from '../utils/logger.js';
 import bcrypt from 'bcrypt';
 import { generateToken, generateRefreshToken } from '../utils/jwt.js';
@@ -497,3 +498,53 @@ export const updateLastLogin = async (req, res) => {
         });
     }
 };
+
+/**
+ * Get current user information from JWT with student ID if applicable
+ */
+export const whoami = async (req, res) => {
+    try {
+        logger.info('whoami: Fetching current user information');
+        
+        // Extract user information from JWT (set by authentication middleware)
+        const userInfo = {
+            user_id: req.user.user_id,
+            username: req.user.username,
+            role_id: req.user.role_id,
+            role_name: req.user.role_name,
+            exp: req.user.exp,
+            iat: req.user.iat
+        };
+
+        // Check if user role is student and get student ID
+        if (req.user.role_name && req.user.role_name.toLowerCase() === 'student') {
+            try {
+                const studentResult = await studentUsersDB.getStudentUserByUserId(req.user.user_id);
+                if (studentResult.success) {
+                    userInfo.student_id = studentResult.data.student_id;
+                    logger.info(`whoami: Found student ID ${studentResult.data.student_id} for user ${req.user.user_id}`);
+                }
+            } catch (error) {
+                // Log but don't fail the request if student record is not found
+                logger.warn(`whoami: Could not find student record for user ${req.user.user_id}: ${error.message}`);
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'User information retrieved successfully',
+            data: userInfo
+        });
+
+    } catch (error) {
+        logger.error(`whoami: ${error.message}`, {
+            user_id: req.user?.user_id,
+            stack: error.stack
+        });
+
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};;

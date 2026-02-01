@@ -44,6 +44,14 @@ router.post('/login', userController.login);
 router.post('/logout', userController.logout);
 
 /**
+ * @route   GET /api/users/whoami
+ * @desc    Get current user information from JWT with student ID if applicable
+ * @access  Private
+ * @example GET /api/users/whoami
+ */
+router.get('/whoami', authenticateWithAutoRefresh, userController.whoami);
+
+/**
  * @route   GET /api/users
  * @desc    Get all users with pagination and filtering
  * @access  Private (Admin)
