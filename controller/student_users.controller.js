@@ -3,7 +3,13 @@ import * as studentUserDB from '../db/student_users.db.js';
 import logger from '../utils/logger.js';
 
 export const createStudentUserSchema = Joi.object({
-    student_id: Joi.number().integer().min(1).required().messages({
+    student_id: Joi.alternatives().try(
+        Joi.string().trim().min(1).max(50),
+        Joi.number().integer().min(1)
+    ).required().messages({
+        'alternatives.match': 'Student ID should be a string or number',
+        'string.min': 'Student ID should have at least 1 character',
+        'string.max': 'Student ID should have at most 50 characters',
         'number.base': 'Student ID should be a number',
         'number.min': 'Student ID should be a positive integer',
         'any.required': 'Student ID is required'
@@ -32,7 +38,17 @@ export const getStudentUsersSchema = Joi.object({
 });
 
 export const studentIdSchema = Joi.object({
-    id: Joi.number().integer().min(1).required()
+    id: Joi.alternatives().try(
+        Joi.string().trim().min(1).max(50),
+        Joi.number().integer().min(1)
+    ).required().messages({
+        'alternatives.match': 'Student ID should be a string or number',
+        'string.min': 'Student ID should have at least 1 character',
+        'string.max': 'Student ID should have at most 50 characters',
+        'number.base': 'Student ID should be a number',
+        'number.min': 'Student ID should be a positive integer',
+        'any.required': 'Student ID is required'
+    })
 });
 
 export const userIdSchema = Joi.object({
