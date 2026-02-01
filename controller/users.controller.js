@@ -1,6 +1,7 @@
 import Joi from 'joi';
 import * as userDB from '../db/users.db.js';
 import * as studentUsersDB from '../db/student_users.db.js';
+import * as studentDB from '../db/student.db.js';
 import logger from '../utils/logger.js';
 import bcrypt from 'bcrypt';
 import { generateToken, generateRefreshToken } from '../utils/jwt.js';
@@ -516,13 +517,19 @@ export const whoami = async (req, res) => {
             iat: req.user.iat
         };
 
-        // Check if user role is student and get student ID
+        // Check if user role is student and get student information
         if (req.user.role_name && req.user.role_name.toLowerCase() === 'student') {
             try {
-                const studentResult = await studentUsersDB.getStudentUserByUserId(req.user.user_id);
-                if (studentResult.success) {
-                    userInfo.student_id = studentResult.data.student_id;
-                    logger.info(`whoami: Found student ID ${studentResult.data.student_id} for user ${req.user.user_id}`);
+                const studentUserResult = await studentUsersDB.getStudentUserByUserId(req.user.user_id);
+                if (studentUserResult.success) {
+                    userInfo.student_id = studentUserResult.data.student_id;
+                    
+                    // Get complete student information
+                    const studentResult = await studentDB.getStudentById(studentUserResult.data.student_id);
+                    if (studentResult.success) {
+                        userInfo.student = studentResult.data;
+                        logger.info(`whoami: Found complete student record for user ${req.user.user_id}`);
+                    }
                 }
             } catch (error) {
                 // Log but don't fail the request if student record is not found
