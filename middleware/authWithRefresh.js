@@ -31,8 +31,10 @@ export async function authenticateWithAutoRefresh(req, res, next) {
         });
         res.cookie('token', newAccessToken, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          domain: process.env.NODE_ENV === 'production' ? '.sumantheluri.tech' : undefined,
+          path: '/',
           maxAge: 15 * 60 * 1000
         });
         req.user = refreshPayload;
@@ -53,8 +55,10 @@ export async function authenticateWithAutoRefresh(req, res, next) {
       });
       res.cookie('token', newAccessToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'none',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        domain: process.env.NODE_ENV === 'production' ? '.sumantheluri.tech' : undefined,
+        path: '/',
         maxAge: 15 * 60 * 1000
       });
       req.user = refreshPayload;

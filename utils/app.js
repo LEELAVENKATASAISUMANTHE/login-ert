@@ -39,9 +39,11 @@ dotenv.config();
 
 // CORS middleware
 app.use(cors({
-  origin: '*', // Configure this for production
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: ['https://www.sumantheluri.tech', 'http://localhost:3000', 'http://localhost:3001'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+  credentials: true, // Enable credentials (cookies)
+  optionsSuccessStatus: 200
 }));
 
 
