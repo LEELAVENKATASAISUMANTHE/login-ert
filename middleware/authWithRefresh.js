@@ -31,8 +31,8 @@ export async function authenticateWithAutoRefresh(req, res, next) {
         });
         res.cookie('token', newAccessToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
+          secure: true,
+          sameSite: 'none',
           maxAge: 15 * 60 * 1000
         });
         req.user = refreshPayload;
@@ -53,8 +53,8 @@ export async function authenticateWithAutoRefresh(req, res, next) {
       });
       res.cookie('token', newAccessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        secure: true,
+        sameSite: 'none',
         maxAge: 15 * 60 * 1000
       });
       req.user = refreshPayload;
