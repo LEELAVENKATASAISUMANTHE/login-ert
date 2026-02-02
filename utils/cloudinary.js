@@ -9,38 +9,44 @@ cloudinary.config({
 
 /**
  * Upload file buffer to Cloudinary
- * @param {Buffer} fileBuffer - file buffer from multer memory storage
- * @param {string} folder - cloudinary folder name
+ * @param {Buffer} fileBuffer
+ * @param {string} folder
+ * @param {string} mimeType
  */
-export const uploadToCloudinary = async (fileBuffer, folder = "uploads") => {
+export const uploadToCloudinary = async (
+  fileBuffer,
+  folder = "uploads",
+  mimeType = ""
+) => {
   try {
     if (!fileBuffer || fileBuffer.length === 0) {
       throw new Error("File buffer is empty");
     }
 
-    console.log(`Uploading file buffer, size: ${fileBuffer.length} bytes`);
+    const isPdf = mimeType === "application/pdf";
 
-    // Upload buffer using stream
     const result = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder,
-          resource_type: "auto",
+          resource_type: isPdf ? "raw" : "auto",
         },
         (error, result) => {
           if (error) reject(error);
           else resolve(result);
         }
       );
+
       uploadStream.end(fileBuffer);
     });
 
     return {
       url: result.secure_url,
       public_id: result.public_id,
+      resource_type: result.resource_type,
     };
   } catch (error) {
-    console.error("Cloudinary upload error:", error.message);
+    console.error("Cloudinary upload error:", error);
     throw error;
   }
 };
