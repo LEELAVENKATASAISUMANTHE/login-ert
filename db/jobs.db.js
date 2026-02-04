@@ -92,7 +92,7 @@ export const getAllJobs = async (params = {}) => {
             JOIN companies c ON j.company_id = c.company_id
         `;
         let dataQuery = `
-            SELECT j.*, c.company_name 
+            SELECT j.*, c.company_name, c.company_logo 
             FROM jobs j
             JOIN companies c ON j.company_id = c.company_id
         `;
@@ -171,7 +171,7 @@ export const getJobById = async (jobId) => {
         logger.info(`getJobById: Fetching job with ID ${jobId}`);
         
         const selectQuery = `
-            SELECT j.*, c.company_name 
+            SELECT j.*, c.company_name, c.company_logo 
             FROM jobs j
             JOIN companies c ON j.company_id = c.company_id
             WHERE j.job_id = $1
