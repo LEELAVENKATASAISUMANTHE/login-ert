@@ -331,3 +331,49 @@ export const deleteApplication = async (req, res) => {
         });
     }
 };
+
+// Check student eligibility for a job
+export const checkEligibility = async (req, res) => {
+    try {
+        const { error: studentError } = studentIdSchema.validate(req.params);
+        if (studentError) {
+            logger.warn(`checkEligibility: Student ID validation failed - ${studentError.details[0].message}`);
+            return res.status(400).json({ 
+                success: false, 
+                message: studentError.details[0].message 
+            });
+        }
+
+        const { error: jobError } = jobIdSchema.validate(req.params);
+        if (jobError) {
+            logger.warn(`checkEligibility: Job ID validation failed - ${jobError.details[0].message}`);
+            return res.status(400).json({ 
+                success: false, 
+                message: jobError.details[0].message 
+            });
+        }
+
+        const { studentId, jobId } = req.params;
+        const result = await applicationService.checkStudentEligibility(studentId, jobId);
+        
+        res.status(200).json({
+            success: true,
+            eligible: result.eligible,
+            reasons: result.reasons || []
+        });
+    } catch (err) {
+        logger.error("Error checking eligibility:", err);
+        
+        if (err.message.includes('not found')) {
+            return res.status(404).json({ 
+                success: false, 
+                message: err.message 
+            });
+        }
+        
+        res.status(500).json({ 
+            success: false, 
+            message: "Internal server error" 
+        });
+    }
+};

@@ -1,6 +1,101 @@
 import logger from '../utils/logger.js';
 import pool from './connection.js';
 
+// Function to validate student eligibility against job requirements
+const validateStudentEligibility = async (client, studentId, jobId) => {
+    try {
+        // Fetch student academic details
+        const studentQuery = `
+            SELECT sa.*, s.branch 
+            FROM student_academics sa 
+            JOIN students s ON sa.student_id = s.student_id 
+            WHERE sa.student_id = $1
+        `;
+        const studentResult = await client.query(studentQuery, [studentId]);
+        
+        if (studentResult.rows.length === 0) {
+            throw new Error('Student academic record not found. Please complete your academic profile first.');
+        }
+        
+        const student = studentResult.rows[0];
+        
+        // Fetch job requirements
+        const jobReqQuery = `SELECT * FROM job_requirements WHERE job_id = $1`;
+        const jobReqResult = await client.query(jobReqQuery, [jobId]);
+        
+        if (jobReqResult.rows.length === 0) {
+            // If no specific requirements are set, allow application
+            return { eligible: true, message: 'No specific requirements set for this job.' };
+        }
+        
+        const requirements = jobReqResult.rows[0];
+        const failedCriteria = [];
+        
+        // Check 10th percentage
+        if (requirements.tenth_percent && student.tenth_percent < requirements.tenth_percent) {
+            failedCriteria.push(`10th grade: Required ${requirements.tenth_percent}%, You have ${student.tenth_percent}%`);
+        }
+        
+        // Check 12th percentage
+        if (requirements.twelfth_percent && student.twelfth_percent && student.twelfth_percent < requirements.twelfth_percent) {
+            failedCriteria.push(`12th grade: Required ${requirements.twelfth_percent}%, You have ${student.twelfth_percent}%`);
+        }
+        
+        // Check UG CGPA
+        if (requirements.ug_cgpa && student.ug_cgpa < requirements.ug_cgpa) {
+            failedCriteria.push(`UG CGPA: Required ${requirements.ug_cgpa}, You have ${student.ug_cgpa}`);
+        }
+        
+        // Check PG CGPA (only if student has PG and requirement exists)
+        if (requirements.pg_cgpa && student.pg_cgpa && student.pg_cgpa < requirements.pg_cgpa) {
+            failedCriteria.push(`PG CGPA: Required ${requirements.pg_cgpa}, You have ${student.pg_cgpa}`);
+        }
+        
+        // Check allowed branches
+        if (requirements.allowed_branches && Array.isArray(requirements.allowed_branches) && requirements.allowed_branches.length > 0) {
+            const studentBranch = student.branch.toLowerCase().trim();
+            const allowedBranches = requirements.allowed_branches.map(branch => branch.toLowerCase().trim());
+            
+            if (!allowedBranches.includes(studentBranch)) {
+                failedCriteria.push(`Branch: Required one of [${requirements.allowed_branches.join(', ')}], You have ${student.branch}`);
+            }
+        }
+        
+        // Check minimum experience (if specified)
+        if (requirements.min_experience_yrs && requirements.min_experience_yrs > 0) {
+            // Calculate experience from internships and current year
+            const experienceQuery = `
+                SELECT COUNT(*) as internship_count,
+                       COALESCE(SUM(EXTRACT(YEAR FROM AGE(COALESCE(end_date, CURRENT_DATE), start_date))), 0) as total_experience_years
+                FROM student_internships 
+                WHERE student_id = $1 AND start_date IS NOT NULL
+            `;
+            const expResult = await client.query(experienceQuery, [studentId]);
+            const totalExperience = expResult.rows[0]?.total_experience_years || 0;
+            
+            if (totalExperience < requirements.min_experience_yrs) {
+                failedCriteria.push(`Experience: Required ${requirements.min_experience_yrs} years, You have ${totalExperience} years`);
+            }
+        }
+        
+        if (failedCriteria.length > 0) {
+            return {
+                eligible: false,
+                message: `You do not meet the following job requirements: ${failedCriteria.join('; ')}`
+            };
+        }
+        
+        return {
+            eligible: true,
+            message: 'You meet all the job requirements.'
+        };
+        
+    } catch (error) {
+        logger.error('Error validating student eligibility:', error);
+        throw error;
+    }
+};
+
 // Create a new application
 export const createApplication = async (application) => {
     const client = await pool.connect();
@@ -27,6 +122,12 @@ export const createApplication = async (application) => {
         const duplicateResult = await client.query(duplicateCheck, [application.student_id, application.job_id]);
         if (duplicateResult.rows.length > 0) {
             throw new Error('Application already exists for this student and job');
+        }
+
+        // Validate student eligibility against job requirements
+        const eligibilityCheck = await validateStudentEligibility(client, application.student_id, application.job_id);
+        if (!eligibilityCheck.eligible) {
+            throw new Error(`Eligibility check failed: ${eligibilityCheck.message}`);
         }
 
         const insertQuery = `
@@ -62,7 +163,7 @@ export const createApplication = async (application) => {
         return {
             success: true,
             data: result.rows[0],
-            message: 'Application created successfully'
+            message: `Application created successfully. ${eligibilityCheck.message}`
         };
     } catch (error) {
         await client.query('ROLLBACK');
@@ -392,6 +493,57 @@ export const deleteApplication = async (applicationId) => {
         logger.error(`deleteApplication: ${error.message}`, {
             stack: error.stack,
             applicationId
+        });
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
+// Check student eligibility for a specific job
+export const checkStudentEligibility = async (studentId, jobId) => {
+    const client = await pool.connect();
+    try {
+        logger.info(`checkStudentEligibility: Checking eligibility for student ${studentId} and job ${jobId}`);
+
+        // Verify student exists
+        const studentCheck = `SELECT student_id FROM students WHERE student_id = $1`;
+        const studentResult = await client.query(studentCheck, [studentId]);
+        if (studentResult.rows.length === 0) {
+            throw new Error('Student not found');
+        }
+
+        // Verify job exists
+        const jobCheck = `SELECT job_id FROM jobs WHERE job_id = $1`;
+        const jobResult = await client.query(jobCheck, [jobId]);
+        if (jobResult.rows.length === 0) {
+            throw new Error('Job not found');
+        }
+
+        // Check if already applied
+        const duplicateCheck = `SELECT application_id FROM applications WHERE student_id = $1 AND job_id = $2`;
+        const duplicateResult = await client.query(duplicateCheck, [studentId, jobId]);
+        if (duplicateResult.rows.length > 0) {
+            return {
+                success: true,
+                eligible: false,
+                message: 'You have already applied for this job'
+            };
+        }
+
+        // Check eligibility
+        const eligibilityCheck = await validateStudentEligibility(client, studentId, jobId);
+        
+        return {
+            success: true,
+            eligible: eligibilityCheck.eligible,
+            message: eligibilityCheck.message
+        };
+    } catch (error) {
+        logger.error(`checkStudentEligibility: ${error.message}`, {
+            stack: error.stack,
+            studentId,
+            jobId
         });
         throw error;
     } finally {

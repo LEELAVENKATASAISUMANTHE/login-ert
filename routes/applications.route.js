@@ -52,4 +52,10 @@ router.patch('/:id/status', applicationController.updateApplicationStatus);
  */
 router.delete('/:id', applicationController.deleteApplication);
 
+/**
+ * @route   GET /api/applications/check-eligibility/:studentId/:jobId
+ * @desc    Check if student is eligible for a specific job
+ */
+router.get('/check-eligibility/:studentId/:jobId', applicationController.checkEligibility);
+
 export default router;

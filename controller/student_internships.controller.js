@@ -12,7 +12,7 @@ const studentInternshipSchema = joi.object({
     start_date: joi.date().optional().allow(null, ''),
     end_date: joi.date().optional().allow(null, ''),
     description: joi.string().optional().allow(null, ''),
-    stipend: joi.number().precision(2).min(0).optional().allow(null)
+    stipend: joi.number().precision(2).min(0).max(2000000).optional().allow(null)
 });
 
 // Validation schema for Excel import (more lenient for bulk operations)
@@ -32,7 +32,7 @@ const importInternshipSchema = joi.object({
     description: joi.string().optional().allow(null, ''),
     stipend: joi.alternatives().try(
         joi.number().precision(2).min(0),
-        joi.string().allow(null, '')
+        joi.string().max(2000000).allow(null, '')
     ).optional()
 });
 
