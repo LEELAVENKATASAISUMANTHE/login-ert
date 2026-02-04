@@ -36,6 +36,16 @@ export const createUserSchema = Joi.object({
     }),
     is_active: Joi.boolean().default(true).optional().messages({
         'boolean.base': 'Active status should be a boolean value'
+    }),
+    student_id: Joi.alternatives().try(
+        Joi.string().trim().min(1).max(50),
+        Joi.number().integer().min(1)
+    ).optional().messages({
+        'alternatives.match': 'Student ID should be a string or number',
+        'string.min': 'Student ID should have at least 1 character',
+        'string.max': 'Student ID should have at most 50 characters',
+        'number.base': 'Student ID should be a number',
+        'number.min': 'Student ID should be a positive integer'
     })
 });
 
@@ -125,7 +135,52 @@ export const createUser = async (req, res) => {
         };
         delete userData.password;
 
+        // Create the user first
         const result = await userDB.createUser(userData);
+        
+        // If user was created successfully and has student role, create student_users entry
+        if (result.success && result.data) {
+            try {
+                // Check if the user's role is student (either by role_id check or role_name)
+                // We need to get the role information to check if it's a student role
+                const userWithRole = await userDB.getUserById(result.data.user_id);
+                
+                if (userWithRole.success && userWithRole.data.role_name && 
+                    userWithRole.data.role_name.toLowerCase() === 'student') {
+                    
+                    // Use provided student_id or generate a simple numeric one
+                    let studentId = req.body.student_id;
+                    if (!studentId) {
+                        // Generate simple student_id using user_id directly
+                        studentId = result.data.user_id.toString();
+                    }
+                    
+                    // Create student_users association
+                    const studentUserData = {
+                        student_id: studentId,
+                        user_id: result.data.user_id
+                    };
+                    
+                    const studentUserResult = await studentUsersDB.createStudentUser(studentUserData);
+                    
+                    if (studentUserResult.success) {
+                        logger.info(`createUser: Successfully created student_users entry for user ${result.data.user_id} with student_id ${studentId}`);
+                        result.message += ` Student association created with ID: ${studentId}`;
+                        result.data.student_id = studentId;
+                    } else {
+                        logger.warn(`createUser: Failed to create student_users entry for user ${result.data.user_id}`);
+                    }
+                } else {
+                    logger.debug(`createUser: User ${result.data.user_id} does not have student role, skipping student_users creation`);
+                }
+            } catch (studentError) {
+                logger.error(`createUser: Error creating student_users entry: ${studentError.message}`, {
+                    userId: result.data.user_id,
+                    error: studentError.stack
+                });
+                // Don't fail the whole operation, just log the error
+            }
+        }
         
         res.status(201).json(result);
     } catch (error) {
