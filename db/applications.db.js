@@ -67,11 +67,11 @@ export const checkEligibility = async (studentId, jobId) => {
         }
         
         // Perform eligibility checks - convert strings to numbers for proper comparison
-        // Handle null values: if student data is null, the check fails; if requirement is null, the check passes
+        // Handle null values: if student data is null, treat as 0 for PG CGPA; if requirement is null, the check passes
         const studentTenth = data.tenth_percent !== null ? parseFloat(data.tenth_percent) : null;
         const studentTwelfth = data.twelfth_percent !== null ? parseFloat(data.twelfth_percent) : null;
         const studentUgCgpa = data.ug_cgpa !== null ? parseFloat(data.ug_cgpa) : null;
-        const studentPgCgpa = data.pg_cgpa !== null ? parseFloat(data.pg_cgpa) : null;
+        const studentPgCgpa = data.pg_cgpa !== null ? parseFloat(data.pg_cgpa) : 0;
         const studentExperience = parseFloat(data.experience_years) || 0;
         
         const reqTenth = data.req_tenth !== null ? parseFloat(data.req_tenth) : null;
@@ -84,7 +84,7 @@ export const checkEligibility = async (studentId, jobId) => {
             tenth_percent_meets: reqTenth !== null ? (studentTenth !== null && studentTenth >= reqTenth) : true,
             twelfth_percent_meets: reqTwelfth !== null ? (studentTwelfth !== null && studentTwelfth >= reqTwelfth) : true,
             ug_cgpa_meets: reqUgCgpa !== null ? (studentUgCgpa !== null && studentUgCgpa >= reqUgCgpa) : true,
-            pg_cgpa_meets: reqPgCgpa !== null ? (studentPgCgpa !== null && studentPgCgpa >= reqPgCgpa) : true,
+            pg_cgpa_meets: (reqPgCgpa !== null && reqPgCgpa > 0) ? (studentPgCgpa >= reqPgCgpa) : true,
             experience_meets: reqExperience !== null ? (studentExperience >= reqExperience) : true,
             branch_meets: data.allowed_branches && data.allowed_branches.length > 0 
                 ? data.allowed_branches.some(branch => branch.toLowerCase() === (data.branch || '').toLowerCase()) 
@@ -123,11 +123,7 @@ export const checkEligibility = async (studentId, jobId) => {
                 }
             }
             if (!checks.pg_cgpa_meets) {
-                if (studentPgCgpa === null) {
-                    eligibilityComments.push(`PG CGPA data missing (required: ${reqPgCgpa})`);
-                } else {
-                    eligibilityComments.push(`PG CGPA below requirement (${studentPgCgpa} < ${reqPgCgpa})`);
-                }
+                eligibilityComments.push(`PG CGPA below requirement (${studentPgCgpa} < ${reqPgCgpa})`);
             }
             if (!checks.experience_meets) {
                 eligibilityComments.push(`Experience below requirement (${studentExperience} years < ${reqExperience} years)`);
