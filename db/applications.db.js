@@ -30,7 +30,13 @@ export const checkEligibility = async (studentId, jobId) => {
             LEFT JOIN student_academics sa ON s.student_id = sa.student_id
             LEFT JOIN (
                 SELECT student_id, 
-                       SUM(COALESCE(duration_years, 0) + COALESCE(duration_months, 0)/12.0) as total_experience_years
+                       COUNT(*) as internship_count,
+                       COALESCE(SUM(
+                           CASE 
+                               WHEN duration ~ '^[0-9]+$' THEN CAST(duration AS INTEGER)
+                               ELSE 0
+                           END
+                       ), 0)/12.0 as total_experience_years
                 FROM student_internships 
                 GROUP BY student_id
             ) si ON s.student_id = si.student_id
