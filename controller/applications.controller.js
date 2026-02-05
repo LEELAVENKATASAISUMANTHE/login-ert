@@ -4,41 +4,47 @@ import joi from "joi";
 
 // Validation schema for creating an application
 const createApplicationSchema = joi.object({
-    student_id: joi.string().required(),
+    student_id: joi.string().trim().required(),
     job_id: joi.number().integer().positive().required(),
-    applied_at: joi.date().optional().allow(null),
-    status: joi.string().trim().max(50).optional().default('Applied'),
+    skills_match_score: joi.number().precision(2).min(0).max(1).optional().allow(null),
     offer_type: joi.string().trim().max(50).optional().allow(null, ''),
-    offer_ctc: joi.number().precision(2).min(0).max(9999999.99).optional().allow(null),
-    offer_stipend: joi.number().precision(2).min(0).max(9999999999.99).optional().allow(null),
+    offer_ctc: joi.number().precision(2).min(0).optional().allow(null),
+    offer_stipend: joi.number().precision(2).min(0).optional().allow(null),
     placement_date: joi.date().optional().allow(null),
     remarks: joi.string().trim().optional().allow(null, '')
 });
 
-// Validation schema for updating an application
+// Validation schema for updating application status
 const updateApplicationSchema = joi.object({
     status: joi.string().trim().max(50).optional(),
+    eligibility_status: joi.string().valid(
+        'pending', 'eligible', 'not_eligible', 'conditionally_eligible'
+    ).optional(),
+    eligibility_comments: joi.string().trim().max(1000).optional().allow(null, ''),
+    skills_match_score: joi.number().precision(2).min(0).max(1).optional().allow(null),
     offer_type: joi.string().trim().max(50).optional().allow(null, ''),
-    offer_ctc: joi.number().precision(2).min(0).max(9999999.99).optional().allow(null),
-    offer_stipend: joi.number().precision(2).min(0).max(9999999999.99).optional().allow(null),
+    offer_ctc: joi.number().precision(2).min(0).optional().allow(null),
+    offer_stipend: joi.number().precision(2).min(0).optional().allow(null),
     placement_date: joi.date().optional().allow(null),
     remarks: joi.string().trim().optional().allow(null, '')
-});
-
-// Validation schema for updating status only
-const updateStatusSchema = joi.object({
-    status: joi.string().trim().max(50).required()
 });
 
 // Validation schema for query params
 const getApplicationsSchema = joi.object({
     page: joi.number().integer().min(1).default(1),
     limit: joi.number().integer().min(1).max(100).default(10),
-    sortBy: joi.string().valid('application_id', 'student_id', 'job_id', 'applied_at', 'status', 'offer_ctc', 'placement_date').default('application_id'),
+    sortBy: joi.string().valid(
+        'application_id', 'applied_at', 'updated_at', 'student_id', 
+        'job_id', 'status', 'eligibility_status', 'full_name', 'job_title'
+    ).default('applied_at'),
     sortOrder: joi.string().valid('ASC', 'DESC', 'asc', 'desc').default('DESC'),
     search: joi.string().trim().max(100).optional().allow(''),
+    student_id: joi.string().trim().optional(),
+    job_id: joi.number().integer().positive().optional(),
     status: joi.string().trim().max(50).optional(),
-    offer_type: joi.string().trim().max(50).optional()
+    eligibility_status: joi.string().valid(
+        'pending', 'eligible', 'not_eligible', 'conditionally_eligible'
+    ).optional()
 });
 
 // Validation schema for ID param
@@ -48,7 +54,7 @@ const idSchema = joi.object({
 
 // Validation schema for student ID param
 const studentIdSchema = joi.object({
-    studentId: joi.string().required()
+    studentId: joi.string().trim().required()
 });
 
 // Validation schema for job ID param
@@ -69,18 +75,30 @@ export const createApplication = async (req, res) => {
         }
 
         const result = await applicationService.createApplication(value);
-        res.status(201).json(result);
+        
+        // Return appropriate status code based on eligibility
+        const statusCode = result.data.eligibility_status === 'eligible' ? 201 : 202;
+        
+        res.status(statusCode).json(result);
     } catch (err) {
         logger.error("Error creating application:", err);
         
-        if (err.message.includes('not found')) {
+        if (err.message.includes('already exists')) {
+            return res.status(409).json({ 
+                success: false, 
+                message: 'You have already applied for this job' 
+            });
+        }
+        
+        if (err.message.includes('Student') || err.message.includes('job not found')) {
             return res.status(404).json({ 
                 success: false, 
                 message: err.message 
             });
         }
-        if (err.message.includes('already exists')) {
-            return res.status(409).json({ 
+        
+        if (err.message.includes('deadline has passed')) {
+            return res.status(400).json({ 
                 success: false, 
                 message: err.message 
             });
@@ -93,7 +111,7 @@ export const createApplication = async (req, res) => {
     }
 };
 
-// Get all applications
+// Get all applications with filtering and pagination
 export const getAllApplications = async (req, res) => {
     try {
         const { error, value } = getApplicationsSchema.validate(req.query);
@@ -157,7 +175,16 @@ export const getApplicationsByStudentId = async (req, res) => {
             });
         }
 
-        const { error: queryError, value: queryValue } = getApplicationsSchema.validate(req.query);
+        const { error: queryError, value: queryParams } = joi.object({
+            page: joi.number().integer().min(1).default(1),
+            limit: joi.number().integer().min(1).max(100).default(10),
+            sortBy: joi.string().valid(
+                'application_id', 'applied_at', 'updated_at', 'job_id', 
+                'status', 'eligibility_status', 'job_title'
+            ).default('applied_at'),
+            sortOrder: joi.string().valid('ASC', 'DESC', 'asc', 'desc').default('DESC')
+        }).validate(req.query);
+
         if (queryError) {
             logger.warn(`getApplicationsByStudentId: Query validation failed - ${queryError.details[0].message}`);
             return res.status(400).json({ 
@@ -167,10 +194,10 @@ export const getApplicationsByStudentId = async (req, res) => {
         }
 
         const { studentId } = req.params;
-        const result = await applicationService.getApplicationsByStudentId(studentId, queryValue);
+        const result = await applicationService.getApplicationsByStudentId(studentId, queryParams);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching applications by student:", err);
+        logger.error("Error fetching student applications:", err);
         res.status(500).json({ 
             success: false, 
             message: "Internal server error" 
@@ -190,7 +217,20 @@ export const getApplicationsByJobId = async (req, res) => {
             });
         }
 
-        const { error: queryError, value: queryValue } = getApplicationsSchema.validate(req.query);
+        const { error: queryError, value: queryParams } = joi.object({
+            page: joi.number().integer().min(1).default(1),
+            limit: joi.number().integer().min(1).max(100).default(10),
+            sortBy: joi.string().valid(
+                'application_id', 'applied_at', 'updated_at', 'student_id', 
+                'status', 'eligibility_status', 'full_name'
+            ).default('applied_at'),
+            sortOrder: joi.string().valid('ASC', 'DESC', 'asc', 'desc').default('DESC'),
+            status: joi.string().trim().max(50).optional(),
+            eligibility_status: joi.string().valid(
+                'pending', 'eligible', 'not_eligible', 'conditionally_eligible'
+            ).optional()
+        }).validate(req.query);
+
         if (queryError) {
             logger.warn(`getApplicationsByJobId: Query validation failed - ${queryError.details[0].message}`);
             return res.status(400).json({ 
@@ -200,10 +240,10 @@ export const getApplicationsByJobId = async (req, res) => {
         }
 
         const { jobId } = req.params;
-        const result = await applicationService.getApplicationsByJobId(jobId, queryValue);
+        const result = await applicationService.getApplicationsByJobId(jobId, queryParams);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching applications by job:", err);
+        logger.error("Error fetching job applications:", err);
         res.status(500).json({ 
             success: false, 
             message: "Internal server error" 
@@ -211,7 +251,7 @@ export const getApplicationsByJobId = async (req, res) => {
     }
 };
 
-// Update application by ID
+// Update application status
 export const updateApplication = async (req, res) => {
     try {
         const { error: idError } = idSchema.validate(req.params);
@@ -232,6 +272,7 @@ export const updateApplication = async (req, res) => {
             });
         }
 
+        // Check if at least one field is being updated
         if (Object.keys(value).length === 0) {
             return res.status(400).json({ 
                 success: false, 
@@ -240,7 +281,7 @@ export const updateApplication = async (req, res) => {
         }
 
         const { id } = req.params;
-        const result = await applicationService.updateApplication(id, value);
+        const result = await applicationService.updateApplicationStatus(id, value);
         res.status(200).json(result);
     } catch (err) {
         logger.error("Error updating application:", err);
@@ -252,42 +293,8 @@ export const updateApplication = async (req, res) => {
             });
         }
         
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
-    }
-};
-
-// Update application status only
-export const updateApplicationStatus = async (req, res) => {
-    try {
-        const { error: idError } = idSchema.validate(req.params);
-        if (idError) {
-            logger.warn(`updateApplicationStatus: ID validation failed - ${idError.details[0].message}`);
+        if (err.message.includes('No valid fields')) {
             return res.status(400).json({ 
-                success: false, 
-                message: idError.details[0].message 
-            });
-        }
-
-        const { error: bodyError, value } = updateStatusSchema.validate(req.body);
-        if (bodyError) {
-            logger.warn(`updateApplicationStatus: Body validation failed - ${bodyError.details[0].message}`);
-            return res.status(400).json({ 
-                success: false, 
-                message: bodyError.details[0].message 
-            });
-        }
-
-        const { id } = req.params;
-        const result = await applicationService.updateApplicationStatus(id, value.status);
-        res.status(200).json(result);
-    } catch (err) {
-        logger.error("Error updating application status:", err);
-        
-        if (err.message.includes('not found')) {
-            return res.status(404).json({ 
                 success: false, 
                 message: err.message 
             });
@@ -300,7 +307,7 @@ export const updateApplicationStatus = async (req, res) => {
     }
 };
 
-// Delete application by ID
+// Delete application
 export const deleteApplication = async (req, res) => {
     try {
         const { error } = idSchema.validate(req.params);
@@ -332,45 +339,131 @@ export const deleteApplication = async (req, res) => {
     }
 };
 
-// Check student eligibility for a job
+// Check eligibility for a student and job
 export const checkEligibility = async (req, res) => {
     try {
-        const { error: studentError } = studentIdSchema.validate(req.params);
-        if (studentError) {
-            logger.warn(`checkEligibility: Student ID validation failed - ${studentError.details[0].message}`);
-            return res.status(400).json({ 
-                success: false, 
-                message: studentError.details[0].message 
-            });
-        }
-
-        const { error: jobError } = jobIdSchema.validate(req.params);
-        if (jobError) {
-            logger.warn(`checkEligibility: Job ID validation failed - ${jobError.details[0].message}`);
-            return res.status(400).json({ 
-                success: false, 
-                message: jobError.details[0].message 
-            });
-        }
-
-        const { studentId, jobId } = req.params;
-        const result = await applicationService.checkStudentEligibility(studentId, jobId);
-        
-        res.status(200).json({
-            success: true,
-            eligible: result.eligible,
-            reasons: result.reasons || []
+        const schema = joi.object({
+            student_id: joi.string().trim().required(),
+            job_id: joi.number().integer().positive().required()
         });
+
+        const { error, value } = schema.validate(req.body);
+        if (error) {
+            logger.warn(`checkEligibility: Validation failed - ${error.details[0].message}`);
+            return res.status(400).json({ 
+                success: false, 
+                message: error.details[0].message 
+            });
+        }
+
+        const result = await applicationService.checkEligibility(value.student_id, value.job_id);
+        
+        if (!result.success) {
+            return res.status(404).json(result);
+        }
+        
+        res.status(200).json(result);
     } catch (err) {
         logger.error("Error checking eligibility:", err);
+        res.status(500).json({ 
+            success: false, 
+            message: "Internal server error" 
+        });
+    }
+};
+
+// Bulk eligibility check
+export const bulkEligibilityCheck = async (req, res) => {
+    try {
+        logger.info("bulkEligibilityCheck: Starting bulk eligibility check");
         
-        if (err.message.includes('not found')) {
-            return res.status(404).json({ 
+        const result = await applicationService.bulkEligibilityCheck();
+        res.status(200).json(result);
+    } catch (err) {
+        logger.error("Error in bulk eligibility check:", err);
+        res.status(500).json({ 
+            success: false, 
+            message: "Internal server error" 
+        });
+    }
+};
+
+// Get application statistics
+export const getApplicationStats = async (req, res) => {
+    try {
+        const statsQuery = joi.object({
+            student_id: joi.string().trim().optional(),
+            job_id: joi.number().integer().positive().optional(),
+            date_from: joi.date().iso().optional(),
+            date_to: joi.date().iso().optional()
+        });
+
+        const { error, value } = statsQuery.validate(req.query);
+        if (error) {
+            logger.warn(`getApplicationStats: Validation failed - ${error.details[0].message}`);
+            return res.status(400).json({ 
                 success: false, 
-                message: err.message 
+                message: error.details[0].message 
             });
         }
-        
+
+        // Build the stats query based on filters
+        const conditions = [];
+        const params = [];
+        let paramIndex = 1;
+
+        if (value.student_id) {
+            conditions.push(`student_id = $${paramIndex}`);
+            params.push(value.student_id);
+            paramIndex++;
+        }
+
+        if (value.job_id) {
+            conditions.push(`job_id = $${paramIndex}`);
+            params.push(value.job_id);
+            paramIndex++;
+        }
+
+        if (value.date_from) {
+            conditions.push(`applied_at >= $${paramIndex}`);
+            params.push(value.date_from);
+            paramIndex++;
+        }
+
+        if (value.date_to) {
+            conditions.push(`applied_at <= $${paramIndex}`);
+            params.push(value.date_to);
+            paramIndex++;
+        }
+
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+        // Import pool for direct query
+        const pool = (await import('../db/connection.js')).default;
+        const statsResult = await pool.query(`
+            SELECT 
+                COUNT(*) as total_applications,
+                COUNT(CASE WHEN status = 'submitted' THEN 1 END) as submitted,
+                COUNT(CASE WHEN status = 'under_review' THEN 1 END) as under_review,
+                COUNT(CASE WHEN status = 'shortlisted' THEN 1 END) as shortlisted,
+                COUNT(CASE WHEN status = 'selected' THEN 1 END) as selected,
+                COUNT(CASE WHEN status = 'rejected' THEN 1 END) as rejected,
+                COUNT(CASE WHEN status = 'withdrawn' THEN 1 END) as withdrawn,
+                COUNT(CASE WHEN eligibility_status = 'eligible' THEN 1 END) as eligible,
+                COUNT(CASE WHEN eligibility_status = 'not_eligible' THEN 1 END) as not_eligible,
+                COUNT(CASE WHEN eligibility_status = 'conditionally_eligible' THEN 1 END) as conditionally_eligible,
+                COUNT(CASE WHEN eligibility_status = 'pending' THEN 1 END) as eligibility_pending
+            FROM applications 
+            ${whereClause}
+        `, params);
+
+        res.status(200).json({
+            success: true,
+            data: statsResult.rows[0],
+            message: 'Application statistics fetched successfully'
+        });
+    } catch (err) {
+        logger.error("Error fetching application stats:", err);
         res.status(500).json({ 
             success: false, 
             message: "Internal server error" 

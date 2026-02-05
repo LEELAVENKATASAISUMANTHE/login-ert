@@ -1,160 +1,175 @@
 import logger from '../utils/logger.js';
 import pool from './connection.js';
 
-// Function to validate student eligibility against job requirements
-const validateStudentEligibility = async (client, studentId, jobId) => {
+// Helper function to check student eligibility against job requirements
+export const checkEligibility = async (studentId, jobId) => {
+    const client = await pool.connect();
     try {
-        // Fetch student academic details
-        const studentQuery = `
-            SELECT sa.*, s.branch 
-            FROM student_academics sa 
-            JOIN students s ON sa.student_id = s.student_id 
-            WHERE sa.student_id = $1
-        `;
-        const studentResult = await client.query(studentQuery, [studentId]);
+        logger.info(`checkEligibility: Checking eligibility for student ${studentId} and job ${jobId}`);
         
-        if (studentResult.rows.length === 0) {
-            throw new Error('Student academic record not found. Please complete your academic profile first.');
-        }
-        
-        const student = studentResult.rows[0];
-        
-        // Fetch job requirements
-        const jobReqQuery = `SELECT * FROM job_requirements WHERE job_id = $1`;
-        const jobReqResult = await client.query(jobReqQuery, [jobId]);
-        
-        if (jobReqResult.rows.length === 0) {
-            // If no specific requirements are set, allow application
-            return { eligible: true, message: 'No specific requirements set for this job.' };
-        }
-        
-        const requirements = jobReqResult.rows[0];
-        const failedCriteria = [];
-        
-        // Check 10th percentage
-        if (requirements.tenth_percent && student.tenth_percent < requirements.tenth_percent) {
-            failedCriteria.push(`10th grade: Required ${requirements.tenth_percent}%, You have ${student.tenth_percent}%`);
-        }
-        
-        // Check 12th percentage
-        if (requirements.twelfth_percent && student.twelfth_percent && student.twelfth_percent < requirements.twelfth_percent) {
-            failedCriteria.push(`12th grade: Required ${requirements.twelfth_percent}%, You have ${student.twelfth_percent}%`);
-        }
-        
-        // Check UG CGPA
-        if (requirements.ug_cgpa && student.ug_cgpa < requirements.ug_cgpa) {
-            failedCriteria.push(`UG CGPA: Required ${requirements.ug_cgpa}, You have ${student.ug_cgpa}`);
-        }
-        
-        // Check PG CGPA (only if student has PG and requirement exists)
-        if (requirements.pg_cgpa && student.pg_cgpa && student.pg_cgpa < requirements.pg_cgpa) {
-            failedCriteria.push(`PG CGPA: Required ${requirements.pg_cgpa}, You have ${student.pg_cgpa}`);
-        }
-        
-        // Check allowed branches
-        if (requirements.allowed_branches && Array.isArray(requirements.allowed_branches) && requirements.allowed_branches.length > 0) {
-            const studentBranch = student.branch.toLowerCase().trim();
-            const allowedBranches = requirements.allowed_branches.map(branch => branch.toLowerCase().trim());
-            
-            if (!allowedBranches.includes(studentBranch)) {
-                failedCriteria.push(`Branch: Required one of [${requirements.allowed_branches.join(', ')}], You have ${student.branch}`);
-            }
-        }
-        
-        // Check minimum experience (if specified)
-        if (requirements.min_experience_yrs && requirements.min_experience_yrs > 0) {
-            // Calculate experience from internships and current year
-            const experienceQuery = `
-                SELECT COUNT(*) as internship_count,
-                       COALESCE(SUM(EXTRACT(YEAR FROM AGE(COALESCE(end_date, CURRENT_DATE), start_date))), 0) as total_experience_years
+        // Get student academic details and job requirements in one query
+        const checkQuery = `
+            SELECT 
+                s.student_id,
+                s.branch,
+                sa.tenth_percent,
+                sa.twelfth_percent,
+                sa.ug_cgpa,
+                sa.pg_cgpa,
+                COALESCE(si.total_experience_years, 0) as experience_years,
+                jr.tenth_percent as req_tenth,
+                jr.twelfth_percent as req_twelfth,
+                jr.ug_cgpa as req_ug_cgpa,
+                jr.pg_cgpa as req_pg_cgpa,
+                jr.min_experience_yrs,
+                jr.allowed_branches,
+                jr.skills_required,
+                j.job_title,
+                j.application_deadline
+            FROM students s
+            LEFT JOIN student_academics sa ON s.student_id = sa.student_id
+            LEFT JOIN (
+                SELECT student_id, 
+                       SUM(COALESCE(duration_years, 0) + COALESCE(duration_months, 0)/12.0) as total_experience_years
                 FROM student_internships 
-                WHERE student_id = $1 AND start_date IS NOT NULL
-            `;
-            const expResult = await client.query(experienceQuery, [studentId]);
-            const totalExperience = expResult.rows[0]?.total_experience_years || 0;
-            
-            if (totalExperience < requirements.min_experience_yrs) {
-                failedCriteria.push(`Experience: Required ${requirements.min_experience_yrs} years, You have ${totalExperience} years`);
-            }
-        }
+                GROUP BY student_id
+            ) si ON s.student_id = si.student_id
+            LEFT JOIN jobs j ON j.job_id = $2
+            LEFT JOIN job_requirements jr ON j.job_id = jr.job_id
+            WHERE s.student_id = $1 AND j.job_id = $2
+        `;
         
-        if (failedCriteria.length > 0) {
+        const result = await client.query(checkQuery, [studentId, jobId]);
+        
+        if (result.rows.length === 0) {
             return {
-                eligible: false,
-                message: `You do not meet the following job requirements: ${failedCriteria.join('; ')}`
+                success: false,
+                message: 'Student or job not found'
             };
         }
         
+        const data = result.rows[0];
+        
+        // Check if application deadline has passed
+        if (data.application_deadline && new Date() > new Date(data.application_deadline)) {
+            return {
+                success: false,
+                eligible: false,
+                message: 'Application deadline has passed',
+                checks: {}
+            };
+        }
+        
+        // Perform eligibility checks
+        const checks = {
+            tenth_percent_meets: data.req_tenth ? (data.tenth_percent >= data.req_tenth) : true,
+            twelfth_percent_meets: data.req_twelfth ? (data.twelfth_percent >= data.req_twelfth) : true,
+            ug_cgpa_meets: data.req_ug_cgpa ? (data.ug_cgpa >= data.req_ug_cgpa) : true,
+            pg_cgpa_meets: data.req_pg_cgpa ? (data.pg_cgpa >= data.req_pg_cgpa) : true,
+            experience_meets: data.min_experience_yrs ? (data.experience_years >= data.min_experience_yrs) : true,
+            branch_meets: data.allowed_branches ? data.allowed_branches.includes(data.branch) : true
+        };
+        
+        // Determine overall eligibility
+        const allChecksPassed = Object.values(checks).every(check => check === true);
+        
+        // Calculate eligibility status
+        let eligibilityStatus = 'eligible';
+        let eligibilityComments = [];
+        
+        if (!allChecksPassed) {
+            eligibilityStatus = 'not_eligible';
+            
+            if (!checks.tenth_percent_meets) eligibilityComments.push(`10th percentage below requirement (${data.tenth_percent}% < ${data.req_tenth}%)`);
+            if (!checks.twelfth_percent_meets) eligibilityComments.push(`12th percentage below requirement (${data.twelfth_percent}% < ${data.req_twelfth}%)`);
+            if (!checks.ug_cgpa_meets) eligibilityComments.push(`UG CGPA below requirement (${data.ug_cgpa} < ${data.req_ug_cgpa})`);
+            if (!checks.pg_cgpa_meets) eligibilityComments.push(`PG CGPA below requirement (${data.pg_cgpa} < ${data.req_pg_cgpa})`);
+            if (!checks.experience_meets) eligibilityComments.push(`Experience below requirement (${data.experience_years} years < ${data.min_experience_yrs} years)`);
+            if (!checks.branch_meets) eligibilityComments.push(`Branch not allowed (${data.branch} not in [${data.allowed_branches?.join(', ')}])`);
+        }
+        
         return {
-            eligible: true,
-            message: 'You meet all the job requirements.'
+            success: true,
+            eligible: allChecksPassed,
+            eligibilityStatus,
+            eligibilityComments: eligibilityComments.join('; '),
+            checks,
+            studentData: data
         };
         
     } catch (error) {
-        logger.error('Error validating student eligibility:', error);
+        logger.error(`checkEligibility: ${error.message}`, {
+            stack: error.stack,
+            studentId,
+            jobId
+        });
         throw error;
+    } finally {
+        client.release();
     }
 };
 
-// Create a new application
+// Create a new application with eligibility check
 export const createApplication = async (application) => {
     const client = await pool.connect();
     try {
-        logger.info('createApplication: Creating a new application record');
+        logger.info('createApplication: Creating new student application', { application });
         await client.query('BEGIN');
 
-        // Verify student exists
-        const studentCheck = `SELECT student_id FROM students WHERE student_id = $1`;
-        const studentResult = await client.query(studentCheck, [application.student_id]);
-        if (studentResult.rows.length === 0) {
-            throw new Error('Student not found');
-        }
-
-        // Verify job exists
-        const jobCheck = `SELECT job_id FROM jobs WHERE job_id = $1`;
-        const jobResult = await client.query(jobCheck, [application.job_id]);
-        if (jobResult.rows.length === 0) {
-            throw new Error('Job not found');
-        }
-
-        // Check for duplicate application (same student + job)
-        const duplicateCheck = `SELECT application_id FROM applications WHERE student_id = $1 AND job_id = $2`;
-        const duplicateResult = await client.query(duplicateCheck, [application.student_id, application.job_id]);
-        if (duplicateResult.rows.length > 0) {
+        // First check if application already exists
+        const existingCheck = `
+            SELECT application_id FROM applications 
+            WHERE student_id = $1 AND job_id = $2
+        `;
+        const existing = await client.query(existingCheck, [application.student_id, application.job_id]);
+        
+        if (existing.rows.length > 0) {
             throw new Error('Application already exists for this student and job');
         }
 
-        // Validate student eligibility against job requirements
-        const eligibilityCheck = await validateStudentEligibility(client, application.student_id, application.job_id);
-        if (!eligibilityCheck.eligible) {
-            throw new Error(`Eligibility check failed: ${eligibilityCheck.message}`);
+        // Check eligibility
+        const eligibilityResult = await checkEligibility(application.student_id, application.job_id);
+        
+        if (!eligibilityResult.success) {
+            throw new Error(eligibilityResult.message);
         }
 
+        // Insert application with eligibility results
         const insertQuery = `
             INSERT INTO applications (
                 student_id,
                 job_id,
-                applied_at,
                 status,
-                offer_type,
-                offer_ctc,
-                offer_stipend,
-                placement_date,
-                remarks
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                eligibility_status,
+                eligibility_checked_at,
+                eligibility_comments,
+                tenth_percent_meets,
+                twelfth_percent_meets,
+                ug_cgpa_meets,
+                pg_cgpa_meets,
+                experience_meets,
+                branch_meets,
+                skills_match_score
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+            )
             RETURNING *
         `;
 
         const values = [
             application.student_id,
             application.job_id,
-            application.applied_at || new Date(),
-            application.status || 'Applied',
-            application.offer_type || null,
-            application.offer_ctc || null,
-            application.offer_stipend || null,
-            application.placement_date || null,
-            application.remarks || null
+            'submitted', // Always use 'submitted' for the status column
+            eligibilityResult.eligibilityStatus,
+            new Date(),
+            eligibilityResult.eligibilityComments,
+            eligibilityResult.checks.tenth_percent_meets,
+            eligibilityResult.checks.twelfth_percent_meets,
+            eligibilityResult.checks.ug_cgpa_meets,
+            eligibilityResult.checks.pg_cgpa_meets,
+            eligibilityResult.checks.experience_meets,
+            eligibilityResult.checks.branch_meets,
+            application.skills_match_score || 0.00
         ];
 
         const result = await client.query(insertQuery, values);
@@ -162,9 +177,15 @@ export const createApplication = async (application) => {
 
         return {
             success: true,
-            data: result.rows[0],
-            message: `Application created successfully. ${eligibilityCheck.message}`
+            data: {
+                ...result.rows[0],
+                eligibility_details: eligibilityResult
+            },
+            message: eligibilityResult.eligible 
+                ? 'Application submitted successfully' 
+                : 'Application created but marked as not eligible'
         };
+
     } catch (error) {
         await client.query('ROLLBACK');
         logger.error(`createApplication: ${error.message}`, {
@@ -177,286 +198,214 @@ export const createApplication = async (application) => {
     }
 };
 
-// Get all applications with pagination, search and filters
+// Get all applications with filtering and pagination
 export const getAllApplications = async (params = {}) => {
+    const client = await pool.connect();
     try {
-        const { 
-            page = 1, 
-            limit = 10, 
-            sortBy = 'application_id', 
+        const {
+            page = 1,
+            limit = 10,
+            sortBy = 'applied_at',
             sortOrder = 'DESC',
             search = '',
-            student_id = null,
-            job_id = null,
+            studentId = null,
+            jobId = null,
             status = null,
-            offer_type = null
+            eligibilityStatus = null
         } = params;
 
         const offset = (page - 1) * limit;
         
-        const allowedSortFields = ['application_id', 'student_id', 'job_id', 'applied_at', 'status', 'offer_ctc', 'placement_date'];
-        const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'application_id';
-        const safeSortOrder = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-
-        let countQuery = `
-            SELECT COUNT(*) as total 
-            FROM applications a
-            JOIN students s ON a.student_id = s.student_id
-            JOIN jobs j ON a.job_id = j.job_id
-            JOIN companies c ON j.company_id = c.company_id
-        `;
-        let dataQuery = `
-            SELECT a.*, 
-                   s.full_name as student_name, 
-                   s.email as student_email,
-                   j.job_title, 
-                   c.company_name
-            FROM applications a
-            JOIN students s ON a.student_id = s.student_id
-            JOIN jobs j ON a.job_id = j.job_id
-            JOIN companies c ON j.company_id = c.company_id
-        `;
-        let conditions = [];
-        let queryParams = [];
+        // Base queries
+        let countQuery = `SELECT COUNT(*) as total FROM application_details_view`;
+        let dataQuery = `SELECT * FROM application_details_view`;
+        
+        const conditions = [];
+        const queryParams = [];
         let paramIndex = 1;
-
-        // Apply filters
-        if (student_id) {
-            conditions.push(`a.student_id = $${paramIndex}`);
-            queryParams.push(student_id);
-            paramIndex++;
-        }
-        if (job_id) {
-            conditions.push(`a.job_id = $${paramIndex}`);
-            queryParams.push(job_id);
-            paramIndex++;
-        }
-        if (status) {
-            conditions.push(`a.status = $${paramIndex}`);
-            queryParams.push(status);
-            paramIndex++;
-        }
-        if (offer_type) {
-            conditions.push(`a.offer_type = $${paramIndex}`);
-            queryParams.push(offer_type);
-            paramIndex++;
-        }
-
-        // Multi-field search
-        if (search && search.trim()) {
+        
+        // Add search condition
+        if (search && search.trim() !== '') {
             conditions.push(`(
-                a.status ILIKE $${paramIndex}
-                OR a.offer_type ILIKE $${paramIndex}
-                OR a.remarks ILIKE $${paramIndex}
-                OR s.full_name ILIKE $${paramIndex}
-                OR j.job_title ILIKE $${paramIndex}
-                OR c.company_name ILIKE $${paramIndex}
+                full_name ILIKE $${paramIndex} OR 
+                email ILIKE $${paramIndex} OR 
+                job_title ILIKE $${paramIndex} OR 
+                company_name ILIKE $${paramIndex}
             )`);
             queryParams.push(`%${search.trim()}%`);
             paramIndex++;
         }
-
+        
+        // Add filter conditions
+        if (studentId) {
+            conditions.push(`student_id = $${paramIndex}`);
+            queryParams.push(studentId);
+            paramIndex++;
+        }
+        
+        if (jobId) {
+            conditions.push(`job_id = $${paramIndex}`);
+            queryParams.push(jobId);
+            paramIndex++;
+        }
+        
+        if (status) {
+            conditions.push(`status = $${paramIndex}`);
+            queryParams.push(status);
+            paramIndex++;
+        }
+        
+        if (eligibilityStatus) {
+            conditions.push(`eligibility_status = $${paramIndex}`);
+            queryParams.push(eligibilityStatus);
+            paramIndex++;
+        }
+        
+        // Add WHERE clause if conditions exist
         if (conditions.length > 0) {
             const whereClause = ` WHERE ${conditions.join(' AND ')}`;
             countQuery += whereClause;
             dataQuery += whereClause;
         }
-
-        const countResult = await pool.query(countQuery, queryParams);
-        const total = parseInt(countResult.rows[0].total);
-
-        dataQuery += ` ORDER BY a.${safeSortBy} ${safeSortOrder} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+        
+        // Add sorting and pagination
+        const allowedSortFields = [
+            'application_id', 'applied_at', 'updated_at', 'student_id', 
+            'job_id', 'status', 'eligibility_status', 'full_name', 'job_title'
+        ];
+        const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'applied_at';
+        const safeSortOrder = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+        
+        dataQuery += ` ORDER BY ${safeSortBy} ${safeSortOrder}`;
+        dataQuery += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
         queryParams.push(limit, offset);
-
-        const dataResult = await pool.query(dataQuery, queryParams);
-        const totalPages = Math.ceil(total / limit);
-
-        logger.info(`getAllApplications: Retrieved ${dataResult.rows.length} applications`);
-
+        
+        // Execute queries
+        const [countResult, dataResult] = await Promise.all([
+            client.query(countQuery, queryParams.slice(0, -2)), // Remove limit/offset params for count
+            client.query(dataQuery, queryParams)
+        ]);
+        
+        const totalRecords = parseInt(countResult.rows[0].total);
+        const totalPages = Math.ceil(totalRecords / limit);
+        
         return {
             success: true,
-            data: {
-                applications: dataResult.rows,
-                pagination: {
-                    current_page: parseInt(page),
-                    total_pages: totalPages,
-                    total_count: total,
-                    limit: parseInt(limit),
-                    has_next: page < totalPages,
-                    has_prev: page > 1
-                }
+            data: dataResult.rows,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalRecords,
+                recordsPerPage: limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1
             },
-            message: 'Applications retrieved successfully'
+            message: 'Applications fetched successfully'
         };
+
     } catch (error) {
-        logger.error(`getAllApplications: ${error.message}`, {
-            stack: error.stack,
-            params
-        });
+        logger.error(`getAllApplications: ${error.message}`, { stack: error.stack, params });
         throw error;
+    } finally {
+        client.release();
     }
 };
 
 // Get application by ID
 export const getApplicationById = async (applicationId) => {
+    const client = await pool.connect();
     try {
-        logger.info(`getApplicationById: Fetching application with ID ${applicationId}`);
+        logger.info(`getApplicationById: Fetching application ${applicationId}`);
         
-        const selectQuery = `
-            SELECT a.*, 
-                   s.full_name as student_name, 
-                   s.email as student_email,
-                   j.job_title, 
-                   c.company_name
-            FROM applications a
-            JOIN students s ON a.student_id = s.student_id
-            JOIN jobs j ON a.job_id = j.job_id
-            JOIN companies c ON j.company_id = c.company_id
-            WHERE a.application_id = $1
-        `;
-        const result = await pool.query(selectQuery, [applicationId]);
-
+        const query = `SELECT * FROM application_details_view WHERE application_id = $1`;
+        const result = await client.query(query, [applicationId]);
+        
         if (result.rows.length === 0) {
             return {
                 success: false,
-                data: null,
                 message: 'Application not found'
             };
         }
-
+        
         return {
             success: true,
             data: result.rows[0],
             message: 'Application fetched successfully'
         };
+
     } catch (error) {
         logger.error(`getApplicationById: ${error.message}`, {
             stack: error.stack,
             applicationId
         });
         throw error;
+    } finally {
+        client.release();
     }
 };
 
-// Get applications by student ID
-export const getApplicationsByStudentId = async (studentId, params = {}) => {
-    try {
-        logger.info(`getApplicationsByStudentId: Fetching applications for student ${studentId}`);
-        return await getAllApplications({ ...params, student_id: studentId });
-    } catch (error) {
-        logger.error(`getApplicationsByStudentId: ${error.message}`, {
-            stack: error.stack,
-            studentId
-        });
-        throw error;
-    }
-};
-
-// Get applications by job ID
-export const getApplicationsByJobId = async (jobId, params = {}) => {
-    try {
-        logger.info(`getApplicationsByJobId: Fetching applications for job ${jobId}`);
-        return await getAllApplications({ ...params, job_id: jobId });
-    } catch (error) {
-        logger.error(`getApplicationsByJobId: ${error.message}`, {
-            stack: error.stack,
-            jobId
-        });
-        throw error;
-    }
-};
-
-// Update application by ID
-export const updateApplication = async (applicationId, application) => {
+// Update application status
+export const updateApplicationStatus = async (applicationId, updates) => {
     const client = await pool.connect();
     try {
-        logger.info(`updateApplication: Updating application with ID ${applicationId}`);
+        logger.info(`updateApplicationStatus: Updating application ${applicationId}`, { updates });
         await client.query('BEGIN');
-
-        const checkExistQuery = `SELECT application_id FROM applications WHERE application_id = $1`;
-        const existResult = await client.query(checkExistQuery, [applicationId]);
         
-        if (existResult.rows.length === 0) {
+        // First check if application exists
+        const existingQuery = `SELECT * FROM applications WHERE application_id = $1`;
+        const existing = await client.query(existingQuery, [applicationId]);
+        
+        if (existing.rows.length === 0) {
             throw new Error('Application not found');
         }
-
+        
+        // Build dynamic update query
+        const updateFields = [];
+        const queryParams = [];
+        let paramIndex = 1;
+        
+        const allowedUpdates = [
+            'application_status', 'eligibility_status', 'eligibility_comments',
+            'skills_match_score', 'offer_type', 'offer_ctc', 'offer_stipend', 
+            'placement_date', 'remarks'
+        ];
+        
+        Object.entries(updates).forEach(([key, value]) => {
+            if (allowedUpdates.includes(key) && value !== undefined) {
+                updateFields.push(`${key} = $${paramIndex}`);
+                queryParams.push(value);
+                paramIndex++;
+            }
+        });
+        
+        if (updateFields.length === 0) {
+            throw new Error('No valid fields provided for update');
+        }
+        
+        queryParams.push(applicationId); // For WHERE clause
+        
         const updateQuery = `
-            UPDATE applications SET
-                status = COALESCE($1, status),
-                offer_type = COALESCE($2, offer_type),
-                offer_ctc = COALESCE($3, offer_ctc),
-                offer_stipend = COALESCE($4, offer_stipend),
-                placement_date = COALESCE($5, placement_date),
-                remarks = COALESCE($6, remarks)
-            WHERE application_id = $7
+            UPDATE applications 
+            SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+            WHERE application_id = $${paramIndex}
             RETURNING *
         `;
-
-        const values = [
-            application.status,
-            application.offer_type,
-            application.offer_ctc,
-            application.offer_stipend,
-            application.placement_date,
-            application.remarks,
-            applicationId
-        ];
-
-        const result = await client.query(updateQuery, values);
+        
+        const result = await client.query(updateQuery, queryParams);
         await client.query('COMMIT');
-
+        
         return {
             success: true,
             data: result.rows[0],
             message: 'Application updated successfully'
         };
-    } catch (error) {
-        await client.query('ROLLBACK');
-        logger.error(`updateApplication: ${error.message}`, {
-            stack: error.stack,
-            applicationId,
-            application
-        });
-        throw error;
-    } finally {
-        client.release();
-    }
-};
 
-// Update application status only
-export const updateApplicationStatus = async (applicationId, status) => {
-    const client = await pool.connect();
-    try {
-        logger.info(`updateApplicationStatus: Updating status for application ${applicationId}`);
-        await client.query('BEGIN');
-
-        const checkExistQuery = `SELECT application_id FROM applications WHERE application_id = $1`;
-        const existResult = await client.query(checkExistQuery, [applicationId]);
-        
-        if (existResult.rows.length === 0) {
-            throw new Error('Application not found');
-        }
-
-        const updateQuery = `
-            UPDATE applications SET status = $1
-            WHERE application_id = $2
-            RETURNING *
-        `;
-
-        const result = await client.query(updateQuery, [status, applicationId]);
-        await client.query('COMMIT');
-
-        return {
-            success: true,
-            data: result.rows[0],
-            message: 'Application status updated successfully'
-        };
     } catch (error) {
         await client.query('ROLLBACK');
         logger.error(`updateApplicationStatus: ${error.message}`, {
             stack: error.stack,
             applicationId,
-            status
+            updates
         });
         throw error;
     } finally {
@@ -464,30 +413,33 @@ export const updateApplicationStatus = async (applicationId, status) => {
     }
 };
 
-// Delete application by ID
+// Delete application
 export const deleteApplication = async (applicationId) => {
     const client = await pool.connect();
     try {
-        logger.info(`deleteApplication: Deleting application with ID ${applicationId}`);
+        logger.info(`deleteApplication: Deleting application ${applicationId}`);
         await client.query('BEGIN');
-
-        const checkQuery = `SELECT application_id FROM applications WHERE application_id = $1`;
-        const checkResult = await client.query(checkQuery, [applicationId]);
         
-        if (checkResult.rows.length === 0) {
-            throw new Error('Application not found');
-        }
-
-        const deleteQuery = `DELETE FROM applications WHERE application_id = $1 RETURNING *`;
+        const deleteQuery = `
+            DELETE FROM applications 
+            WHERE application_id = $1 
+            RETURNING *
+        `;
+        
         const result = await client.query(deleteQuery, [applicationId]);
         
+        if (result.rows.length === 0) {
+            throw new Error('Application not found');
+        }
+        
         await client.query('COMMIT');
-
+        
         return {
             success: true,
             data: result.rows[0],
             message: 'Application deleted successfully'
         };
+
     } catch (error) {
         await client.query('ROLLBACK');
         logger.error(`deleteApplication: ${error.message}`, {
@@ -500,51 +452,71 @@ export const deleteApplication = async (applicationId) => {
     }
 };
 
-// Check student eligibility for a specific job
-export const checkStudentEligibility = async (studentId, jobId) => {
+// Get applications by student ID
+export const getApplicationsByStudentId = async (studentId, params = {}) => {
+    return getAllApplications({ ...params, studentId });
+};
+
+// Get applications by job ID
+export const getApplicationsByJobId = async (jobId, params = {}) => {
+    return getAllApplications({ ...params, jobId });
+};
+
+// Bulk eligibility check for multiple applications
+export const bulkEligibilityCheck = async (filters = {}) => {
     const client = await pool.connect();
     try {
-        logger.info(`checkStudentEligibility: Checking eligibility for student ${studentId} and job ${jobId}`);
-
-        // Verify student exists
-        const studentCheck = `SELECT student_id FROM students WHERE student_id = $1`;
-        const studentResult = await client.query(studentCheck, [studentId]);
-        if (studentResult.rows.length === 0) {
-            throw new Error('Student not found');
+        logger.info('bulkEligibilityCheck: Running bulk eligibility check', { filters });
+        
+        // Get applications that need eligibility recheck
+        const applicationsQuery = `
+            SELECT application_id, student_id, job_id 
+            FROM applications 
+            WHERE eligibility_status = 'pending' OR eligibility_checked_at IS NULL
+        `;
+        
+        const applications = await client.query(applicationsQuery);
+        const results = [];
+        
+        for (const app of applications.rows) {
+            try {
+                const eligibilityResult = await checkEligibility(app.student_id, app.job_id);
+                
+                if (eligibilityResult.success) {
+                    await updateApplicationStatus(app.application_id, {
+                        eligibility_status: eligibilityResult.eligibilityStatus,
+                        eligibility_comments: eligibilityResult.eligibilityComments
+                    });
+                    
+                    results.push({
+                        application_id: app.application_id,
+                        eligible: eligibilityResult.eligible,
+                        status: 'updated'
+                    });
+                } else {
+                    results.push({
+                        application_id: app.application_id,
+                        status: 'error',
+                        error: eligibilityResult.message
+                    });
+                }
+            } catch (error) {
+                results.push({
+                    application_id: app.application_id,
+                    status: 'error',
+                    error: error.message
+                });
+            }
         }
-
-        // Verify job exists
-        const jobCheck = `SELECT job_id FROM jobs WHERE job_id = $1`;
-        const jobResult = await client.query(jobCheck, [jobId]);
-        if (jobResult.rows.length === 0) {
-            throw new Error('Job not found');
-        }
-
-        // Check if already applied
-        const duplicateCheck = `SELECT application_id FROM applications WHERE student_id = $1 AND job_id = $2`;
-        const duplicateResult = await client.query(duplicateCheck, [studentId, jobId]);
-        if (duplicateResult.rows.length > 0) {
-            return {
-                success: true,
-                eligible: false,
-                message: 'You have already applied for this job'
-            };
-        }
-
-        // Check eligibility
-        const eligibilityCheck = await validateStudentEligibility(client, studentId, jobId);
         
         return {
             success: true,
-            eligible: eligibilityCheck.eligible,
-            message: eligibilityCheck.message
+            data: results,
+            message: `Processed ${results.length} applications`
         };
+
     } catch (error) {
-        logger.error(`checkStudentEligibility: ${error.message}`, {
-            stack: error.stack,
-            studentId,
-            jobId
-        });
+        logger.error(`bulkEligibilityCheck: ${error.message}`, { stack: error.stack });
         throw error;
     } finally {
         client.release();
