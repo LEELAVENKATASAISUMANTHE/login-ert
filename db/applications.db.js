@@ -66,14 +66,29 @@ export const checkEligibility = async (studentId, jobId) => {
             };
         }
         
-        // Perform eligibility checks
+        // Perform eligibility checks - convert strings to numbers for proper comparison
+        // Handle null values: if student data is null, the check fails; if requirement is null, the check passes
+        const studentTenth = data.tenth_percent !== null ? parseFloat(data.tenth_percent) : null;
+        const studentTwelfth = data.twelfth_percent !== null ? parseFloat(data.twelfth_percent) : null;
+        const studentUgCgpa = data.ug_cgpa !== null ? parseFloat(data.ug_cgpa) : null;
+        const studentPgCgpa = data.pg_cgpa !== null ? parseFloat(data.pg_cgpa) : null;
+        const studentExperience = parseFloat(data.experience_years) || 0;
+        
+        const reqTenth = data.req_tenth !== null ? parseFloat(data.req_tenth) : null;
+        const reqTwelfth = data.req_twelfth !== null ? parseFloat(data.req_twelfth) : null;
+        const reqUgCgpa = data.req_ug_cgpa !== null ? parseFloat(data.req_ug_cgpa) : null;
+        const reqPgCgpa = data.req_pg_cgpa !== null ? parseFloat(data.req_pg_cgpa) : null;
+        const reqExperience = data.min_experience_yrs !== null ? parseFloat(data.min_experience_yrs) : null;
+
         const checks = {
-            tenth_percent_meets: data.req_tenth ? (data.tenth_percent >= data.req_tenth) : true,
-            twelfth_percent_meets: data.req_twelfth ? (data.twelfth_percent >= data.req_twelfth) : true,
-            ug_cgpa_meets: data.req_ug_cgpa ? (data.ug_cgpa >= data.req_ug_cgpa) : true,
-            pg_cgpa_meets: data.req_pg_cgpa ? (data.pg_cgpa >= data.req_pg_cgpa) : true,
-            experience_meets: data.min_experience_yrs ? (data.experience_years >= data.min_experience_yrs) : true,
-            branch_meets: data.allowed_branches ? data.allowed_branches.includes(data.branch) : true
+            tenth_percent_meets: reqTenth !== null ? (studentTenth !== null && studentTenth >= reqTenth) : true,
+            twelfth_percent_meets: reqTwelfth !== null ? (studentTwelfth !== null && studentTwelfth >= reqTwelfth) : true,
+            ug_cgpa_meets: reqUgCgpa !== null ? (studentUgCgpa !== null && studentUgCgpa >= reqUgCgpa) : true,
+            pg_cgpa_meets: reqPgCgpa !== null ? (studentPgCgpa !== null && studentPgCgpa >= reqPgCgpa) : true,
+            experience_meets: reqExperience !== null ? (studentExperience >= reqExperience) : true,
+            branch_meets: data.allowed_branches && data.allowed_branches.length > 0 
+                ? data.allowed_branches.some(branch => branch.toLowerCase() === (data.branch || '').toLowerCase()) 
+                : true
         };
         
         // Determine overall eligibility
@@ -86,12 +101,40 @@ export const checkEligibility = async (studentId, jobId) => {
         if (!allChecksPassed) {
             eligibilityStatus = 'not_eligible';
             
-            if (!checks.tenth_percent_meets) eligibilityComments.push(`10th percentage below requirement (${data.tenth_percent}% < ${data.req_tenth}%)`);
-            if (!checks.twelfth_percent_meets) eligibilityComments.push(`12th percentage below requirement (${data.twelfth_percent}% < ${data.req_twelfth}%)`);
-            if (!checks.ug_cgpa_meets) eligibilityComments.push(`UG CGPA below requirement (${data.ug_cgpa} < ${data.req_ug_cgpa})`);
-            if (!checks.pg_cgpa_meets) eligibilityComments.push(`PG CGPA below requirement (${data.pg_cgpa} < ${data.req_pg_cgpa})`);
-            if (!checks.experience_meets) eligibilityComments.push(`Experience below requirement (${data.experience_years} years < ${data.min_experience_yrs} years)`);
-            if (!checks.branch_meets) eligibilityComments.push(`Branch not allowed (${data.branch} not in [${data.allowed_branches?.join(', ')}])`);
+            if (!checks.tenth_percent_meets) {
+                if (studentTenth === null) {
+                    eligibilityComments.push(`10th percentage data missing (required: ${reqTenth}%)`);
+                } else {
+                    eligibilityComments.push(`10th percentage below requirement (${studentTenth}% < ${reqTenth}%)`);
+                }
+            }
+            if (!checks.twelfth_percent_meets) {
+                if (studentTwelfth === null) {
+                    eligibilityComments.push(`12th percentage data missing (required: ${reqTwelfth}%)`);
+                } else {
+                    eligibilityComments.push(`12th percentage below requirement (${studentTwelfth}% < ${reqTwelfth}%)`);
+                }
+            }
+            if (!checks.ug_cgpa_meets) {
+                if (studentUgCgpa === null) {
+                    eligibilityComments.push(`UG CGPA data missing (required: ${reqUgCgpa})`);
+                } else {
+                    eligibilityComments.push(`UG CGPA below requirement (${studentUgCgpa} < ${reqUgCgpa})`);
+                }
+            }
+            if (!checks.pg_cgpa_meets) {
+                if (studentPgCgpa === null) {
+                    eligibilityComments.push(`PG CGPA data missing (required: ${reqPgCgpa})`);
+                } else {
+                    eligibilityComments.push(`PG CGPA below requirement (${studentPgCgpa} < ${reqPgCgpa})`);
+                }
+            }
+            if (!checks.experience_meets) {
+                eligibilityComments.push(`Experience below requirement (${studentExperience} years < ${reqExperience} years)`);
+            }
+            if (!checks.branch_meets) {
+                eligibilityComments.push(`Branch not allowed (${data.branch || 'unknown'} not in [${data.allowed_branches?.join(', ')}])`);
+            }
         }
         
         return {
