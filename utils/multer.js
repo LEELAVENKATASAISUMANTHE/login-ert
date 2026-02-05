@@ -211,45 +211,72 @@ const malwareScan = async (req, res, next) => {
 };
 
 // ------------------------------
-// UNIVERSAL upload middleware
+// Base multer instance
 // ------------------------------
-export const upload = [
-  multer({
-    storage,
-    limits: { fileSize: 10 * 1024 * 1024 },
-    fileFilter,
-  }).single("document"),
-  signatureGuard,
-  malwareScan,
-];
+const multerInstance = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter,
+});
+
+// ------------------------------
+// Upload object with .single() and .array() methods
+// ------------------------------
+export const upload = {
+  single: (fieldName) => [
+    multerInstance.single(fieldName),
+    signatureGuard,
+    malwareScan,
+  ],
+  array: (fieldName, maxCount) => [
+    multerInstance.array(fieldName, maxCount),
+    signatureGuard,
+    malwareScan,
+  ],
+  fields: (fields) => [
+    multerInstance.fields(fields),
+    signatureGuard,
+    malwareScan,
+  ],
+  none: () => [
+    multerInstance.none(),
+  ],
+};
+
+// ------------------------------
+// Excel-only multer instance
+// ------------------------------
+const excelMulterInstance = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const excelMimeTypes = [
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel",
+      "text/csv",
+      "application/csv",
+    ];
+    const excelExtensions = [".xlsx", ".xls", ".csv"];
+
+    if (
+      excelMimeTypes.includes(file.mimetype) &&
+      excelExtensions.includes(ext)
+    ) {
+      return cb(null, true);
+    }
+
+    return cb(new Error("Only Excel files allowed"));
+  },
+});
 
 // ------------------------------
 // Excel-only upload
 // ------------------------------
-export const uploadExcel = [
-  multer({
-    storage,
-    limits: { fileSize: 10 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-      const ext = path.extname(file.originalname).toLowerCase();
-      const excelMimeTypes = [
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "application/vnd.ms-excel",
-        "text/csv",
-        "application/csv",
-      ];
-      const excelExtensions = [".xlsx", ".xls", ".csv"];
-
-      if (
-        excelMimeTypes.includes(file.mimetype) &&
-        excelExtensions.includes(ext)
-      ) {
-        return cb(null, true);
-      }
-
-      return cb(new Error("Only Excel files allowed"));
-    },
-  }).single("document"),
-  signatureGuard,
-  malwareScan,
-];
+export const uploadExcel = {
+  single: (fieldName) => [
+    excelMulterInstance.single(fieldName),
+    signatureGuard,
+    malwareScan,
+  ],
+};
