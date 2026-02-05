@@ -60,3 +60,26 @@ export const upload = multer({
   },
   fileFilter,
 });
+
+// Excel-specific upload middleware
+export const uploadExcel = multer({
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB for Excel files
+  },
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const excelMimeTypes = [
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel",
+      "text/csv",
+      "application/csv",
+    ];
+    const excelExtensions = [".xlsx", ".xls", ".csv"];
+
+    if (excelMimeTypes.includes(file.mimetype) && excelExtensions.includes(ext)) {
+      return cb(null, true);
+    }
+    return cb(new Error("Invalid file type. Only Excel files (.xlsx, .xls, .csv) are allowed."));
+  },
+});
