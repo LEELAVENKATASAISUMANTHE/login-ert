@@ -1,4 +1,3 @@
-// utils/cloudinary.js
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
@@ -7,15 +6,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-/**
- * Upload file buffer to Cloudinary
- * Backward compatible:
- * Existing calls still work:
- * uploadToCloudinary(req.file.buffer, "student_documents")
- *
- * New calls (optional):
- * uploadToCloudinary(req.file.buffer, "student_documents", req.file.mimetype)
- */
 export const uploadToCloudinary = async (
   fileBuffer,
   folder = "uploads",
@@ -26,21 +16,21 @@ export const uploadToCloudinary = async (
       throw new Error("File buffer is empty");
     }
 
-    // Smart detection
+    // 🔥 Detect PDF using file signature
+    const isPdfBuffer = fileBuffer.slice(0, 4).toString() === "%PDF";
+
     const isImage = mimeType?.startsWith("image/");
-    const isPdf = mimeType === "application/pdf";
+    const isPdf = mimeType === "application/pdf" || isPdfBuffer;
     const isExcel =
       mimeType?.includes("excel") ||
       mimeType?.includes("spreadsheet") ||
       mimeType?.includes("csv");
 
-    // Decide storage type
     let resourceType = "auto";
 
     if (isImage) resourceType = "image";
     else if (isPdf || isExcel) resourceType = "raw";
-    else if (mimeType) resourceType = "raw"; 
-    // fallback: non-image files → raw
+    else if (mimeType) resourceType = "raw";
 
     const result = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
