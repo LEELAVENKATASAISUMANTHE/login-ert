@@ -5,14 +5,30 @@ import joi from "joi";
 // Validation schema for creating a student offer
 const createStudentOfferSchema = joi.object({
     student_id: joi.string().required(),
-    job_id: joi.number().integer().positive().required(),
+    job_id: joi.number().integer().positive().optional().allow(null),
     offered_at: joi.date().optional().allow(null),
     is_primary_offer: joi.boolean().optional().default(false),
     is_pbc: joi.boolean().optional().default(false),
     is_internship: joi.boolean().optional().default(false),
+    is_offcampus: joi.boolean().optional().default(false),
+    offcampus_company_name: joi.string().trim().max(255).optional().allow(null, ''),
+    offcampus_job_title: joi.string().trim().max(255).optional().allow(null, ''),
+    offcampus_location: joi.string().trim().max(255).optional().allow(null, ''),
     offer_ctc: joi.number().precision(2).min(0).max(9999999.99).optional().allow(null),
     offer_stipend: joi.number().precision(2).min(0).max(9999999999.99).optional().allow(null),
     remarks: joi.string().trim().optional().allow(null, '')
+}).custom((value, helpers) => {
+    // Validate: off-campus offers need company name, on-campus offers need job_id
+    if (value.is_offcampus) {
+        if (!value.offcampus_company_name) {
+            return helpers.error('any.custom', { message: 'offcampus_company_name is required for off-campus offers' });
+        }
+    } else {
+        if (!value.job_id) {
+            return helpers.error('any.custom', { message: 'job_id is required for on-campus offers' });
+        }
+    }
+    return value;
 });
 
 // Validation schema for updating a student offer
@@ -20,6 +36,9 @@ const updateStudentOfferSchema = joi.object({
     is_primary_offer: joi.boolean().optional(),
     is_pbc: joi.boolean().optional(),
     is_internship: joi.boolean().optional(),
+    offcampus_company_name: joi.string().trim().max(255).optional().allow(null, ''),
+    offcampus_job_title: joi.string().trim().max(255).optional().allow(null, ''),
+    offcampus_location: joi.string().trim().max(255).optional().allow(null, ''),
     offer_ctc: joi.number().precision(2).min(0).max(9999999.99).optional().allow(null),
     offer_stipend: joi.number().precision(2).min(0).max(9999999999.99).optional().allow(null),
     remarks: joi.string().trim().optional().allow(null, '')
@@ -33,7 +52,8 @@ const getStudentOffersSchema = joi.object({
     sortOrder: joi.string().valid('ASC', 'DESC', 'asc', 'desc').default('DESC'),
     is_primary_offer: joi.boolean().optional(),
     is_pbc: joi.boolean().optional(),
-    is_internship: joi.boolean().optional()
+    is_internship: joi.boolean().optional(),
+    is_offcampus: joi.boolean().optional()
 });
 
 // Validation schema for ID param

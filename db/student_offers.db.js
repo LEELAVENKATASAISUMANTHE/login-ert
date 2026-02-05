@@ -15,18 +15,22 @@ export const createStudentOffer = async (offer) => {
             throw new Error('Student not found');
         }
 
-        // Verify job exists
-        const jobCheck = `SELECT job_id FROM jobs WHERE job_id = $1`;
-        const jobResult = await client.query(jobCheck, [offer.job_id]);
-        if (jobResult.rows.length === 0) {
-            throw new Error('Job not found');
-        }
+        const isOffcampus = offer.is_offcampus || false;
 
-        // Check for duplicate offer (same student + job)
-        const duplicateCheck = `SELECT offer_id FROM student_offers WHERE student_id = $1 AND job_id = $2`;
-        const duplicateResult = await client.query(duplicateCheck, [offer.student_id, offer.job_id]);
-        if (duplicateResult.rows.length > 0) {
-            throw new Error('Offer already exists for this student and job');
+        // For on-campus offers, verify job exists
+        if (!isOffcampus && offer.job_id) {
+            const jobCheck = `SELECT job_id FROM jobs WHERE job_id = $1`;
+            const jobResult = await client.query(jobCheck, [offer.job_id]);
+            if (jobResult.rows.length === 0) {
+                throw new Error('Job not found');
+            }
+
+            // Check for duplicate offer (same student + job) - only for on-campus
+            const duplicateCheck = `SELECT offer_id FROM student_offers WHERE student_id = $1 AND job_id = $2`;
+            const duplicateResult = await client.query(duplicateCheck, [offer.student_id, offer.job_id]);
+            if (duplicateResult.rows.length > 0) {
+                throw new Error('Offer already exists for this student and job');
+            }
         }
 
         const insertQuery = `
@@ -37,20 +41,28 @@ export const createStudentOffer = async (offer) => {
                 is_primary_offer,
                 is_pbc,
                 is_internship,
+                is_offcampus,
+                offcampus_company_name,
+                offcampus_job_title,
+                offcampus_location,
                 offer_ctc,
                 offer_stipend,
                 remarks
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             RETURNING *
         `;
 
         const values = [
             offer.student_id,
-            offer.job_id,
+            isOffcampus ? null : offer.job_id,
             offer.offered_at || new Date(),
             offer.is_primary_offer || false,
             offer.is_pbc || false,
             offer.is_internship || false,
+            isOffcampus,
+            offer.offcampus_company_name || null,
+            offer.offcampus_job_title || null,
+            offer.offcampus_location || null,
             offer.offer_ctc || null,
             offer.offer_stipend || null,
             offer.remarks || null
@@ -88,7 +100,8 @@ export const getAllStudentOffers = async (params = {}) => {
             job_id = null,
             is_primary_offer = null,
             is_pbc = null,
-            is_internship = null
+            is_internship = null,
+            is_offcampus = null
         } = params;
 
         const offset = (page - 1) * limit;
@@ -101,19 +114,19 @@ export const getAllStudentOffers = async (params = {}) => {
             SELECT COUNT(*) as total 
             FROM student_offers so
             JOIN students s ON so.student_id = s.student_id
-            JOIN jobs j ON so.job_id = j.job_id
-            JOIN companies c ON j.company_id = c.company_id
+            LEFT JOIN jobs j ON so.job_id = j.job_id
+            LEFT JOIN companies c ON j.company_id = c.company_id
         `;
         let dataQuery = `
             SELECT so.*, 
                    s.full_name as student_name, 
                    s.email as student_email,
-                   j.job_title, 
-                   c.company_name
+                   COALESCE(j.job_title, so.offcampus_job_title) as job_title, 
+                   COALESCE(c.company_name, so.offcampus_company_name) as company_name
             FROM student_offers so
             JOIN students s ON so.student_id = s.student_id
-            JOIN jobs j ON so.job_id = j.job_id
-            JOIN companies c ON j.company_id = c.company_id
+            LEFT JOIN jobs j ON so.job_id = j.job_id
+            LEFT JOIN companies c ON j.company_id = c.company_id
         `;
         let conditions = [];
         let queryParams = [];
@@ -143,6 +156,11 @@ export const getAllStudentOffers = async (params = {}) => {
         if (is_internship !== null) {
             conditions.push(`so.is_internship = $${paramIndex}`);
             queryParams.push(is_internship);
+            paramIndex++;
+        }
+        if (is_offcampus !== null) {
+            conditions.push(`so.is_offcampus = $${paramIndex}`);
+            queryParams.push(is_offcampus);
             paramIndex++;
         }
 
@@ -196,12 +214,12 @@ export const getStudentOfferById = async (offerId) => {
             SELECT so.*, 
                    s.full_name as student_name, 
                    s.email as student_email,
-                   j.job_title, 
-                   c.company_name
+                   COALESCE(j.job_title, so.offcampus_job_title) as job_title, 
+                   COALESCE(c.company_name, so.offcampus_company_name) as company_name
             FROM student_offers so
             JOIN students s ON so.student_id = s.student_id
-            JOIN jobs j ON so.job_id = j.job_id
-            JOIN companies c ON j.company_id = c.company_id
+            LEFT JOIN jobs j ON so.job_id = j.job_id
+            LEFT JOIN companies c ON j.company_id = c.company_id
             WHERE so.offer_id = $1
         `;
         const result = await pool.query(selectQuery, [offerId]);
@@ -276,10 +294,13 @@ export const updateStudentOffer = async (offerId, offer) => {
                 is_primary_offer = COALESCE($1, is_primary_offer),
                 is_pbc = COALESCE($2, is_pbc),
                 is_internship = COALESCE($3, is_internship),
-                offer_ctc = COALESCE($4, offer_ctc),
-                offer_stipend = COALESCE($5, offer_stipend),
-                remarks = COALESCE($6, remarks)
-            WHERE offer_id = $7
+                offcampus_company_name = COALESCE($4, offcampus_company_name),
+                offcampus_job_title = COALESCE($5, offcampus_job_title),
+                offcampus_location = COALESCE($6, offcampus_location),
+                offer_ctc = COALESCE($7, offer_ctc),
+                offer_stipend = COALESCE($8, offer_stipend),
+                remarks = COALESCE($9, remarks)
+            WHERE offer_id = $10
             RETURNING *
         `;
 
@@ -287,6 +308,9 @@ export const updateStudentOffer = async (offerId, offer) => {
             offer.is_primary_offer,
             offer.is_pbc,
             offer.is_internship,
+            offer.offcampus_company_name,
+            offer.offcampus_job_title,
+            offer.offcampus_location,
             offer.offer_ctc,
             offer.offer_stipend,
             offer.remarks,
