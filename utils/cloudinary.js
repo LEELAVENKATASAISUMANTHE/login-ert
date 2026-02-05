@@ -9,9 +9,12 @@ cloudinary.config({
 
 /**
  * Upload file buffer to Cloudinary
- * @param {Buffer} fileBuffer
- * @param {string} folder
- * @param {string} mimeType
+ * Backward compatible:
+ * Existing calls still work:
+ * uploadToCloudinary(req.file.buffer, "student_documents")
+ *
+ * New calls (optional):
+ * uploadToCloudinary(req.file.buffer, "student_documents", req.file.mimetype)
  */
 export const uploadToCloudinary = async (
   fileBuffer,
@@ -23,13 +26,27 @@ export const uploadToCloudinary = async (
       throw new Error("File buffer is empty");
     }
 
+    // Smart detection
+    const isImage = mimeType?.startsWith("image/");
     const isPdf = mimeType === "application/pdf";
+    const isExcel =
+      mimeType?.includes("excel") ||
+      mimeType?.includes("spreadsheet") ||
+      mimeType?.includes("csv");
+
+    // Decide storage type
+    let resourceType = "auto";
+
+    if (isImage) resourceType = "image";
+    else if (isPdf || isExcel) resourceType = "raw";
+    else if (mimeType) resourceType = "raw"; 
+    // fallback: non-image files → raw
 
     const result = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder,
-          resource_type: isPdf ? "raw" : "auto",
+          resource_type: resourceType,
         },
         (error, result) => {
           if (error) reject(error);
@@ -44,6 +61,7 @@ export const uploadToCloudinary = async (
       url: result.secure_url,
       public_id: result.public_id,
       resource_type: result.resource_type,
+      format: result.format,
     };
   } catch (error) {
     console.error("Cloudinary upload error:", error);
