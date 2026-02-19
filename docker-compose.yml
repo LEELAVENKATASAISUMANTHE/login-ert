@@ -9,12 +9,18 @@ services:
     environment:
       - NODE_ENV=production
       - LOG_LEVEL=info
-      - LOKI_HOST=http://172.19.0.2:3100
+      - LOKI_HOST=http://loki:3100   # 🔥 use service name instead of IP
+      - REDIS_HOST=notification-redis
+      - KAFKA_BROKERS=kafka:9092
     networks:
       - monitoring
+      - shared-backend-net   # 🔥 ADD THIS
     restart: unless-stopped
 
 networks:
   monitoring:
     external: true
     name: monitoring_default
+
+  shared-backend-net:
+    external: true
