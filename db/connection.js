@@ -12,8 +12,8 @@ const dbConfig = {
   port: 5432,
 
   // OPTIMIZED POOL SETTINGS
-  max: 50,                          // ✅ Increased from 20 to handle more concurrent requests
-  min: 5,                           // ✅ Keep minimum connections alive
+  max: 15,                          // ✅ Increased from 20 to handle more concurrent requests
+  min: 2,                           // ✅ Keep minimum connections alive
   idleTimeoutMillis: 10000,         // ✅ Reduced from 30s to 10s - release idle connections faster
   connectionTimeoutMillis:  10000,   // ✅ Increased from 2s to 10s - prevent premature timeouts
   
