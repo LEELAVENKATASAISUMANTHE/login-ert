@@ -10,11 +10,10 @@ services:
       NODE_ENV: production
       LOG_LEVEL: info
       LOKI_HOST: http://loki:3100
-      REDIS_HOST: notification-redis
-      KAFKA_BROKERS: redpanda:9092   # MUST match Redpanda service name
+      KAFKA_BROKERS: redpanda:9092
     networks:
       - monitoring
-      - erp-core-net   # 🔥 FIXED (was shared-backend-net)
+      - backend-core-net   # ✅ ADD THIS
     restart: unless-stopped
 
 networks:
@@ -22,4 +21,8 @@ networks:
     external: true
     name: monitoring_default
 
-  
+  erp-core-net:
+    external: true
+
+  backend-core-net:
+    external: true
