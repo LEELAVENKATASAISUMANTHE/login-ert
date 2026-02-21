@@ -13,6 +13,7 @@ services:
       KAFKA_BROKERS: redpanda:9092
     networks:
       - monitoring
+      - erp-core-net
       - backend-core-net   # ✅ ADD THIS
     restart: unless-stopped
 
