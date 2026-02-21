@@ -22,5 +22,4 @@ networks:
     external: true
     name: monitoring_default
 
-  erp-core-net:
-    external: true
+  
