@@ -1,15 +1,16 @@
-name: Deploy via SSH (Compose)
+name: 🚀 Deploy to Server (Docker Compose)
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🚀 Connect and Deploy
+      - name: 🚀 Deploy via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.HOST }}
@@ -18,23 +19,27 @@ jobs:
           port: 22
 
           script: |
-            echo "--- Starting Deployment ---"
+            echo "==============================="
+            echo "🚀 Starting Deployment"
+            echo "==============================="
 
             mkdir -p ~/my-app
             cd ~/my-app
 
             # Backup .env if exists
             if [ -f ".env" ]; then
-              echo "Backing up .env file..."
+              echo "Backing up existing .env..."
               cp .env /tmp/.env.backup
             fi
 
             # Pull latest code
             if [ -d ".git" ]; then
+              echo "Fetching latest code..."
               git fetch origin main
               git reset --hard origin/main
             else
-              git clone ${{ github.server_url }}/${{ github.repository }} .
+              echo "Cloning repository..."
+              git clone https://github.com/LEELAVENKATASAISUMANTHE/login-ert .
             fi
 
             # Restore .env
@@ -44,15 +49,21 @@ jobs:
               rm /tmp/.env.backup
             fi
 
-            echo "Ensuring external networks exist..."
+            echo "Ensuring required Docker networks exist..."
 
             docker network create monitoring_default || true
             docker network create erp-core-net || true
             docker network create backend-core-net || true
 
-            echo "Deploying with docker compose..."
+            echo "Removing any old running-app container..."
+            docker stop running-app || true
+            docker rm running-app || true
 
-            docker compose down
-            docker compose up -d --build
+            echo "Deploying using Docker Compose..."
 
-            echo "--- Deployment Complete ---"
+            docker compose down || true
+            docker compose up -d --build --force-recreate
+
+            echo "==============================="
+            echo "✅ Deployment Complete"
+            echo "==============================="
