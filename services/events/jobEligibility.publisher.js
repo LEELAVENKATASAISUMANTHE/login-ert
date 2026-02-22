@@ -20,12 +20,29 @@ function normalizeBranches(allowedBranches) {
     .filter(Boolean);
 }
 
+function normalizeJobRequirements(req) {
+  if (!req || typeof req !== 'object') return null;
+
+  return {
+    jobRequirementId: toNumberOrNull(req.job_requirement_id ?? req.jobRequirementId ?? req.id),
+    tenthPercent: toNumberOrNull(req.tenth_percent ?? req.tenthPercent),
+    twelfthPercent: toNumberOrNull(req.twelfth_percent ?? req.twelfthPercent),
+    ugCgpa: toNumberOrNull(req.ug_cgpa ?? req.ugCgpa),
+    minExperienceYrs: toNumberOrNull(req.min_experience_yrs ?? req.minExperienceYrs),
+    allowedBranches: normalizeBranches(req.allowed_branches ?? req.allowedBranches),
+    skillsRequired: req.skills_required ?? req.skillsRequired ? String(req.skills_required ?? req.skillsRequired).trim() : null,
+    additionalNotes: req.additional_notes ?? req.additionalNotes ? String(req.additional_notes ?? req.additionalNotes).trim() : null,
+    backlogsAllowed: req.backlogs_allowed ?? req.backlogsAllowed != null ? !!(req.backlogs_allowed ?? req.backlogsAllowed) : null
+  };
+}
+
 export function buildJobCreatedEligibilityEvent({
   jobId,
   companyName,
   minCgpa,
   allowedBranches,
   eligibleBatchYear,
+  jobRequirements,
   timestamp
 }) {
   return {
@@ -35,6 +52,7 @@ export function buildJobCreatedEligibilityEvent({
     minCgpa: toNumberOrNull(minCgpa),
     allowedBranches: normalizeBranches(allowedBranches),
     eligibleBatchYear: toNumberOrNull(eligibleBatchYear),
+    jobRequirements: normalizeJobRequirements(jobRequirements),
     timestamp: timestamp || new Date().toISOString()
   };
 }

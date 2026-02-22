@@ -1,6 +1,7 @@
 import logger from "../utils/logger.js";
 import * as jobService from "../db/jobs.db.js";
 import { publishJobReadyEvent } from "../services/events/jobReady.publisher.js";
+import { publishJobCreatedEligibilityEvent } from "../services/events/jobEligibility.publisher.js";
 import joi from "joi";
 const type=["Full-Time","Part-Time","Internship","Contract","Temporary","Remote","PBC"];
 const Branches = ["CSE","AI","ECE","MECH","EEE","CIVIL","CSBS","ETE","MCA","ALL"];
@@ -124,6 +125,24 @@ export const createJobWithRequirements = async (req, res) => {
                 companyId: job.company_id,
                 yearOfGraduation: job.year_of_graduation
             });
+
+            // Publish JOB_CREATED eligibility event including requirements
+            try {
+                await publishJobCreatedEligibilityEvent({
+                    jobId: job.job_id,
+                    companyName: job.company_name || null,
+                    minCgpa: requirements.ug_cgpa ?? null,
+                    allowedBranches: requirements.allowed_branches ?? requirements.allowedBranches ?? null,
+                    eligibleBatchYear: job.year_of_graduation ?? null,
+                    jobRequirements: requirements
+                });
+            } catch (eligErr) {
+                logger.error('createJobWithRequirements: Failed to publish JOB_CREATED eligibility event', {
+                    jobId: job.job_id,
+                    error: eligErr.message
+                });
+                // don't throw here to avoid failing the request if kafka publish fails
+            }
         } catch (kafkaErr) {
             logger.error('createJobWithRequirements: Failed to publish JOB_READY event', {
                 jobId: job.job_id,
