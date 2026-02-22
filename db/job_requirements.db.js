@@ -1,5 +1,18 @@
 import logger from '../utils/logger.js';
 import pool from './connection.js';
+const Branches = ["CSE","AI","ECE","MECH","EEE","CIVIL","CSBS","ETE","MCA","ALL"];
+
+const normalizeBranches = (arr) => {
+    if (arr === null || arr === undefined) return null;
+    if (!Array.isArray(arr)) throw new Error('allowed_branches must be an array');
+    const normalized = arr.map(b => String(b).trim().toUpperCase());
+    for (const b of normalized) {
+        if (!Branches.includes(b)) {
+            throw new Error(`Invalid branch: ${b}`);
+        }
+    }
+    return normalized;
+}
 
 // Create a new job requirement
 export const createJobRequirement = async (requirement) => {
@@ -24,19 +37,20 @@ export const createJobRequirement = async (requirement) => {
             throw new Error('Job requirement already exists for this job');
         }
 
+        const allowedBranches = normalizeBranches(requirement.allowed_branches);
+
         const insertQuery = `
             INSERT INTO job_requirements (
                 job_id,
                 tenth_percent,
                 twelfth_percent,
                 ug_cgpa,
-                pg_cgpa,
                 min_experience_yrs,
                 allowed_branches,
                 skills_required,
                 additional_notes,
                 backlogs_allowed
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             RETURNING *
         `;
 
@@ -45,9 +59,8 @@ export const createJobRequirement = async (requirement) => {
             requirement.tenth_percent || null,
             requirement.twelfth_percent || null,
             requirement.ug_cgpa || null,
-            requirement.pg_cgpa || null,
             requirement.min_experience_yrs || null,
-            requirement.allowed_branches || null,
+            allowedBranches,
             requirement.skills_required || null,
             requirement.additional_notes || null,
             requirement.backlogs_allowed != null ? requirement.backlogs_allowed : null
@@ -87,7 +100,7 @@ export const getAllJobRequirements = async (params = {}) => {
         const offset = (page - 1) * limit;
         
         // Validate sortBy to prevent SQL injection
-        const allowedSortFields = ['job_requirement_id', 'job_id', 'tenth_percent', 'twelfth_percent', 'ug_cgpa', 'pg_cgpa', 'min_experience_yrs', 'backlogs_allowed'];
+        const allowedSortFields = ['job_requirement_id', 'job_id', 'tenth_percent', 'twelfth_percent', 'ug_cgpa', 'min_experience_yrs', 'backlogs_allowed'];
         const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'job_requirement_id';
         const safeSortOrder = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
@@ -270,19 +283,20 @@ export const updateJobRequirement = async (requirementId, requirement) => {
             }
         }
 
+        const allowedBranchesUpdate = requirement.allowed_branches !== undefined ? normalizeBranches(requirement.allowed_branches) : null;
+
         const updateQuery = `
             UPDATE job_requirements SET
                 job_id = COALESCE($1, job_id),
                 tenth_percent = COALESCE($2, tenth_percent),
                 twelfth_percent = COALESCE($3, twelfth_percent),
                 ug_cgpa = COALESCE($4, ug_cgpa),
-                pg_cgpa = COALESCE($5, pg_cgpa),
-                min_experience_yrs = COALESCE($6, min_experience_yrs),
-                allowed_branches = COALESCE($7, allowed_branches),
-                skills_required = COALESCE($8, skills_required),
-                additional_notes = COALESCE($9, additional_notes),
-                backlogs_allowed = COALESCE($10, backlogs_allowed)
-            WHERE job_requirement_id = $11
+                min_experience_yrs = COALESCE($5, min_experience_yrs),
+                allowed_branches = COALESCE($6, allowed_branches),
+                skills_required = COALESCE($7, skills_required),
+                additional_notes = COALESCE($8, additional_notes),
+                backlogs_allowed = COALESCE($9, backlogs_allowed)
+            WHERE job_requirement_id = $10
             RETURNING *
         `;
 
@@ -291,9 +305,8 @@ export const updateJobRequirement = async (requirementId, requirement) => {
             requirement.tenth_percent !== undefined ? requirement.tenth_percent : null,
             requirement.twelfth_percent !== undefined ? requirement.twelfth_percent : null,
             requirement.ug_cgpa !== undefined ? requirement.ug_cgpa : null,
-            requirement.pg_cgpa !== undefined ? requirement.pg_cgpa : null,
             requirement.min_experience_yrs !== undefined ? requirement.min_experience_yrs : null,
-            requirement.allowed_branches || null,
+            allowedBranchesUpdate,
             requirement.skills_required || null,
             requirement.additional_notes || null,
             requirement.backlogs_allowed != null ? requirement.backlogs_allowed : null,

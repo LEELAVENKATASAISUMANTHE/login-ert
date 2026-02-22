@@ -1,16 +1,37 @@
 import logger from "../utils/logger.js";
 import * as jobRequirementService from "../db/job_requirements.db.js";
 import joi from "joi";
+const Branches = ["CSE","AI","ECE","MECH","EEE","CIVIL","CSBS","ETE","MCA","ALL"];
 
+const normalizeRequestBody = (body = {}) => {
+    if (!body || typeof body !== 'object') return body;
+    const map = {
+        jobId: 'job_id',
+        tenthPercent: 'tenth_percent',
+        twelfthPercent: 'twelfth_percent',
+        ugCgpa: 'ug_cgpa',
+        minExperienceYrs: 'min_experience_yrs',
+        allowedBranches: 'allowed_branches',
+        skillsRequired: 'skills_required',
+        additionalNotes: 'additional_notes',
+        backlogsAllowed: 'backlogs_allowed'
+    };
+
+    const out = {};
+    for (const key of Object.keys(body)) {
+        const mapped = map[key] || key;
+        out[mapped] = body[key];
+    }
+    return out;
+}
 // Validation schema for creating a job requirement
 const createJobRequirementSchema = joi.object({
     job_id: joi.number().integer().positive().required(),
     tenth_percent: joi.number().precision(2).min(0).max(100).optional().allow(null),
     twelfth_percent: joi.number().precision(2).min(0).max(100).optional().allow(null),
     ug_cgpa: joi.number().precision(2).min(0).max(10).optional().allow(null),
-    pg_cgpa: joi.number().precision(2).min(0).max(10).optional().allow(null),
     min_experience_yrs: joi.number().precision(2).min(0).max(50).optional().allow(null),
-    allowed_branches: joi.array().items(joi.string().trim().max(100)).optional().allow(null),
+    allowed_branches: joi.array().items(joi.string().trim().uppercase().valid(...Branches)).optional().allow(null),
     skills_required: joi.string().trim().optional().allow(null, ''),
     additional_notes: joi.string().trim().optional().allow(null, ''),
     backlogs_allowed: joi.number().integer().min(0).optional().allow(null)
@@ -22,9 +43,8 @@ const updateJobRequirementSchema = joi.object({
     tenth_percent: joi.number().precision(2).min(0).max(100).optional().allow(null),
     twelfth_percent: joi.number().precision(2).min(0).max(100).optional().allow(null),
     ug_cgpa: joi.number().precision(2).min(0).max(10).optional().allow(null),
-    pg_cgpa: joi.number().precision(2).min(0).max(10).optional().allow(null),
     min_experience_yrs: joi.number().precision(2).min(0).max(50).optional().allow(null),
-    allowed_branches: joi.array().items(joi.string().trim().max(100)).optional().allow(null),
+    allowed_branches: joi.array().items(joi.string().trim().uppercase().valid(...Branches)).optional().allow(null),
     skills_required: joi.string().trim().optional().allow(null, ''),
     additional_notes: joi.string().trim().optional().allow(null, ''),
     backlogs_allowed: joi.number().integer().min(0).optional().allow(null)
@@ -34,8 +54,8 @@ const updateJobRequirementSchema = joi.object({
 const getJobRequirementsSchema = joi.object({
     page: joi.number().integer().min(1).default(1),
     limit: joi.number().integer().min(1).max(100).default(10),
-    sortBy: joi.string().valid('job_requirement_id', 'job_id', 'tenth_percent', 'twelfth_percent', 'ug_cgpa', 'pg_cgpa', 'min_experience_yrs', 'backlogs_allowed').default('job_requirement_id'),
-    sortOrder: joi.string().valid('ASC', 'DESC', 'asc', 'desc').default('DESC'),
+    sortBy: joi.string().valid('job_requirement_id', 'job_id', 'tenth_percent', 'twelfth_percent', 'ug_cgpa', 'min_experience_yrs', 'backlogs_allowed').default('job_requirement_id'),
+    sortOrder: joi.string().uppercase().valid('ASC', 'DESC').default('DESC'),
     search: joi.string().trim().max(100).optional().allow('')
 });
 
@@ -52,7 +72,8 @@ const jobIdSchema = joi.object({
 // Create a new job requirement
 export const createJobRequirement = async (req, res) => {
     try {
-        const { error, value } = createJobRequirementSchema.validate(req.body);
+        const normalizedBody = normalizeRequestBody(req.body);
+        const { error, value } = createJobRequirementSchema.validate(normalizedBody);
         if (error) {
             logger.warn(`createJobRequirement: Validation failed - ${error.details[0].message}`);
             return res.status(400).json({ 
@@ -180,7 +201,8 @@ export const updateJobRequirement = async (req, res) => {
             });
         }
 
-        const { error: bodyError, value } = updateJobRequirementSchema.validate(req.body);
+        const normalizedBody = normalizeRequestBody(req.body);
+        const { error: bodyError, value } = updateJobRequirementSchema.validate(normalizedBody);
         if (bodyError) {
             logger.warn(`updateJobRequirement: Body validation failed - ${bodyError.details[0].message}`);
             return res.status(400).json({ 
