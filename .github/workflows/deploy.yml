@@ -1,6 +1,7 @@
 name: 🚀 Deploy to Server (Docker Compose)
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -50,19 +51,24 @@ jobs:
             fi
 
             echo "Ensuring required Docker networks exist..."
-
             docker network create monitoring_default || true
             docker network create erp-core-net || true
             docker network create backend-core-net || true
 
-            echo "Removing any old running-app container..."
-            docker stop running-app || true
-            docker rm running-app || true
-
-            echo "Deploying using Docker Compose..."
-
+            echo "Stopping and removing old containers..."
             docker compose down || true
-            docker compose up -d --build --force-recreate
+
+            echo "Removing old images to avoid cache issues..."
+            docker image prune -af || true
+
+            echo "Building fresh image without cache..."
+            docker compose build --no-cache
+
+            echo "Starting containers..."
+            docker compose up -d --force-recreate
+
+            echo "Verifying container..."
+            docker ps
 
             echo "==============================="
             echo "✅ Deployment Complete"
