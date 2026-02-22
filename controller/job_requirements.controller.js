@@ -196,6 +196,46 @@ export const getJobRequirementByJobId = async (req, res) => {
     }
 };
 
+// Update job requirement by Job ID
+export const updateJobRequirementByJobId = async (req, res) => {
+    try {
+        const { error } = jobIdSchema.validate(req.params);
+        if (error) {
+            logger.warn(`updateJobRequirementByJobId: Param validation failed - ${error.details[0].message}`);
+            return res.status(400).json({ success: false, message: error.details[0].message });
+        }
+
+        const normalizedBody = normalizeRequestBody(req.body);
+        console.log('updateJobRequirementByJobId - rawBody', JSON.stringify(req.body));
+        console.log('updateJobRequirementByJobId - normalizedBody', JSON.stringify(normalizedBody));
+        logger.info('updateJobRequirementByJobId - rawBody', { rawBody: req.body });
+        logger.info('updateJobRequirementByJobId - normalizedBody', { normalizedBody });
+
+        const { error: bodyError, value } = updateJobRequirementSchema.validate(normalizedBody);
+        if (bodyError) {
+            logger.warn(`updateJobRequirementByJobId: Body validation failed - ${bodyError.details[0].message}`);
+            return res.status(400).json({ success: false, message: bodyError.details[0].message });
+        }
+
+        if (Object.keys(value).length === 0) {
+            return res.status(400).json({ success: false, message: 'No fields provided for update' });
+        }
+
+        const { jobId } = req.params;
+        const result = await jobRequirementService.updateJobRequirementByJobId(jobId, value);
+        res.status(200).json(result);
+    } catch (err) {
+        logger.error('Error updating job requirement by job ID:', err);
+        if (err.message.includes('not found')) {
+            return res.status(404).json({ success: false, message: err.message });
+        }
+        if (err.message.includes('already exists')) {
+            return res.status(409).json({ success: false, message: err.message });
+        }
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
+
 // Update job requirement by ID
 export const updateJobRequirement = async (req, res) => {
     try {

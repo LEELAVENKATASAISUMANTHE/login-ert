@@ -407,3 +407,16 @@ export const deleteJobRequirementByJobId = async (jobId) => {
         client.release();
     }
 };
+
+// Update job requirement by Job ID
+export const updateJobRequirementByJobId = async (jobId, requirement) => {
+    // find requirement id for this job
+    const q = `SELECT job_requirement_id FROM job_requirements WHERE job_id = $1`;
+    const res = await pool.query(q, [jobId]);
+    if (res.rows.length === 0) {
+        throw new Error('Job requirement not found for this job');
+    }
+    const reqId = res.rows[0].job_requirement_id;
+    // reuse existing update function
+    return await updateJobRequirement(reqId, requirement);
+};

@@ -3,6 +3,7 @@ import * as jobService from "../db/jobs.db.js";
 import { publishJobReadyEvent } from "../services/events/jobReady.publisher.js";
 import joi from "joi";
 const type=["Full-Time","Part-Time","Internship","Contract","Temporary","Remote","PBC"];
+const Branches = ["CSE","AI","ECE","MECH","EEE","CIVIL","CSBS","ETE","MCA","ALL"];
 // Validation schema for creating a job
 const createJobSchema = joi.object({
     company_id: joi.number().integer().positive().required(),
@@ -69,9 +70,8 @@ const createJobWithRequirementsSchema = joi.object({
         tenth_percent: joi.number().precision(2).min(0).max(100).optional().allow(null),
         twelfth_percent: joi.number().precision(2).min(0).max(100).optional().allow(null),
         ug_cgpa: joi.number().precision(2).min(0).max(10).optional().allow(null),
-        pg_cgpa: joi.number().precision(2).min(0).max(10).optional().allow(null),
         min_experience_yrs: joi.number().precision(2).min(0).max(50).optional().allow(null),
-        allowed_branches: joi.array().items(joi.string().trim().max(100)).optional().allow(null),
+        allowed_branches: joi.array().items(joi.string().trim().uppercase().valid(...Branches)).optional().allow(null),
         skills_required: joi.string().trim().optional().allow(null, ''),
         additional_notes: joi.string().trim().optional().allow(null, ''),
         backlogs_allowed: joi.number().integer().min(0).optional().allow(null)
@@ -81,7 +81,29 @@ const createJobWithRequirementsSchema = joi.object({
 // Create a job with requirements (combined endpoint)
 export const createJobWithRequirements = async (req, res) => {
     try {
-        const { error, value } = createJobWithRequirementsSchema.validate(req.body);
+        // normalize nested `requirements` keys to snake_case if caller sent camelCase
+        const normalized = { ...req.body };
+        if (normalized.requirements && typeof normalized.requirements === 'object') {
+            const r = normalized.requirements;
+            const map = {
+                tenthPercent: 'tenth_percent',
+                twelfthPercent: 'twelfth_percent',
+                ugCgpa: 'ug_cgpa',
+                minExperienceYrs: 'min_experience_yrs',
+                allowedBranches: 'allowed_branches',
+                skillsRequired: 'skills_required',
+                additionalNotes: 'additional_notes',
+                backlogsAllowed: 'backlogs_allowed'
+            };
+            const newReq = {};
+            for (const k of Object.keys(r)) {
+                const mapped = map[k] || k;
+                newReq[mapped] = r[k];
+            }
+            normalized.requirements = newReq;
+        }
+
+        const { error, value } = createJobWithRequirementsSchema.validate(normalized);
         if (error) {
             logger.warn(`createJobWithRequirements: Validation failed - ${error.details[0].message}`);
             return res.status(400).json({ 

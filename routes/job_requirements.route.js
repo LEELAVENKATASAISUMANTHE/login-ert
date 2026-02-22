@@ -23,6 +23,12 @@ router.get('/', jobRequirementController.getAllJobRequirements);
 router.get('/job/:jobId', jobRequirementController.getJobRequirementByJobId);
 
 /**
+ * @route   PUT /api/job-requirements/job/:jobId
+ * @desc    Update job requirement by Job ID
+ */
+router.put('/job/:jobId', jobRequirementController.updateJobRequirementByJobId);
+
+/**
  * @route   GET /api/job-requirements/:id
  * @desc    Get job requirement by ID
  */
