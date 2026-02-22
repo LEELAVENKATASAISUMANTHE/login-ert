@@ -138,13 +138,10 @@ export const createStudentAcademic = async (academic) => {
 
 // Get student academic by student ID (primary key)
 export const getStudentAcademicById = async (studentId) => {
-    const client = await pool.connect();
     try {
         logger.info(`getStudentAcademicById: Fetching student academic with student_id ${studentId}`);
-        await client.query('BEGIN');
         const selectQuery = `SELECT * FROM student_academics WHERE student_id = $1`;
-        const result = await client.query(selectQuery, [studentId]);
-        await client.query('COMMIT');
+        const result = await pool.query(selectQuery, [studentId]);
 
         if (result.rows.length === 0) {
             return {
@@ -159,23 +156,18 @@ export const getStudentAcademicById = async (studentId) => {
             message: 'Student academic record fetched successfully'
         };
     } catch (error) {
-        await client.query('ROLLBACK');
         logger.error(`getStudentAcademicById: ${error.message}`, {
             stack: error.stack,
             studentId
         });
         throw error;
-    } finally {
-        client.release();
     }
 };
 
 // Get all student academics
 export const getAllStudentAcademics = async () => {
-    const client = await pool.connect();
     try {
         logger.info('getAllStudentAcademics: Fetching all student academic records');
-        await client.query('BEGIN');
 
         const selectQuery = `
             SELECT
@@ -205,9 +197,8 @@ export const getAllStudentAcademics = async () => {
             LEFT JOIN students s ON sa.student_id = s.student_id
             ORDER BY sa.student_id ASC
         `;
-        
-        const result = await client.query(selectQuery);
-        await client.query('COMMIT');
+
+        const result = await pool.query(selectQuery);
 
         return {
             success: true,
@@ -216,13 +207,10 @@ export const getAllStudentAcademics = async () => {
             count: result.rows.length
         };
     } catch (error) {
-        await client.query('ROLLBACK');
         logger.error(`getAllStudentAcademics: ${error.message}`, {
             stack: error.stack
         });
         throw error;
-    } finally {
-        client.release();
     }
 };
 
@@ -423,10 +411,8 @@ export const deleteStudentAcademicById = async (studentId) => {
 
 // Get academics by category
 export const getAcademicsByCategory = async (category) => {
-    const client = await pool.connect();
     try {
         logger.info(`getAcademicsByCategory: Fetching academics for category ${category}`);
-        await client.query('BEGIN');
 
         const selectQuery = `
             SELECT sa.*, s.full_name
@@ -435,9 +421,8 @@ export const getAcademicsByCategory = async (category) => {
             WHERE sa.category = $1
             ORDER BY sa.student_id ASC
         `;
-        
-        const result = await client.query(selectQuery, [category]);
-        await client.query('COMMIT');
+
+        const result = await pool.query(selectQuery, [category]);
 
         return {
             success: true,
@@ -446,23 +431,18 @@ export const getAcademicsByCategory = async (category) => {
             count: result.rows.length
         };
     } catch (error) {
-        await client.query('ROLLBACK');
         logger.error(`getAcademicsByCategory: ${error.message}`, {
             stack: error.stack,
             category
         });
         throw error;
-    } finally {
-        client.release();
     }
 };
 
 // Get academics with filters
 export const getAcademicsWithFilters = async (filters = {}) => {
-    const client = await pool.connect();
     try {
         logger.info('getAcademicsWithFilters: Fetching academics with filters', { filters });
-        await client.query('BEGIN');
 
         const conditions = [];
         const values = [];
@@ -514,8 +494,7 @@ export const getAcademicsWithFilters = async (filters = {}) => {
             ORDER BY sa.student_id ASC
         `;
 
-        const result = await client.query(selectQuery, values);
-        await client.query('COMMIT');
+        const result = await pool.query(selectQuery, values);
 
         return {
             success: true,
@@ -524,13 +503,10 @@ export const getAcademicsWithFilters = async (filters = {}) => {
             count: result.rows.length
         };
     } catch (error) {
-        await client.query('ROLLBACK');
         logger.error(`getAcademicsWithFilters: ${error.message}`, {
             stack: error.stack,
             filters
         });
         throw error;
-    } finally {
-        client.release();
     }
 };

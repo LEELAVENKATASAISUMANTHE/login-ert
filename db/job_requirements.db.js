@@ -34,8 +34,9 @@ export const createJobRequirement = async (requirement) => {
                 min_experience_yrs,
                 allowed_branches,
                 skills_required,
-                additional_notes
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                additional_notes,
+                backlogs_allowed
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING *
         `;
 
@@ -48,7 +49,8 @@ export const createJobRequirement = async (requirement) => {
             requirement.min_experience_yrs || null,
             requirement.allowed_branches || null,
             requirement.skills_required || null,
-            requirement.additional_notes || null
+            requirement.additional_notes || null,
+            requirement.backlogs_allowed != null ? requirement.backlogs_allowed : null
         ];
 
         const result = await client.query(insertQuery, values);
@@ -85,7 +87,7 @@ export const getAllJobRequirements = async (params = {}) => {
         const offset = (page - 1) * limit;
         
         // Validate sortBy to prevent SQL injection
-        const allowedSortFields = ['job_requirement_id', 'job_id', 'tenth_percent', 'twelfth_percent', 'ug_cgpa', 'pg_cgpa', 'min_experience_yrs'];
+        const allowedSortFields = ['job_requirement_id', 'job_id', 'tenth_percent', 'twelfth_percent', 'ug_cgpa', 'pg_cgpa', 'min_experience_yrs', 'backlogs_allowed'];
         const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'job_requirement_id';
         const safeSortOrder = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
@@ -278,8 +280,9 @@ export const updateJobRequirement = async (requirementId, requirement) => {
                 min_experience_yrs = COALESCE($6, min_experience_yrs),
                 allowed_branches = COALESCE($7, allowed_branches),
                 skills_required = COALESCE($8, skills_required),
-                additional_notes = COALESCE($9, additional_notes)
-            WHERE job_requirement_id = $10
+                additional_notes = COALESCE($9, additional_notes),
+                backlogs_allowed = COALESCE($10, backlogs_allowed)
+            WHERE job_requirement_id = $11
             RETURNING *
         `;
 
@@ -293,6 +296,7 @@ export const updateJobRequirement = async (requirementId, requirement) => {
             requirement.allowed_branches || null,
             requirement.skills_required || null,
             requirement.additional_notes || null,
+            requirement.backlogs_allowed != null ? requirement.backlogs_allowed : null,
             requirementId
         ];
 

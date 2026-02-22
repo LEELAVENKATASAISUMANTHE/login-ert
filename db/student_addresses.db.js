@@ -1,6 +1,12 @@
 import logger from '../utils/logger.js';
 import pool from './connection.js';
 
+const ALLOWED_ADDRESS_FIELDS = [
+    'student_id', 'permanent_address', 'permanent_city', 'permanent_state',
+    'permanent_pin', 'permanent_contact', 'current_address', 'current_city',
+    'current_state', 'current_pin'
+];
+
 export const getStudentsMenu = async (searchParams = {}) => {
     const client = await pool.connect();
     try {
@@ -119,13 +125,10 @@ export const createStudentAddress = async (address) => {
 };
 
 export const getStudentAddressById = async (addressId) => {
-    const client = await pool.connect();
     try {
         logger.info(`getStudentAddressById: Fetching student address with ID ${addressId}`);
-        await client.query('BEGIN');
         const selectQuery = `SELECT * FROM student_addresses WHERE address_id = $1`;
-        const result = await client.query(selectQuery, [addressId]);
-        await client.query('COMMIT');
+        const result = await pool.query(selectQuery, [addressId]);
 
         if (result.rows.length === 0) {
             return {
@@ -140,25 +143,19 @@ export const getStudentAddressById = async (addressId) => {
             message: 'Student address fetched successfully'
         };
     } catch (error) {
-        await client.query('ROLLBACK');
         logger.error(`getStudentAddressById: ${error.message}`, {
             stack: error.stack,
             addressId
         });
         throw error;
-    } finally {
-        client.release();
     }
 };
 
 export const getAddressByStudentId = async (studentId) => {
-    const client = await pool.connect();
     try {
         logger.info(`getAddressByStudentId: Fetching address for student ID ${studentId}`);
-        await client.query('BEGIN');
         const selectQuery = `SELECT * FROM student_addresses WHERE student_id = $1`;
-        const result = await client.query(selectQuery, [studentId]);
-        await client.query('COMMIT');
+        const result = await pool.query(selectQuery, [studentId]);
 
         if (result.rows.length === 0) {
             return {
@@ -173,22 +170,17 @@ export const getAddressByStudentId = async (studentId) => {
             message: 'Student address fetched successfully'
         };
     } catch (error) {
-        await client.query('ROLLBACK');
         logger.error(`getAddressByStudentId: ${error.message}`, {
             stack: error.stack,
             studentId
         });
         throw error;
-    } finally {
-        client.release();
     }
 };
 
 export const getAllStudentAddresses = async () => {
-    const client = await pool.connect();
     try {
         logger.info('getAllStudentAddresses: Fetching all student addresses');
-        await client.query('BEGIN');
 
         const selectQuery = `
             SELECT
@@ -211,8 +203,7 @@ export const getAllStudentAddresses = async () => {
             ORDER BY sa.address_id DESC
         `;
 
-        const result = await client.query(selectQuery);
-        await client.query('COMMIT');
+        const result = await pool.query(selectQuery);
 
         return {
             success: true,
@@ -221,13 +212,10 @@ export const getAllStudentAddresses = async () => {
             count: result.rows.length
         };
     } catch (error) {
-        await client.query('ROLLBACK');
         logger.error(`getAllStudentAddresses: ${error.message}`, {
             stack: error.stack
         });
         throw error;
-    } finally {
-        client.release();
     }
 };
 
@@ -250,9 +238,20 @@ export const updateStudentAddressById = async (addressId, updateFields) => {
         let index = 1;
 
         for (const [key, value] of Object.entries(updateFields)) {
+            if (!ALLOWED_ADDRESS_FIELDS.includes(key)) {
+                continue;
+            }
             fields.push(`${key} = $${index}`);
             values.push(value);
             index++;
+        }
+
+        if (fields.length === 0) {
+            return {
+                success: false,
+                data: null,
+                message: 'No valid fields provided for update'
+            };
         }
 
         const updateQuery = `UPDATE student_addresses SET ${fields.join(', ')} WHERE address_id = $${index} RETURNING *`;
@@ -301,9 +300,20 @@ export const patchStudentAddressById = async (addressId, updateFields) => {
         let index = 1;
 
         for (const [key, value] of Object.entries(updateFields)) {
+            if (!ALLOWED_ADDRESS_FIELDS.includes(key)) {
+                continue;
+            }
             fields.push(`${key} = $${index}`);
             values.push(value);
             index++;
+        }
+
+        if (fields.length === 0) {
+            return {
+                success: false,
+                data: null,
+                message: 'No valid fields provided for update'
+            };
         }
 
         const updateQuery = `UPDATE student_addresses SET ${fields.join(', ')} WHERE address_id = $${index} RETURNING *`;

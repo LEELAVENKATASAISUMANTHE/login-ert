@@ -1,5 +1,6 @@
 import logger from "../utils/logger.js";
 import * as jobService from "../db/jobs.db.js";
+import { publishJobReadyEvent } from "../services/events/jobReady.publisher.js";
 import joi from "joi";
 const type=["Full-Time","Part-Time","Internship","Contract","Temporary","Remote","PBC"];
 // Validation schema for creating a job
@@ -13,7 +14,8 @@ const createJobSchema = joi.object({
     location: joi.string().trim().max(200).optional().allow(null, ''),
     interview_mode: joi.string().trim().max(50).optional().allow(null, ''),
     application_deadline: joi.date().optional().allow(null),
-    drive_date: joi.date().optional().allow(null)
+    drive_date: joi.date().optional().allow(null),
+    year_of_graduation: joi.number().integer().min(2000).max(2100).optional().allow(null)
 });
 
 // Validation schema for updating a job
@@ -27,14 +29,15 @@ const updateJobSchema = joi.object({
     location: joi.string().trim().max(200).optional().allow(null, ''),
     interview_mode: joi.string().trim().max(50).optional().allow(null, ''),
     application_deadline: joi.date().optional().allow(null),
-    drive_date: joi.date().optional().allow(null)
+    drive_date: joi.date().optional().allow(null),
+    year_of_graduation: joi.number().integer().min(2000).max(2100).optional().allow(null)
 });
 
 // Validation schema for query params (pagination & search)
 const getJobsSchema = joi.object({
     page: joi.number().integer().min(1).default(1),
     limit: joi.number().integer().min(1).max(100).default(10),
-    sortBy: joi.string().valid('job_id', 'job_title', 'job_type', 'ctc_lpa', 'location', 'application_deadline', 'drive_date', 'created_at').default('job_id'),
+    sortBy: joi.string().valid('job_id', 'job_title', 'job_type', 'ctc_lpa', 'location', 'application_deadline', 'drive_date', 'year_of_graduation', 'status', 'created_at').default('job_id'),
     sortOrder: joi.string().valid('ASC', 'DESC', 'asc', 'desc').default('DESC'),
     search: joi.string().trim().max(100).optional().allow('')
 });
@@ -48,6 +51,82 @@ const idSchema = joi.object({
 const companyIdSchema = joi.object({
     companyId: joi.number().integer().positive().required()
 });
+
+// Combined validation schema for creating a job with requirements
+const createJobWithRequirementsSchema = joi.object({
+    company_id: joi.number().integer().positive().required(),
+    job_title: joi.string().trim().min(1).max(200).required(),
+    job_description: joi.string().trim().optional().allow(null, ''),
+    job_type: joi.string().trim().valid(...type).optional().allow(),
+    ctc_lpa: joi.number().precision(2).min(0).max(9999999.99).optional().allow(null),
+    stipend_per_month: joi.number().precision(2).min(0).max(9999999999.99).optional().allow(null),
+    location: joi.string().trim().max(200).optional().allow(null, ''),
+    interview_mode: joi.string().trim().max(50).optional().allow(null, ''),
+    application_deadline: joi.date().optional().allow(null),
+    drive_date: joi.date().optional().allow(null),
+    year_of_graduation: joi.number().integer().min(2000).max(2100).required(),
+    requirements: joi.object({
+        tenth_percent: joi.number().precision(2).min(0).max(100).optional().allow(null),
+        twelfth_percent: joi.number().precision(2).min(0).max(100).optional().allow(null),
+        ug_cgpa: joi.number().precision(2).min(0).max(10).optional().allow(null),
+        pg_cgpa: joi.number().precision(2).min(0).max(10).optional().allow(null),
+        min_experience_yrs: joi.number().precision(2).min(0).max(50).optional().allow(null),
+        allowed_branches: joi.array().items(joi.string().trim().max(100)).optional().allow(null),
+        skills_required: joi.string().trim().optional().allow(null, ''),
+        additional_notes: joi.string().trim().optional().allow(null, ''),
+        backlogs_allowed: joi.number().integer().min(0).optional().allow(null)
+    }).required()
+});
+
+// Create a job with requirements (combined endpoint)
+export const createJobWithRequirements = async (req, res) => {
+    try {
+        const { error, value } = createJobWithRequirementsSchema.validate(req.body);
+        if (error) {
+            logger.warn(`createJobWithRequirements: Validation failed - ${error.details[0].message}`);
+            return res.status(400).json({ 
+                success: false, 
+                message: error.details[0].message 
+            });
+        }
+
+        const { requirements, ...jobData } = value;
+
+        const result = await jobService.createJobWithRequirements(jobData, requirements);
+
+        const { job } = result.data;
+
+        try {
+            await publishJobReadyEvent({
+                jobId: job.job_id,
+                companyId: job.company_id,
+                yearOfGraduation: job.year_of_graduation
+            });
+        } catch (kafkaErr) {
+            logger.error('createJobWithRequirements: Failed to publish JOB_READY event', {
+                jobId: job.job_id,
+                error: kafkaErr.message
+            });
+            throw kafkaErr;
+        }
+
+        res.status(201).json(result);
+    } catch (err) {
+        logger.error("Error creating job with requirements:", err);
+
+        if (err.message.includes('Company not found')) {
+            return res.status(404).json({ 
+                success: false, 
+                message: err.message 
+            });
+        }
+
+        res.status(500).json({ 
+            success: false, 
+            message: "Internal server error" 
+        });
+    }
+};
 
 // Create a new job
 export const createJob = async (req, res) => {

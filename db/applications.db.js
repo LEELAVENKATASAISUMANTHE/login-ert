@@ -12,10 +12,12 @@ export const checkEligibility = async (studentId, jobId) => {
             SELECT 
                 s.student_id,
                 s.branch,
+                s.graduation_year as student_graduation_year,
                 sa.tenth_percent,
                 sa.twelfth_percent,
                 sa.ug_cgpa,
                 sa.pg_cgpa,
+                COALESCE(sa.history_of_backs, 0) as history_of_backs,
                 COALESCE(si.total_experience_years, 0) as experience_years,
                 jr.tenth_percent as req_tenth,
                 jr.twelfth_percent as req_twelfth,
@@ -24,8 +26,10 @@ export const checkEligibility = async (studentId, jobId) => {
                 jr.min_experience_yrs,
                 jr.allowed_branches,
                 jr.skills_required,
+                jr.backlogs_allowed,
                 j.job_title,
-                j.application_deadline
+                j.application_deadline,
+                j.year_of_graduation as job_graduation_year
             FROM students s
             LEFT JOIN student_academics sa ON s.student_id = sa.student_id
             LEFT JOIN (
@@ -80,6 +84,9 @@ export const checkEligibility = async (studentId, jobId) => {
         const reqPgCgpa = data.req_pg_cgpa !== null ? parseFloat(data.req_pg_cgpa) : null;
         const reqExperience = data.min_experience_yrs !== null ? parseFloat(data.min_experience_yrs) : null;
 
+        const studentBacklogs = parseInt(data.history_of_backs) || 0;
+        const reqBacklogs = data.backlogs_allowed != null ? parseInt(data.backlogs_allowed) : null;
+
         const checks = {
             tenth_percent_meets: reqTenth !== null ? (studentTenth !== null && studentTenth >= reqTenth) : true,
             twelfth_percent_meets: reqTwelfth !== null ? (studentTwelfth !== null && studentTwelfth >= reqTwelfth) : true,
@@ -88,6 +95,10 @@ export const checkEligibility = async (studentId, jobId) => {
             experience_meets: reqExperience !== null ? (studentExperience >= reqExperience) : true,
             branch_meets: data.allowed_branches && data.allowed_branches.length > 0 
                 ? data.allowed_branches.some(branch => branch.toLowerCase() === (data.branch || '').toLowerCase()) 
+                : true,
+            backlogs_meets: reqBacklogs !== null ? (studentBacklogs <= reqBacklogs) : true,
+            graduation_year_meets: data.job_graduation_year 
+                ? (data.student_graduation_year != null && parseInt(data.student_graduation_year) === parseInt(data.job_graduation_year))
                 : true
         };
         
@@ -130,6 +141,12 @@ export const checkEligibility = async (studentId, jobId) => {
             }
             if (!checks.branch_meets) {
                 eligibilityComments.push(`Branch not allowed (${data.branch || 'unknown'} not in [${data.allowed_branches?.join(', ')}])`);
+            }
+            if (!checks.backlogs_meets) {
+                eligibilityComments.push(`Backlogs exceed limit (${studentBacklogs} > ${reqBacklogs} allowed)`);
+            }
+            if (!checks.graduation_year_meets) {
+                eligibilityComments.push(`Graduation year mismatch (student: ${data.student_graduation_year || 'not set'}, required: ${data.job_graduation_year})`);
             }
         }
         

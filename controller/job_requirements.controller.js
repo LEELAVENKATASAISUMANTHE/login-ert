@@ -12,7 +12,8 @@ const createJobRequirementSchema = joi.object({
     min_experience_yrs: joi.number().precision(2).min(0).max(50).optional().allow(null),
     allowed_branches: joi.array().items(joi.string().trim().max(100)).optional().allow(null),
     skills_required: joi.string().trim().optional().allow(null, ''),
-    additional_notes: joi.string().trim().optional().allow(null, '')
+    additional_notes: joi.string().trim().optional().allow(null, ''),
+    backlogs_allowed: joi.number().integer().min(0).optional().allow(null)
 });
 
 // Validation schema for updating a job requirement
@@ -25,14 +26,15 @@ const updateJobRequirementSchema = joi.object({
     min_experience_yrs: joi.number().precision(2).min(0).max(50).optional().allow(null),
     allowed_branches: joi.array().items(joi.string().trim().max(100)).optional().allow(null),
     skills_required: joi.string().trim().optional().allow(null, ''),
-    additional_notes: joi.string().trim().optional().allow(null, '')
+    additional_notes: joi.string().trim().optional().allow(null, ''),
+    backlogs_allowed: joi.number().integer().min(0).optional().allow(null)
 });
 
 // Validation schema for query params (pagination & search)
 const getJobRequirementsSchema = joi.object({
     page: joi.number().integer().min(1).default(1),
     limit: joi.number().integer().min(1).max(100).default(10),
-    sortBy: joi.string().valid('job_requirement_id', 'job_id', 'tenth_percent', 'twelfth_percent', 'ug_cgpa', 'pg_cgpa', 'min_experience_yrs').default('job_requirement_id'),
+    sortBy: joi.string().valid('job_requirement_id', 'job_id', 'tenth_percent', 'twelfth_percent', 'ug_cgpa', 'pg_cgpa', 'min_experience_yrs', 'backlogs_allowed').default('job_requirement_id'),
     sortOrder: joi.string().valid('ASC', 'DESC', 'asc', 'desc').default('DESC'),
     search: joi.string().trim().max(100).optional().allow('')
 });

@@ -28,8 +28,9 @@ export const createJob = async (job) => {
                 interview_mode,
                 application_deadline,
                 drive_date,
+                year_of_graduation,
                 created_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING *
         `;
 
@@ -44,6 +45,7 @@ export const createJob = async (job) => {
             job.interview_mode || null,
             job.application_deadline || null,
             job.drive_date || null,
+            job.year_of_graduation || null,
             new Date()
         ];
 
@@ -67,6 +69,113 @@ export const createJob = async (job) => {
     }
 };
 
+// Create a job with requirements in a single transaction
+export const createJobWithRequirements = async (job, requirements) => {
+    const client = await pool.connect();
+    try {
+        logger.info('createJobWithRequirements: Creating job with requirements in a single transaction');
+        await client.query('BEGIN');
+
+        const companyCheck = `SELECT company_id FROM companies WHERE company_id = $1`;
+        const companyResult = await client.query(companyCheck, [job.company_id]);
+
+        if (companyResult.rows.length === 0) {
+            throw new Error('Company not found');
+        }
+
+        const insertJobQuery = `
+            INSERT INTO jobs (
+                company_id,
+                job_title,
+                job_description,
+                job_type,
+                ctc_lpa,
+                stipend_per_month,
+                location,
+                interview_mode,
+                application_deadline,
+                drive_date,
+                year_of_graduation,
+                status,
+                created_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+            RETURNING *
+        `;
+
+        const jobValues = [
+            job.company_id,
+            job.job_title,
+            job.job_description || null,
+            job.job_type || null,
+            job.ctc_lpa || null,
+            job.stipend_per_month || null,
+            job.location || null,
+            job.interview_mode || null,
+            job.application_deadline || null,
+            job.drive_date || null,
+            job.year_of_graduation,
+            'READY',
+            new Date()
+        ];
+
+        const jobResult = await client.query(insertJobQuery, jobValues);
+        const createdJob = jobResult.rows[0];
+
+        const insertReqQuery = `
+            INSERT INTO job_requirements (
+                job_id,
+                tenth_percent,
+                twelfth_percent,
+                ug_cgpa,
+                pg_cgpa,
+                min_experience_yrs,
+                allowed_branches,
+                skills_required,
+                additional_notes,
+                backlogs_allowed
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING *
+        `;
+
+        const reqValues = [
+            createdJob.job_id,
+            requirements.tenth_percent || null,
+            requirements.twelfth_percent || null,
+            requirements.ug_cgpa || null,
+            requirements.pg_cgpa || null,
+            requirements.min_experience_yrs || null,
+            requirements.allowed_branches || null,
+            requirements.skills_required || null,
+            requirements.additional_notes || null,
+            requirements.backlogs_allowed != null ? requirements.backlogs_allowed : null
+        ];
+
+        const reqResult = await client.query(insertReqQuery, reqValues);
+        const createdRequirements = reqResult.rows[0];
+
+        await client.query('COMMIT');
+
+        return {
+            success: true,
+            data: {
+                job: createdJob,
+                requirements: createdRequirements
+            },
+            message: 'Job and requirements created successfully'
+        };
+    } catch (error) {
+        await client.query('ROLLBACK');
+        logger.error(`createJobWithRequirements: ${error.message}`, {
+            stack: error.stack,
+            job,
+            requirements
+        });
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 // Get all jobs with pagination and multi-field search
 export const getAllJobs = async (params = {}) => {
     try {
@@ -82,7 +191,7 @@ export const getAllJobs = async (params = {}) => {
         const offset = (page - 1) * limit;
         
         // Validate sortBy to prevent SQL injection
-        const allowedSortFields = ['job_id', 'job_title', 'job_type', 'ctc_lpa', 'location', 'application_deadline', 'drive_date', 'created_at'];
+        const allowedSortFields = ['job_id', 'job_title', 'job_type', 'ctc_lpa', 'location', 'application_deadline', 'drive_date', 'year_of_graduation', 'status', 'created_at'];
         const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'job_id';
         const safeSortOrder = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
@@ -252,8 +361,9 @@ export const updateJob = async (jobId, job) => {
                 location = COALESCE($7, location),
                 interview_mode = COALESCE($8, interview_mode),
                 application_deadline = COALESCE($9, application_deadline),
-                drive_date = COALESCE($10, drive_date)
-            WHERE job_id = $11
+                drive_date = COALESCE($10, drive_date),
+                year_of_graduation = COALESCE($11, year_of_graduation)
+            WHERE job_id = $12
             RETURNING *
         `;
 
@@ -268,6 +378,7 @@ export const updateJob = async (jobId, job) => {
             job.interview_mode || null,
             job.application_deadline || null,
             job.drive_date || null,
+            job.year_of_graduation || null,
             jobId
         ];
 
