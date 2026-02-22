@@ -3,6 +3,8 @@ import * as jobRequirementService from "../db/job_requirements.db.js";
 import joi from "joi";
 const Branches = ["CSE","AI","ECE","MECH","EEE","CIVIL","CSBS","ETE","MCA","ALL"];
 
+console.log('Loaded job_requirements.controller.js (patched)');
+
 const normalizeRequestBody = (body = {}) => {
     if (!body || typeof body !== 'object') return body;
     const map = {
@@ -73,6 +75,9 @@ const jobIdSchema = joi.object({
 export const createJobRequirement = async (req, res) => {
     try {
         const normalizedBody = normalizeRequestBody(req.body);
+        // plain console logs to ensure visibility even if logger filters fields
+        console.log('createJobRequirement - rawBody', JSON.stringify(req.body));
+        console.log('createJobRequirement - normalizedBody', JSON.stringify(normalizedBody));
         logger.info('createJobRequirement - rawBody', { rawBody: req.body });
         logger.info('createJobRequirement - normalizedBody', { normalizedBody });
         const { error, value } = createJobRequirementSchema.validate(normalizedBody);
@@ -204,6 +209,8 @@ export const updateJobRequirement = async (req, res) => {
         }
 
         const normalizedBody = normalizeRequestBody(req.body);
+        console.log('updateJobRequirement - rawBody', JSON.stringify(req.body));
+        console.log('updateJobRequirement - normalizedBody', JSON.stringify(normalizedBody));
         logger.info('updateJobRequirement - rawBody', { rawBody: req.body });
         logger.info('updateJobRequirement - normalizedBody', { normalizedBody });
         const { error: bodyError, value } = updateJobRequirementSchema.validate(normalizedBody);
