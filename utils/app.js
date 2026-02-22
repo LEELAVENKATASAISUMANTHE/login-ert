@@ -28,7 +28,7 @@ import companiesRoutes from '../routes/companies.route.js';
 import jobsRoutes from '../routes/jobs.route.js';
 import jobRequirementsRoutes from '../routes/job_requirements.route.js';
 import studentOffersRoutes from '../routes/student_offers.route.js';
-import applicationsRoutes from '../routes/applications.route.js';
+// import applicationsRoutes from '../routes/applications.route.js';
 const app = express();
 
 // ===== MIDDLEWARE =====
@@ -257,7 +257,7 @@ app.use('/api/companies', companiesRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/job-requirements', jobRequirementsRoutes);
 app.use('/api/student-offers', studentOffersRoutes);
-app.use('/api/applications', applicationsRoutes);
+// app.use('/api/applications', applicationsRoutes);
 
 // Root endpoint
 app.get('/api', (req, res) => {

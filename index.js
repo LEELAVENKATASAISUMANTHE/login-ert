@@ -1,14 +1,15 @@
-import express from "express";
+import app from "./utils/app.js";
 import { initKafka } from "./utils/kafka.js";
+import logger from "./utils/logger.js";
 
-const app = express();
+const PORT = process.env.PORT || 3225;
 
 async function startServer() {
-  await initKafka(); // connect before server starts
-
-  app.listen(3225, () => {
-    console.log("🚀 Backend running on port 3225");
-  });
+  await initKafka();
+  app.listen(PORT, () => logger.info(`Backend running on port ${PORT}`));
 }
 
-startServer();
+startServer().catch((err) => {
+  logger.error("Server startup failed", { error: err.message, stack: err.stack });
+  process.exit(1);
+});
