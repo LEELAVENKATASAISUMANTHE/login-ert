@@ -73,6 +73,8 @@ const jobIdSchema = joi.object({
 export const createJobRequirement = async (req, res) => {
     try {
         const normalizedBody = normalizeRequestBody(req.body);
+        logger.info('createJobRequirement - rawBody', { rawBody: req.body });
+        logger.info('createJobRequirement - normalizedBody', { normalizedBody });
         const { error, value } = createJobRequirementSchema.validate(normalizedBody);
         if (error) {
             logger.warn(`createJobRequirement: Validation failed - ${error.details[0].message}`);
@@ -202,6 +204,8 @@ export const updateJobRequirement = async (req, res) => {
         }
 
         const normalizedBody = normalizeRequestBody(req.body);
+        logger.info('updateJobRequirement - rawBody', { rawBody: req.body });
+        logger.info('updateJobRequirement - normalizedBody', { normalizedBody });
         const { error: bodyError, value } = updateJobRequirementSchema.validate(normalizedBody);
         if (bodyError) {
             logger.warn(`updateJobRequirement: Body validation failed - ${bodyError.details[0].message}`);
