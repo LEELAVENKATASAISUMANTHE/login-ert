@@ -126,15 +126,28 @@ export const createJobWithRequirements = async (req, res) => {
                 yearOfGraduation: job.year_of_graduation
             });
 
-            // Publish JOB_CREATED eligibility event including requirements
+            // Publish JOB_CREATED eligibility event including the requirements returned from DB
             try {
+                const createdRequirements = result.data && result.data.requirements ? result.data.requirements : null;
+
+                // Try to fetch job with company name (jobs.db.getJobById returns job and requirements)
+                let companyName = null;
+                try {
+                    const jobFull = await jobService.getJobById(job.job_id);
+                    if (jobFull && jobFull.success && jobFull.data && jobFull.data.job && jobFull.data.job.company_name) {
+                        companyName = jobFull.data.job.company_name;
+                    }
+                } catch (fetchErr) {
+                    // ignore — companyName will remain null
+                }
+
                 await publishJobCreatedEligibilityEvent({
                     jobId: job.job_id,
-                    companyName: job.company_name || null,
-                    minCgpa: requirements.ug_cgpa ?? null,
-                    allowedBranches: requirements.allowed_branches ?? requirements.allowedBranches ?? null,
+                    companyName: companyName,
+                    minCgpa: createdRequirements ? createdRequirements.ug_cgpa ?? null : null,
+                    allowedBranches: createdRequirements ? createdRequirements.allowed_branches ?? createdRequirements.allowedBranches ?? null : null,
                     eligibleBatchYear: job.year_of_graduation ?? null,
-                    jobRequirements: requirements
+                    jobRequirements: createdRequirements
                 });
             } catch (eligErr) {
                 logger.error('createJobWithRequirements: Failed to publish JOB_CREATED eligibility event', {
