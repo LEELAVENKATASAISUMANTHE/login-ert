@@ -65,6 +65,7 @@ const getHttpStatusFromError = (error) => {
   if (error?.isJoi) return 400;
 
   if (error?.message === "Job not found") return 404;
+  if (error?.message === "Job requirements not found") return 404;
   if (error?.message === "jobId is required for update") return 400;
 
   return 500;
@@ -99,7 +100,12 @@ const getCompanyNameById = async (client, companyId) => {
   return result.rows[0].company_name;
 };
 
-const publishEligibilityEvent = async ({ jobId, validated, companyName }) => {
+const publishEligibilityEvent = async ({
+  jobId,
+  jobRequirementId,
+  validated,
+  companyName,
+}) => {
   try {
     await publishJobCreatedEligibilityEvent({
       jobId,
@@ -108,6 +114,7 @@ const publishEligibilityEvent = async ({ jobId, validated, companyName }) => {
       allowedBranches: validated.allowed_branches,
       eligibleBatchYear: validated.year_of_graduation,
       jobRequirements: {
+        job_requirement_id: jobRequirementId,
         tenth_percent: validated.tenth_percent,
         twelfth_percent: validated.twelfth_percent,
         ug_cgpa: validated.ug_cgpa,
@@ -190,6 +197,7 @@ export const createJobWithRequirements = async (data) => {
         backlogs_allowed
       )
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      RETURNING job_requirement_id
     `;
 
     const reqInsertValues = [
@@ -204,13 +212,23 @@ export const createJobWithRequirements = async (data) => {
       validated.backlogs_allowed,
     ];
 
-    await client.query(reqInsertQuery, reqInsertValues);
+    const reqResult = await client.query(reqInsertQuery, reqInsertValues);
+    const jobRequirementId = reqResult.rows[0]?.job_requirement_id;
+
+    if (!Number.isInteger(jobRequirementId) || jobRequirementId <= 0) {
+      throw new Error("Failed to create job requirements");
+    }
 
     const companyName = await getCompanyNameById(client, validated.company_id);
 
     await client.query("COMMIT");
     await cacheStudentJobView(client, jobId);
-    await publishEligibilityEvent({ jobId, validated, companyName });
+    await publishEligibilityEvent({
+      jobId,
+      jobRequirementId,
+      validated,
+      companyName,
+    });
 
     logger.info("Job created successfully", { jobId });
 
@@ -303,6 +321,7 @@ export const updateJobWithRequirements = async (jobId, data) => {
         additional_notes = $7,
         backlogs_allowed = $8
       WHERE job_id = $9
+      RETURNING job_requirement_id
     `;
 
     const reqUpdateValues = [
@@ -317,13 +336,27 @@ export const updateJobWithRequirements = async (jobId, data) => {
       jobId,
     ];
 
-    await client.query(reqUpdateQuery, reqUpdateValues);
+    const reqResult = await client.query(reqUpdateQuery, reqUpdateValues);
+
+    if (reqResult.rowCount === 0) {
+      throw new Error("Job requirements not found");
+    }
+
+    const jobRequirementId = reqResult.rows[0]?.job_requirement_id;
+    if (!Number.isInteger(jobRequirementId) || jobRequirementId <= 0) {
+      throw new Error("Invalid job requirement id");
+    }
 
     const companyName = await getCompanyNameById(client, validated.company_id);
 
     await client.query("COMMIT");
     await cacheStudentJobView(client, jobId);
-    await publishEligibilityEvent({ jobId, validated, companyName });
+    await publishEligibilityEvent({
+      jobId,
+      jobRequirementId,
+      validated,
+      companyName,
+    });
 
     logger.info("Job updated successfully", { jobId });
 

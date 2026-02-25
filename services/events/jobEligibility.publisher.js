@@ -10,6 +10,33 @@ function toNumberOrNull(value) {
   return Number.isNaN(numericValue) ? null : numericValue;
 }
 
+function toIntegerOrNull(value) {
+  const numericValue = toNumberOrNull(value);
+  if (numericValue === null || !Number.isInteger(numericValue)) {
+    return null;
+  }
+
+  return numericValue;
+}
+
+function toPositiveIntegerOrNull(value) {
+  const numericValue = toIntegerOrNull(value);
+  if (numericValue === null || numericValue <= 0) {
+    return null;
+  }
+
+  return numericValue;
+}
+
+function toNonNegativeIntegerOrNull(value) {
+  const numericValue = toIntegerOrNull(value);
+  if (numericValue === null || numericValue < 0) {
+    return null;
+  }
+
+  return numericValue;
+}
+
 function normalizeBranches(allowedBranches) {
   if (!Array.isArray(allowedBranches)) {
     return [];
@@ -21,10 +48,30 @@ function normalizeBranches(allowedBranches) {
 }
 
 function normalizeJobRequirements(req) {
-  if (!req || typeof req !== 'object') return null;
+  if (!req || typeof req !== 'object') {
+    throw new Error('jobRequirements is required and must be an object');
+  }
+
+  const jobRequirementId = toPositiveIntegerOrNull(
+    req.job_requirement_id ?? req.jobRequirementId ?? req.id
+  );
+
+  if (jobRequirementId === null) {
+    throw new Error('jobRequirementId must be a positive integer');
+  }
+
+  const rawBacklogsAllowed = req.backlogs_allowed ?? req.backlogsAllowed;
+  const backlogsAllowed =
+    rawBacklogsAllowed === null || rawBacklogsAllowed === undefined
+      ? 0
+      : toNonNegativeIntegerOrNull(rawBacklogsAllowed);
+
+  if (backlogsAllowed === null) {
+    throw new Error('backlogsAllowed must be a non-negative integer');
+  }
 
   return {
-    jobRequirementId: toNumberOrNull(req.job_requirement_id ?? req.jobRequirementId ?? req.id),
+    jobRequirementId,
     tenthPercent: toNumberOrNull(req.tenth_percent ?? req.tenthPercent),
     twelfthPercent: toNumberOrNull(req.twelfth_percent ?? req.twelfthPercent),
     ugCgpa: toNumberOrNull(req.ug_cgpa ?? req.ugCgpa),
@@ -32,7 +79,7 @@ function normalizeJobRequirements(req) {
     allowedBranches: normalizeBranches(req.allowed_branches ?? req.allowedBranches),
     skillsRequired: req.skills_required ?? req.skillsRequired ? String(req.skills_required ?? req.skillsRequired).trim() : null,
     additionalNotes: req.additional_notes ?? req.additionalNotes ? String(req.additional_notes ?? req.additionalNotes).trim() : null,
-    backlogsAllowed: req.backlogs_allowed ?? req.backlogsAllowed != null ? !!(req.backlogs_allowed ?? req.backlogsAllowed) : null
+    backlogsAllowed
   };
 }
 
@@ -45,13 +92,15 @@ export function buildJobCreatedEligibilityEvent({
   jobRequirements,
   timestamp
 }) {
+  const normalizedJobId = toPositiveIntegerOrNull(jobId);
+
   return {
     event: 'JOB_CREATED',
-    jobId: toNumberOrNull(jobId),
+    jobId: normalizedJobId,
     companyName: companyName ? String(companyName).trim() : null,
     minCgpa: toNumberOrNull(minCgpa),
     allowedBranches: normalizeBranches(allowedBranches),
-    eligibleBatchYear: toNumberOrNull(eligibleBatchYear),
+    eligibleBatchYear: toIntegerOrNull(eligibleBatchYear),
     jobRequirements: normalizeJobRequirements(jobRequirements),
     timestamp: timestamp || new Date().toISOString()
   };
