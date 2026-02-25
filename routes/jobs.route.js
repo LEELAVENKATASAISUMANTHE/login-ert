@@ -4,18 +4,6 @@ import * as jobController from '../controller/jobs.controller.js';
 const router = Router();
 
 /**
- * @route   POST /api/jobs
- * @desc    Create a new job with requirements (combined)
- */
-router.post('/', jobController.createJobWithRequirements);
-
-/**
- * @route   POST /api/jobs/simple
- * @desc    Create a new job (without requirements)
- */
-router.post('/simple', jobController.createJob);
-
-/**
  * @route   GET /api/jobs
  * @desc    Get all jobs (paginated, searchable)
  * @query   page, limit, sortBy, sortOrder, search
