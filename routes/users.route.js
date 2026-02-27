@@ -7,112 +7,275 @@ import { authenticateWithAutoRefresh } from '../middleware/authWithRefresh.js';
 const router = Router();
 
 /**
- * @route   POST /api/users/register
- * @desc    Register a new user
- * @access  Public
- * @body    { username: string, password: string, email?: string, full_name?: string, role_id?: number, is_active?: boolean }
- * @example POST /api/users/register
- *          {
- *            "username": "john_doe",
- *            "password": "securePassword123",
- *            "email": "john@example.com",
- *            "full_name": "John Doe",
- *            "role_id": 2
- *          }
+ * @swagger
+ * /users/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [username, password]
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 minLength: 3
+ *                 maxLength: 100
+ *                 example: john_doe
+ *               password:
+ *                 type: string
+ *                 minLength: 8
+ *                 maxLength: 100
+ *                 example: securePassword123
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: john@example.com
+ *               full_name:
+ *                 type: string
+ *                 example: John Doe
+ *               role_id:
+ *                 type: integer
+ *                 example: 2
+ *               is_active:
+ *                 type: boolean
+ *                 default: true
+ *               student_id:
+ *                 type: string
+ *                 description: Optional student ID for auto-linking
+ *                 example: STU001
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *       400:
+ *         description: Validation error
+ *       409:
+ *         description: Username already exists
  */
 router.post('/register', userController.createUser);
 
 /**
- * @route   POST /api/users/login
- * @desc    Authenticate user login
- * @access  Public
- * @body    { username: string, password: string }
- * @example POST /api/users/login
- *          {
- *            "username": "john_doe",
- *            "password": "securePassword123"
- *          }
+ * @swagger
+ * /users/login:
+ *   post:
+ *     summary: Login user
+ *     tags: [Users]
+ *     description: Authenticates user and sets JWT token & refreshToken as HttpOnly cookies.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [username, password]
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: john_doe
+ *               password:
+ *                 type: string
+ *                 example: securePassword123
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid credentials
  */
-
 router.post('/login', userController.login);
 
 /**
- * @route   POST /api/users/logout
- * @desc    Logout user (clear JWT cookie)
- * @access  Public
+ * @swagger
+ * /users/logout:
+ *   post:
+ *     summary: Logout user (clear JWT cookies)
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
  */
 router.post('/logout', userController.logout);
 
 /**
- * @route   GET /api/users/whoami
- * @desc    Get current user information from JWT with student ID if applicable
- * @access  Private
- * @example GET /api/users/whoami
+ * @swagger
+ * /users/whoami:
+ *   get:
+ *     summary: Get current user profile from JWT
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *     description: Returns user info including student_id and full student profile if applicable.
+ *     responses:
+ *       200:
+ *         description: User information retrieved
+ *       401:
+ *         description: Not authenticated
  */
 router.get('/whoami', authenticateWithAutoRefresh, userController.whoami);
 
 /**
- * @route   GET /api/users
- * @desc    Get all users with pagination and filtering
- * @access  Private (Admin)
- * @query   { page?: number, limit?: number, sortBy?: string, sortOrder?: 'ASC'|'DESC', is_active?: boolean, role_id?: number, search?: string }
- * @example GET /api/users?page=1&limit=10&sortBy=username&sortOrder=ASC&is_active=true
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Get all users (paginated)
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *       - in: query
+ *         name: sortBy
+ *         schema: { type: string, enum: [user_id, username, email, full_name, created_at, last_login] }
+ *       - in: query
+ *         name: sortOrder
+ *         schema: { type: string, enum: [ASC, DESC] }
+ *       - in: query
+ *         name: is_active
+ *         schema: { type: boolean }
+ *       - in: query
+ *         name: role_id
+ *         schema: { type: integer }
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Users retrieved successfully
  */
 router.get('/', authenticateWithAutoRefresh, userController.getAllUsers);
 
 /**
- * @route   GET /api/users/:id
- * @desc    Get a specific user by ID
- * @access  Private
- * @params  { id: number }
- * @example GET /api/users/1
+ * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Get user by ID
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: User retrieved
+ *       404:
+ *         description: User not found
  */
 router.get('/:id', authenticateWithAutoRefresh, userController.getUserById);
 
 /**
- * @route   PUT /api/users/:id
- * @desc    Update a user's information
- * @access  Private (Admin or Own Profile)
- * @params  { id: number }
- * @body    { username?: string, email?: string, full_name?: string, role_id?: number, is_active?: boolean }
- * @example PUT /api/users/1
- *          {
- *            "email": "newemail@example.com",
- *            "full_name": "John Smith",
- *            "is_active": true
- *          }
+ * @swagger
+ * /users/{id}:
+ *   put:
+ *     summary: Update a user
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               full_name:
+ *                 type: string
+ *               role_id:
+ *                 type: integer
+ *               is_active:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: User updated
+ *       404:
+ *         description: User not found
  */
 router.put('/:id', userController.updateUser);
 
 /**
- * @route   DELETE /api/users/:id
- * @desc    Delete a user (soft delete - sets is_active to false)
- * @access  Private (Admin only)
- * @params  { id: number }
- * @example DELETE /api/users/1
+ * @swagger
+ * /users/{id}:
+ *   delete:
+ *     summary: Delete a user (soft delete)
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: User deleted
+ *       404:
+ *         description: User not found
  */
 router.delete('/:id', userController.deleteUser);
 
 /**
- * @route   PUT /api/users/:id/change-password
- * @desc    Change user password
- * @access  Private (Admin or Own Profile)
- * @params  { id: number }
- * @body    { current_password: string, new_password: string }
- * @example PUT /api/users/1/change-password
- *          {
- *            "current_password": "oldPassword123",
- *            "new_password": "newSecurePassword456"
- *          }
+ * @swagger
+ * /users/{id}/change-password:
+ *   put:
+ *     summary: Change user password
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [current_password, new_password]
+ *             properties:
+ *               current_password:
+ *                 type: string
+ *                 example: oldPassword123
+ *               new_password:
+ *                 type: string
+ *                 minLength: 8
+ *                 example: newSecurePassword456
+ *     responses:
+ *       200:
+ *         description: Password changed
+ *       400:
+ *         description: Wrong current password
  */
 router.put('/:id/change-password', userController.changePassword);
 
 /**
- * @route   PUT /api/users/:id/last-login
- * @desc    Update user's last login timestamp
- * @access  Private
- * @params  { id: number }
- * @example PUT /api/users/1/last-login
+ * @swagger
+ * /users/{id}/last-login:
+ *   put:
+ *     summary: Update last login timestamp
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Last login updated
  */
 router.put('/:id/last-login', userController.updateLastLogin);
 

@@ -7,6 +7,7 @@ import logger from './logger.js';
 import pool from '../db/connection.js'; // Import database connection
 import dotenv from "dotenv";
 import cookieParser from '../middleware/cookieParser.js';
+import { setupSwagger } from './swagger.js';
 
 // Import routes
 import rolesRoutes from '../routes/roles.route.js';
@@ -117,25 +118,25 @@ app.get('/api/health', (req, res) => {
 // ===== DATABASE HEALTH CHECK ROUTE =====
 app.get('/api/health/database', async (req, res) => {
   logger.info('Database health check requested');
-  
+
   try {
     // Test database connection
     const startTime = Date.now();
     const client = await pool.connect();
-    
+
     // Run a simple query to test connectivity
     const result = await client.query('SELECT NOW() as current_time, version() as version');
     const endTime = Date.now();
     const responseTime = endTime - startTime;
-    
+
     // Release the client back to the pool
     client.release();
-    
+
     logger.info('Database health check successful', {
       responseTime: `${responseTime}ms`,
       timestamp: result.rows[0].current_time
     });
-    
+
     res.status(200).json({
       success: true,
       message: 'Database connection is healthy',
@@ -151,14 +152,14 @@ app.get('/api/health/database', async (req, res) => {
         }
       }
     });
-    
+
   } catch (error) {
     logger.error('Database health check failed', {
       error: error.message,
       code: error.code,
       stack: error.stack
     });
-    
+
     res.status(503).json({
       success: false,
       message: 'Database connection failed',
@@ -175,7 +176,7 @@ app.get('/api/health/database', async (req, res) => {
 // ===== COMPREHENSIVE HEALTH CHECK =====
 app.get('/api/health/complete', async (req, res) => {
   logger.info('Complete health check requested');
-  
+
   const healthStatus = {
     server: {
       status: 'OK',
@@ -189,18 +190,18 @@ app.get('/api/health/complete', async (req, res) => {
       error: null
     }
   };
-  
+
   let overallStatus = 200;
-  
+
   // Test database connectivity
   try {
     const startTime = Date.now();
     const client = await pool.connect();
     const result = await client.query('SELECT NOW() as current_time');
     const endTime = Date.now();
-    
+
     client.release();
-    
+
     healthStatus.database = {
       status: 'CONNECTED',
       responseTime: `${endTime - startTime}ms`,
@@ -211,24 +212,24 @@ app.get('/api/health/complete', async (req, res) => {
         waitingClients: pool.waitingCount
       }
     };
-    
+
   } catch (error) {
     logger.error('Database check failed in complete health check', {
       error: error.message
     });
-    
+
     healthStatus.database = {
       status: 'DISCONNECTED',
       error: error.message,
       code: error.code || 'UNKNOWN_ERROR'
     };
-    
+
     overallStatus = 503; // Service Unavailable
   }
-  
+
   // Determine overall health
   const isHealthy = healthStatus.database.status === 'CONNECTED';
-  
+
   res.status(overallStatus).json({
     success: isHealthy,
     message: isHealthy ? 'All systems operational' : 'Some systems are down',
@@ -260,6 +261,9 @@ app.use('/api/job-requirements', jobRequirementsRoutes);
 app.use('/api/jobs-with-requirements', combineRoutes);
 app.use('/api/student-offers', studentOffersRoutes);
 // app.use('/api/applications', applicationsRoutes);
+
+// ===== SWAGGER DOCS =====
+setupSwagger(app);
 
 // Root endpoint
 app.get('/api', (req, res) => {
@@ -299,7 +303,7 @@ app.use('*', (req, res) => {
     url: req.originalUrl,
     ip: req.ip
   });
-  
+
   res.status(404).json({
     success: false,
     message: 'Endpoint not found',

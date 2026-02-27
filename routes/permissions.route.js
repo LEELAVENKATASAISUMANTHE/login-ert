@@ -5,68 +5,159 @@ import logger from '../utils/logger.js';
 const router = Router();
 
 /**
- * @route   POST /api/permissions
- * @desc    Create a new permission
- * @access  Private (Admin only)
- * @body    { permission_name: string, module?: string, description?: string }
- * @example POST /api/permissions
- *          {
- *            "permission_name": "users.read",
- *            "module": "users",
- *            "description": "Permission to view user information"
- *          }
+ * @swagger
+ * /permissions:
+ *   post:
+ *     summary: Create a new permission
+ *     tags: [Permissions]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [permission_name]
+ *             properties:
+ *               permission_name:
+ *                 type: string
+ *                 minLength: 3
+ *                 maxLength: 100
+ *                 example: users.read
+ *               module:
+ *                 type: string
+ *                 maxLength: 50
+ *                 example: users
+ *               description:
+ *                 type: string
+ *                 maxLength: 255
+ *                 example: Permission to view user information
+ *     responses:
+ *       201:
+ *         description: Permission created successfully
+ *       400:
+ *         description: Validation error
+ *       409:
+ *         description: Permission name already exists
  */
-router.post('/', permissionController.createPermission); //update in postman
+router.post('/', permissionController.createPermission);
 
 /**
- * @route   GET /api/permissions
- * @desc    Get all permissions with pagination
- * @access  Private
- * @query   { page?: number, limit?: number, sortBy?: string, sortOrder?: 'ASC'|'DESC' }
- * @example GET /api/permissions?page=1&limit=10&sortBy=permission_name&sortOrder=ASC
+ * @swagger
+ * /permissions:
+ *   get:
+ *     summary: Get all permissions (paginated)
+ *     tags: [Permissions]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *       - in: query
+ *         name: sortBy
+ *         schema: { type: string, enum: [permission_id, permission_name, module, description] }
+ *       - in: query
+ *         name: sortOrder
+ *         schema: { type: string, enum: [ASC, DESC] }
+ *     responses:
+ *       200:
+ *         description: Permissions retrieved successfully
  */
-router.get('/', permissionController.getAllPermissions);//update in postman
+router.get('/', permissionController.getAllPermissions);
 
 /**
- * @route   GET /api/permissions/:id
- * @desc    Get permission by ID
- * @access  Private
- * @param   {number} id - Permission ID
- * @example GET /api/permissions/123
+ * @swagger
+ * /permissions/check/{permission_name}:
+ *   get:
+ *     summary: Check if a permission exists by name
+ *     tags: [Permissions]
+ *     parameters:
+ *       - in: path
+ *         name: permission_name
+ *         required: true
+ *         schema: { type: string }
+ *         example: users.read
+ *     responses:
+ *       200:
+ *         description: Existence check result
  */
-router.get('/:id', permissionController.getPermissionById);//update in postman
+router.get('/check/:permission_name', permissionController.checkPermissionExists);
 
 /**
- * @route   PUT /api/permissions/:id
- * @desc    Update permission by ID
- * @access  Private (Admin only)
- * @param   {number} id - Permission ID
- * @body    { permission_name?: string, module?: string, description?: string }
- * @example PUT /api/permissions/123
- *          {
- *            "permission_name": "users.write",
- *            "description": "Permission to create and modify users"
- *          }
+ * @swagger
+ * /permissions/{id}:
+ *   get:
+ *     summary: Get permission by ID
+ *     tags: [Permissions]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Permission retrieved
+ *       404:
+ *         description: Permission not found
  */
-router.put('/:id', permissionController.updatePermission);//update in postman
+router.get('/:id', permissionController.getPermissionById);
 
 /**
- * @route   DELETE /api/permissions/:id
- * @desc    Delete permission by ID
- * @access  Private (Admin only)
- * @param   {number} id - Permission ID
- * @example DELETE /api/permissions/123
+ * @swagger
+ * /permissions/{id}:
+ *   put:
+ *     summary: Update permission by ID
+ *     tags: [Permissions]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               permission_name:
+ *                 type: string
+ *                 example: users.write
+ *               module:
+ *                 type: string
+ *                 example: users
+ *               description:
+ *                 type: string
+ *                 example: Permission to create and modify users
+ *     responses:
+ *       200:
+ *         description: Permission updated
+ *       404:
+ *         description: Permission not found
+ *       409:
+ *         description: Permission name already exists
  */
-router.delete('/:id', permissionController.deletePermission);//update in postman
+router.put('/:id', permissionController.updatePermission);
 
 /**
- * @route   GET /api/permissions/check/:permission_name
- * @desc    Check if permission exists by name
- * @access  Private
- * @param   {string} permission_name - Permission name to check
- * @example GET /api/permissions/check/users.read
+ * @swagger
+ * /permissions/{id}:
+ *   delete:
+ *     summary: Delete permission by ID
+ *     tags: [Permissions]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Permission deleted
+ *       404:
+ *         description: Permission not found
  */
-router.get('/check/:permission_name', permissionController.checkPermissionExists); //update in postman
+router.delete('/:id', permissionController.deletePermission);
 
 // Log all permission route registrations
 logger.info('Permission routes registered successfully', {
