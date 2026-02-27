@@ -42,11 +42,11 @@ const swaggerSpec = swaggerJsdoc(options);
 
 /**
  * Sets up Swagger UI on the given Express app.
- * After calling this, visit /api-docs to see the interactive docs.
+ * Visit /api/docs to see the interactive docs.
  */
 export function setupSwagger(app) {
     app.use(
-        '/api-docs',
+        '/api/docs',
         swaggerUi.serve,
         swaggerUi.setup(swaggerSpec, {
             customCss: '.swagger-ui .topbar { display: none }',
@@ -55,7 +55,7 @@ export function setupSwagger(app) {
     );
 
     // Also expose the raw JSON spec
-    app.get('/api-docs.json', (req, res) => {
+    app.get('/api/docs.json', (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         res.send(swaggerSpec);
     });
