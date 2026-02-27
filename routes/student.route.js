@@ -17,7 +17,7 @@ const router = Router();
  *         multipart/form-data:
  *           schema:
  *             type: object
- *             required: [student_id, first_name, last_name, full_name, gender, dob, email, college_mail, mobile, branch]
+ *             required: [student_id, first_name, last_name, full_name, gender, dob, email, college_email, mobile, emergency_contact, nationality, placement_fee_status, branch, graduation_year]
  *             properties:
  *               student_id:
  *                 type: string
@@ -25,12 +25,15 @@ const router = Router();
  *               first_name:
  *                 type: string
  *                 example: John
+ *               middle_name:
+ *                 type: string
+ *                 example: Michael
  *               last_name:
  *                 type: string
  *                 example: Doe
  *               full_name:
  *                 type: string
- *                 example: John Doe
+ *                 example: John Michael Doe
  *               gender:
  *                 type: string
  *                 enum: [Male, Female, Other]
@@ -42,7 +45,11 @@ const router = Router();
  *                 type: string
  *                 format: email
  *                 example: john@example.com
- *               college_mail:
+ *               alt_email:
+ *                 type: string
+ *                 format: email
+ *                 example: john.alt@example.com
+ *               college_email:
  *                 type: string
  *                 format: email
  *                 example: john@college.edu
@@ -50,9 +57,25 @@ const router = Router();
  *                 type: string
  *                 pattern: "^[0-9]{10}$"
  *                 example: "9876543210"
+ *               emergency_contact:
+ *                 type: string
+ *                 pattern: "^[0-9]{10}$"
+ *                 example: "9876543211"
+ *               nationality:
+ *                 type: string
+ *                 example: Indian
+ *               placement_fee_status:
+ *                 type: string
+ *                 example: Paid
  *               branch:
  *                 type: string
  *                 example: CSE
+ *               graduation_year:
+ *                 type: integer
+ *                 example: 2026
+ *               semester:
+ *                 type: integer
+ *                 example: 6
  *               student_photo:
  *                 type: string
  *                 format: binary
@@ -116,6 +139,8 @@ router.get('/:id', studentController.getStudentById);
  *             properties:
  *               first_name:
  *                 type: string
+ *               middle_name:
+ *                 type: string
  *               last_name:
  *                 type: string
  *               full_name:
@@ -129,10 +154,28 @@ router.get('/:id', studentController.getStudentById);
  *               email:
  *                 type: string
  *                 format: email
+ *               alt_email:
+ *                 type: string
+ *                 format: email
+ *               college_email:
+ *                 type: string
+ *                 format: email
  *               mobile:
+ *                 type: string
+ *                 pattern: "^[0-9]{10}$"
+ *               emergency_contact:
+ *                 type: string
+ *                 pattern: "^[0-9]{10}$"
+ *               nationality:
+ *                 type: string
+ *               placement_fee_status:
  *                 type: string
  *               branch:
  *                 type: string
+ *               graduation_year:
+ *                 type: integer
+ *               semester:
+ *                 type: integer
  *               student_photo:
  *                 type: string
  *                 format: binary
@@ -163,12 +206,43 @@ router.put('/:id', upload.single('student_photo'), studentController.updateStude
  *             properties:
  *               first_name:
  *                 type: string
+ *               middle_name:
+ *                 type: string
  *               last_name:
  *                 type: string
+ *               full_name:
+ *                 type: string
+ *               gender:
+ *                 type: string
+ *                 enum: [Male, Female, Other]
+ *               dob:
+ *                 type: string
+ *                 format: date
  *               email:
  *                 type: string
+ *                 format: email
+ *               alt_email:
+ *                 type: string
+ *                 format: email
+ *               college_email:
+ *                 type: string
+ *                 format: email
  *               mobile:
  *                 type: string
+ *                 pattern: "^[0-9]{10}$"
+ *               emergency_contact:
+ *                 type: string
+ *                 pattern: "^[0-9]{10}$"
+ *               nationality:
+ *                 type: string
+ *               placement_fee_status:
+ *                 type: string
+ *               branch:
+ *                 type: string
+ *               graduation_year:
+ *                 type: integer
+ *               semester:
+ *                 type: integer
  *               student_photo:
  *                 type: string
  *                 format: binary

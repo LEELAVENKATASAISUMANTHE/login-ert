@@ -14,12 +14,14 @@ const studentSchema = joi.object({
     dob: joi.date().less('now').required(),
     email: joi.string().email().required(),
     alt_email: joi.string().email().optional().allow(null, ''),
-    college_mail: joi.string().email().required(),
+    college_email: joi.string().email().required(),
     mobile: joi.string().pattern(/^[0-9]{10}$/).required(),
     emergency_contact: joi.string().pattern(/^[0-9]{10}$/).required(),
     nationality: joi.string().min(1).max(50).required(),
     placement_fee_status: joi.string().min(1).max(50).required(),
-    branch: joi.string().min(1).max(100).required()
+    branch: joi.string().min(1).max(100).required(),
+    graduation_year: joi.number().integer().required(),
+    semester: joi.number().integer().optional().allow(null)
 });
 
 const updateStudentSchema = joi.object({
@@ -31,12 +33,14 @@ const updateStudentSchema = joi.object({
     dob: joi.date().less('now').optional(),
     email: joi.string().email().optional(),
     alt_email: joi.string().email().optional().allow(null, ''),
-    college_mail: joi.string().email().optional(),
+    college_email: joi.string().email().optional(),
     mobile: joi.string().pattern(/^[0-9]{10}$/).optional(),
     emergency_contact: joi.string().pattern(/^[0-9]{10}$/).optional(),
     nationality: joi.string().min(1).max(50).optional(),
     placement_fee_status: joi.string().min(1).max(50).optional(),
-    branch: joi.string().min(1).max(100).optional()
+    branch: joi.string().min(1).max(100).optional(),
+    graduation_year: joi.number().integer().optional(),
+    semester: joi.number().integer().optional().allow(null)
 });
 
 export const createStudent = async (req, res) => {
@@ -59,16 +63,12 @@ export const createStudent = async (req, res) => {
             return res.status(400).json({ message: error.details[0].message });
         }
 
-        // Map college_mail to college_email for database column
-        if (value.college_mail !== undefined) {
-            value.college_email = value.college_mail;
-            delete value.college_mail;
-        }
+
 
         // Check if file was uploaded
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
             console.log("File received:", req.file.originalname, "Size:", req.file.size);
-            
+
             // Upload buffer to Cloudinary
             const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "students");
             value.student_photo_path = cloudinaryResult.url;
@@ -102,11 +102,11 @@ export const getStudentById = async (req, res) => {
     try {
         const { id } = req.params;
         const result = await studentService.getStudentById(id);
-        
+
         if (!result.success) {
             return res.status(404).json(result);
         }
-        
+
         res.status(200).json(result);
     } catch (err) {
         logger.error("Error fetching student:", err);
@@ -119,16 +119,12 @@ export const updateStudentById = async (req, res) => {
     try {
         const { id } = req.params;
         const { error, value } = updateStudentSchema.validate(req.body);
-        
+
         if (error) {
             return res.status(400).json({ message: error.details[0].message });
         }
 
-        // Map college_mail to college_email for database column
-        if (value.college_mail !== undefined) {
-            value.college_email = value.college_mail;
-            delete value.college_mail;
-        }
+
 
         // Check if file was uploaded
         if (req.file) {
@@ -137,11 +133,11 @@ export const updateStudentById = async (req, res) => {
         }
 
         const result = await studentService.updateStudentById(id, value);
-        
+
         if (!result.success) {
             return res.status(404).json(result);
         }
-        
+
         res.status(200).json(result);
     } catch (err) {
         logger.error("Error updating student:", err);
@@ -154,16 +150,12 @@ export const patchStudentById = async (req, res) => {
     try {
         const { id } = req.params;
         const { error, value } = updateStudentSchema.validate(req.body);
-        
+
         if (error) {
             return res.status(400).json({ message: error.details[0].message });
         }
 
-        // Map college_mail to college_email for database column
-        if (value.college_mail !== undefined) {
-            value.college_email = value.college_mail;
-            delete value.college_mail;
-        }
+
 
         // Check if file was uploaded
         if (req.file) {
@@ -172,11 +164,11 @@ export const patchStudentById = async (req, res) => {
         }
 
         const result = await studentService.patchStudentById(id, value);
-        
+
         if (!result.success) {
             return res.status(404).json(result);
         }
-        
+
         res.status(200).json(result);
     } catch (err) {
         logger.error("Error patching student:", err);
@@ -189,11 +181,11 @@ export const deleteStudentById = async (req, res) => {
     try {
         const { id } = req.params;
         const result = await studentService.deleteStudentById(id);
-        
+
         if (!result.success) {
             return res.status(404).json(result);
         }
-        
+
         res.status(200).json(result);
     } catch (err) {
         logger.error("Error deleting student:", err);
