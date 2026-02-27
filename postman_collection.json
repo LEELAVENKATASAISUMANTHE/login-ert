@@ -1,0 +1,2179 @@
+{
+    "info": {
+        "name": "Placement ERP - Student APIs",
+        "description": "Complete API collection for all student-related endpoints",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "https://www.sumantheluri.tech/api",
+            "type": "string"
+        },
+        {
+            "key": "studentId",
+            "value": "STU001",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Students",
+            "item": [
+                {
+                    "name": "Create Student",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "student_id",
+                                    "value": "STU001",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "first_name",
+                                    "value": "John",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "middle_name",
+                                    "value": "Michael",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "last_name",
+                                    "value": "Doe",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "full_name",
+                                    "value": "John Michael Doe",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "gender",
+                                    "value": "Male",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dob",
+                                    "value": "2003-05-15",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "email",
+                                    "value": "john@example.com",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "alt_email",
+                                    "value": "john.alt@example.com",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "college_email",
+                                    "value": "john@college.edu",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "mobile",
+                                    "value": "9876543210",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "emergency_contact",
+                                    "value": "9876543211",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "nationality",
+                                    "value": "Indian",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "placement_fee_status",
+                                    "value": "Paid",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "branch",
+                                    "value": "CSE",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "graduation_year",
+                                    "value": "2026",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "semester",
+                                    "value": "6",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "student_photo",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/students",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "students"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Students",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/students",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "students"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Student by ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/students/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "students",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Student (PUT)",
+                    "request": {
+                        "method": "PUT",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "first_name",
+                                    "value": "John",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "middle_name",
+                                    "value": "Michael",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "last_name",
+                                    "value": "Doe",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "full_name",
+                                    "value": "John Michael Doe",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "gender",
+                                    "value": "Male",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dob",
+                                    "value": "2003-05-15",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "email",
+                                    "value": "john.updated@example.com",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "alt_email",
+                                    "value": "john.alt@example.com",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "college_email",
+                                    "value": "john@college.edu",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "mobile",
+                                    "value": "9876543210",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "emergency_contact",
+                                    "value": "9876543211",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "nationality",
+                                    "value": "Indian",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "placement_fee_status",
+                                    "value": "Paid",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "branch",
+                                    "value": "CSE",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "graduation_year",
+                                    "value": "2026",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "semester",
+                                    "value": "6",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "student_photo",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/students/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "students",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Patch Student (PATCH)",
+                    "request": {
+                        "method": "PATCH",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "first_name",
+                                    "value": "Jane",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "graduation_year",
+                                    "value": "2027",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "semester",
+                                    "value": "7",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "student_photo",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/students/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "students",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Student",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{baseUrl}}/students/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "students",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Student Academics",
+            "item": [
+                {
+                    "name": "Create Academic Record",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"student_id\": \"STU001\",\n  \"tenth_percent\": 92.5,\n  \"tenth_year\": 2019,\n  \"tenth_board\": \"CBSE\",\n  \"tenth_school\": \"Delhi Public School\",\n  \"twelfth_percent\": 88.0,\n  \"twelfth_year\": 2021,\n  \"twelfth_board\": \"CBSE\",\n  \"twelfth_college\": \"St. Joseph's PU College\",\n  \"diploma_percent\": null,\n  \"diploma_year\": null,\n  \"diploma_college\": null,\n  \"ug_cgpa\": 8.5,\n  \"history_of_backs\": 0,\n  \"updated_arrears\": 0,\n  \"gap_years\": 0,\n  \"cet_rank\": 5000,\n  \"comedk_rank\": 3000,\n  \"category\": \"General\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-academics",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-academics"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Academic Records",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-academics",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-academics"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Students Menu",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-academics/menu?search=&searchField=",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-academics",
+                                "menu"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "searchField",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Academics with Filters",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-academics/filter?minTenthPercent=60&minTwelfthPercent=60&minUgCgpa=7&category=General&maxHistoryOfBacks=0",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-academics",
+                                "filter"
+                            ],
+                            "query": [
+                                {
+                                    "key": "minTenthPercent",
+                                    "value": "60"
+                                },
+                                {
+                                    "key": "minTwelfthPercent",
+                                    "value": "60"
+                                },
+                                {
+                                    "key": "minUgCgpa",
+                                    "value": "7"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "General"
+                                },
+                                {
+                                    "key": "maxHistoryOfBacks",
+                                    "value": "0"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Academics by Category",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-academics/category/ug",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-academics",
+                                "category",
+                                "ug"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Academic by Student ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-academics/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-academics",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Academic Record (PUT)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"student_id\": \"STU001\",\n  \"tenth_percent\": 93.0,\n  \"tenth_year\": 2019,\n  \"tenth_board\": \"CBSE\",\n  \"tenth_school\": \"Delhi Public School\",\n  \"twelfth_percent\": 89.0,\n  \"twelfth_year\": 2021,\n  \"twelfth_board\": \"CBSE\",\n  \"twelfth_college\": \"St. Joseph's PU College\",\n  \"diploma_percent\": null,\n  \"diploma_year\": null,\n  \"diploma_college\": null,\n  \"ug_cgpa\": 9.0,\n  \"history_of_backs\": 0,\n  \"updated_arrears\": 0,\n  \"gap_years\": 0,\n  \"cet_rank\": 4500,\n  \"comedk_rank\": 2800,\n  \"category\": \"General\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-academics/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-academics",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Patch Academic Record (PATCH)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"ug_cgpa\": 8.8,\n  \"history_of_backs\": 1,\n  \"updated_arrears\": 0\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-academics/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-academics",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Academic Record",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-academics/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-academics",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Student Addresses",
+            "item": [
+                {
+                    "name": "Create Address",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"student_id\": \"STU001\",\n  \"permanent_address\": \"123 Main Street\",\n  \"permanent_city\": \"Hyderabad\",\n  \"permanent_state\": \"Telangana\",\n  \"permanent_pin\": \"500001\",\n  \"permanent_contact\": \"9876543210\",\n  \"current_address\": \"456 College Road\",\n  \"current_city\": \"Hyderabad\",\n  \"current_state\": \"Telangana\",\n  \"current_pin\": \"500032\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-addresses",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-addresses"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Addresses",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-addresses",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-addresses"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Students Menu",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-addresses/menu?search=&searchField=",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-addresses",
+                                "menu"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "searchField",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Address by Student ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-addresses/student/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-addresses",
+                                "student",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Address by ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-addresses/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-addresses",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Address (PUT)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"permanent_address\": \"789 Updated Street\",\n  \"permanent_city\": \"Chennai\",\n  \"permanent_state\": \"Tamil Nadu\",\n  \"permanent_pin\": \"600001\",\n  \"current_address\": \"456 College Road\",\n  \"current_city\": \"Hyderabad\",\n  \"current_state\": \"Telangana\",\n  \"current_pin\": \"500032\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-addresses/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-addresses",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Patch Address (PATCH)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"permanent_city\": \"Bangalore\",\n  \"current_city\": \"Mumbai\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-addresses/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-addresses",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Address",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-addresses/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-addresses",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Student Certifications",
+            "item": [
+                {
+                    "name": "Download Template",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-certifications/template",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-certifications",
+                                "template"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Search by Skill",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-certifications/search?skill=Python",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-certifications",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "skill",
+                                    "value": "Python"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Import from Excel",
+                    "request": {
+                        "method": "POST",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-certifications/import",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-certifications",
+                                "import"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Certification",
+                    "request": {
+                        "method": "POST",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "student_id",
+                                    "value": "STU001",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "skill_name",
+                                    "value": "AWS Solutions Architect",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "duration",
+                                    "value": "3 months",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "vendor",
+                                    "value": "Amazon Web Services",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "certificate",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-certifications",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-certifications"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Certifications",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-certifications",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-certifications"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Certifications by Student ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-certifications/student/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-certifications",
+                                "student",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Certification by ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-certifications/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-certifications",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Certification (PUT)",
+                    "request": {
+                        "method": "PUT",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "student_id",
+                                    "value": "STU001",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "skill_name",
+                                    "value": "AWS Solutions Architect Pro",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "duration",
+                                    "value": "6 months",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "vendor",
+                                    "value": "Amazon Web Services",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "certificate",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-certifications/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-certifications",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Certification",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-certifications/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-certifications",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Student Documents",
+            "item": [
+                {
+                    "name": "Download Template",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-documents/template",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-documents",
+                                "template"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Import from Excel",
+                    "request": {
+                        "method": "POST",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-documents/import",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-documents",
+                                "import"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Document",
+                    "request": {
+                        "method": "POST",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "student_id",
+                                    "value": "STU001",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "document_type",
+                                    "value": "Resume",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "document",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-documents",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-documents"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Documents",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-documents",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-documents"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Documents by Student ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-documents/student/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-documents",
+                                "student",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Document by ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-documents/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-documents",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Document (PUT)",
+                    "request": {
+                        "method": "PUT",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "student_id",
+                                    "value": "STU001",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "document_type",
+                                    "value": "Updated Resume",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "document",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-documents/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-documents",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Document",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-documents/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-documents",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Student Family",
+            "item": [
+                {
+                    "name": "Download Template",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-family/template",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-family",
+                                "template"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Import from Excel",
+                    "request": {
+                        "method": "POST",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-family/import",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-family",
+                                "import"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Family Record",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"student_id\": \"STU001\",\n  \"father_name\": \"John Smith Sr.\",\n  \"father_occupation\": \"Engineer\",\n  \"father_phone\": \"9876543210\",\n  \"mother_name\": \"Mary Smith\",\n  \"mother_occupation\": \"Teacher\",\n  \"mother_phone\": \"9876543211\",\n  \"blood_group\": \"O+\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-family",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-family"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Family Records",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-family",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-family"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Family by Student ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-family/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-family",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Family (PUT)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"father_name\": \"John Smith Sr.\",\n  \"father_phone\": \"9876543222\",\n  \"mother_name\": \"Mary Smith\",\n  \"blood_group\": \"A+\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-family/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-family",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Family Record",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-family/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-family",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Student Internships",
+            "item": [
+                {
+                    "name": "Download Template",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-internships/template",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-internships",
+                                "template"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Import from Excel",
+                    "request": {
+                        "method": "POST",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-internships/import",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-internships",
+                                "import"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Internship",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"student_id\": \"STU001\",\n  \"organization\": \"Google India\",\n  \"skills_acquired\": \"Python, Machine Learning\",\n  \"duration\": \"3 months\",\n  \"start_date\": \"2024-06-01\",\n  \"end_date\": \"2024-08-31\",\n  \"description\": \"ML internship at Google\",\n  \"stipend\": 25000\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-internships",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-internships"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Internships",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-internships",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-internships"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Internships by Student ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-internships/student/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-internships",
+                                "student",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Internship by ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-internships/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-internships",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Internship (PUT)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"organization\": \"Microsoft India\",\n  \"skills_acquired\": \"Azure, Cloud Computing\",\n  \"duration\": \"6 months\",\n  \"stipend\": 40000\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-internships/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-internships",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Internship",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-internships/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-internships",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Student Languages",
+            "item": [
+                {
+                    "name": "Create Language Entry",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"student_id\": \"STU001\",\n  \"language\": \"English\",\n  \"level\": 8\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Bulk Create Languages",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"student_id\": \"STU001\",\n  \"languages\": {\n    \"English\": 9,\n    \"Telugu\": 10,\n    \"Hindi\": 7\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/bulk",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "bulk"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Languages",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Allowed Languages",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/allowed-languages",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "allowed-languages"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Languages Menu",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/menu?search=&searchField=",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "menu"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "searchField",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Search Languages",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/search?language=English&minLevel=5&maxLevel=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "language",
+                                    "value": "English"
+                                },
+                                {
+                                    "key": "minLevel",
+                                    "value": "5"
+                                },
+                                {
+                                    "key": "maxLevel",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Proficient Students",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/proficient?minLevel=7",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "proficient"
+                            ],
+                            "query": [
+                                {
+                                    "key": "minLevel",
+                                    "value": "7"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Students by Language",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/language/English",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "language",
+                                "English"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Language Experts",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/language/English/experts?minLevel=7",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "language",
+                                "English",
+                                "experts"
+                            ],
+                            "query": [
+                                {
+                                    "key": "minLevel",
+                                    "value": "7"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Languages by Student ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/student/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "student",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Student Top Languages",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/student/{{studentId}}/top?minLevel=7",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "student",
+                                "{{studentId}}",
+                                "top"
+                            ],
+                            "query": [
+                                {
+                                    "key": "minLevel",
+                                    "value": "7"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Bulk Update Student Languages",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"languages\": {\n    \"English\": 9,\n    \"Telugu\": 10\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/student/{{studentId}}/bulk",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "student",
+                                "{{studentId}}",
+                                "bulk"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Language by ID (PUT)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"language\": \"English\",\n  \"level\": 9\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Patch Language by ID",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"level\": 10\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Language by ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete All Student Languages",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/student/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "student",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Specific Language for Student",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/student/{{studentId}}/English",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "student",
+                                "{{studentId}}",
+                                "English"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Language by ID",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-languages/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-languages",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Student Projects",
+            "item": [
+                {
+                    "name": "Download Template",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-projects/template",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-projects",
+                                "template"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Search by Tools",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-projects/search?tools=React,Node.js",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-projects",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "tools",
+                                    "value": "React,Node.js"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Import from Excel",
+                    "request": {
+                        "method": "POST",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-projects/import",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-projects",
+                                "import"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Project",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"student_id\": \"STU001\",\n  \"title\": \"E-Commerce Platform\",\n  \"description\": \"Full-stack shopping website\",\n  \"tools_used\": \"React, Node.js, MongoDB\",\n  \"repo_link\": \"https://github.com/user/project\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-projects",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-projects"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Projects",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-projects",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-projects"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Projects by Student ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-projects/student/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-projects",
+                                "student",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Project by ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-projects/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-projects",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Project (PUT)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"E-Commerce Platform v2\",\n  \"description\": \"Updated full-stack app\",\n  \"tools_used\": \"Next.js, Express, PostgreSQL\",\n  \"repo_link\": \"https://github.com/user/project-v2\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-projects/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-projects",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Project",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-projects/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-projects",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Student Offers",
+            "item": [
+                {
+                    "name": "Create Offer",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"student_id\": \"STU001\",\n  \"job_id\": 5,\n  \"offered_at\": \"2025-03-01T10:00:00Z\",\n  \"is_primary_offer\": true,\n  \"is_pbc\": false,\n  \"is_internship\": false,\n  \"is_offcampus\": false,\n  \"offcampus_company_name\": null,\n  \"offcampus_job_title\": null,\n  \"offcampus_location\": null,\n  \"offer_ctc\": 12.5,\n  \"offer_stipend\": 25000,\n  \"remarks\": \"Selected in campus placement\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-offers",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-offers"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Offers (Paginated)",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-offers?page=1&limit=10&sortBy=offer_ctc&sortOrder=DESC",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-offers"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "offer_ctc"
+                                },
+                                {
+                                    "key": "sortOrder",
+                                    "value": "DESC"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Offers by Student ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-offers/student/{{studentId}}?page=1&limit=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-offers",
+                                "student",
+                                "{{studentId}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Offers by Job ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-offers/job/5?page=1&limit=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-offers",
+                                "job",
+                                "5"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Offer by ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-offers/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-offers",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Offer (PUT)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"is_primary_offer\": true,\n  \"is_pbc\": false,\n  \"offer_ctc\": 15.0,\n  \"offer_stipend\": 30000,\n  \"remarks\": \"Updated offer details\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/student-offers/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-offers",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Offer",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{baseUrl}}/student-offers/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "student-offers",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

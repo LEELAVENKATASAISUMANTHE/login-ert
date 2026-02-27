@@ -17,8 +17,6 @@ const studentAcademicSchema = joi.object({
     diploma_year: joi.number().integer().min(1900).max(2100).optional().allow(null),
     diploma_college: joi.string().max(200).optional().allow(null, ''),
     ug_cgpa: joi.number().precision(2).min(0).max(10).required().allow(null),
-    ug_year_of_passing: joi.number().integer().min(1900).max(2100).required(),
-    pg_cgpa: joi.number().precision(2).min(0).max(10).optional().allow(null),
     history_of_backs: joi.number().integer().min(0).optional().allow(null),
     updated_arrears: joi.number().integer().min(0).optional().allow(null),
     gap_years: joi.number().integer().min(0).optional().allow(null),
@@ -42,8 +40,6 @@ const updateStudentAcademicSchema = joi.object({
     diploma_year: joi.number().integer().min(1900).max(2100).optional().allow(null),
     diploma_college: joi.string().max(200).optional().allow(null, ''),
     ug_cgpa: joi.number().precision(2).min(0).max(10).required(),
-    ug_year_of_passing: joi.number().integer().min(1900).max(2100).required(),
-    pg_cgpa: joi.number().precision(2).min(0).max(10).optional().allow(null),
     history_of_backs: joi.number().integer().min(0).optional().allow(null),
     updated_arrears: joi.number().integer().min(0).optional().allow(null),
     gap_years: joi.number().integer().min(0).optional().allow(null),
@@ -57,10 +53,10 @@ const validateTwelfthDiplomaMutualExclusion = (data) => {
     const twelfthFields = ['twelfth_percent', 'twelfth_year', 'twelfth_board', 'twelfth_college'];
     const diplomaFields = ['diploma_percent', 'diploma_year', 'diploma_college'];
 
-    const hasTwelfthData = twelfthFields.some(field => 
+    const hasTwelfthData = twelfthFields.some(field =>
         data[field] !== null && data[field] !== undefined && data[field] !== ''
     );
-    const hasDiplomaData = diplomaFields.some(field => 
+    const hasDiplomaData = diplomaFields.some(field =>
         data[field] !== null && data[field] !== undefined && data[field] !== ''
     );
 
@@ -118,11 +114,11 @@ export const getStudentAcademicById = async (req, res) => {
     try {
         const { id } = req.params;
         const result = await studentAcademicService.getStudentAcademicById(id);
-        
+
         if (!result.success) {
             return res.status(404).json(result);
         }
-        
+
         res.status(200).json(result);
     } catch (err) {
         logger.error("Error fetching student academic:", err);
@@ -147,7 +143,7 @@ export const updateStudentAcademicById = async (req, res) => {
     try {
         const { id } = req.params;
         const { error, value } = updateStudentAcademicSchema.validate(req.body);
-        
+
         if (error) {
             return res.status(400).json({ message: error.details[0].message });
         }
@@ -159,11 +155,11 @@ export const updateStudentAcademicById = async (req, res) => {
         }
 
         const result = await studentAcademicService.updateStudentAcademicById(id, value);
-        
+
         if (!result.success) {
             return res.status(404).json(result);
         }
-        
+
         res.status(200).json(result);
     } catch (err) {
         logger.error("Error updating student academic:", err);
@@ -176,7 +172,7 @@ export const patchStudentAcademicById = async (req, res) => {
     try {
         const { id } = req.params;
         const { error, value } = updateStudentAcademicSchema.validate(req.body);
-        
+
         if (error) {
             return res.status(400).json({ message: error.details[0].message });
         }
@@ -188,11 +184,11 @@ export const patchStudentAcademicById = async (req, res) => {
         }
 
         const result = await studentAcademicService.patchStudentAcademicById(id, value);
-        
+
         if (!result.success) {
             return res.status(404).json(result);
         }
-        
+
         res.status(200).json(result);
     } catch (err) {
         logger.error("Error patching student academic:", err);
@@ -205,11 +201,11 @@ export const deleteStudentAcademicById = async (req, res) => {
     try {
         const { id } = req.params;
         const result = await studentAcademicService.deleteStudentAcademicById(id);
-        
+
         if (!result.success) {
             return res.status(404).json(result);
         }
-        
+
         res.status(200).json(result);
     } catch (err) {
         logger.error("Error deleting student academic:", err);
@@ -232,13 +228,12 @@ export const getAcademicsByCategory = async (req, res) => {
 // Get academics with filters
 export const getAcademicsWithFilters = async (req, res) => {
     try {
-        const { 
-            minTenthPercent, 
-            minTwelfthPercent, 
-            minUgCgpa, 
-            category, 
-            maxHistoryOfBacks,
-            ugYearOfPassing 
+        const {
+            minTenthPercent,
+            minTwelfthPercent,
+            minUgCgpa,
+            category,
+            maxHistoryOfBacks
         } = req.query;
 
         const filters = {};
@@ -247,7 +242,6 @@ export const getAcademicsWithFilters = async (req, res) => {
         if (minUgCgpa) filters.minUgCgpa = parseFloat(minUgCgpa);
         if (category) filters.category = category;
         if (maxHistoryOfBacks !== undefined) filters.maxHistoryOfBacks = parseInt(maxHistoryOfBacks);
-        if (ugYearOfPassing) filters.ugYearOfPassing = parseInt(ugYearOfPassing);
 
         const result = await studentAcademicService.getAcademicsWithFilters(filters);
         res.status(200).json(result);

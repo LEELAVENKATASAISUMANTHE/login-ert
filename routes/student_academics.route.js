@@ -30,6 +30,9 @@ const router = Router();
  *               tenth_board:
  *                 type: string
  *                 example: CBSE
+ *               tenth_school:
+ *                 type: string
+ *                 example: Delhi Public School
  *               twelfth_percent:
  *                 type: number
  *                 example: 88.0
@@ -39,20 +42,37 @@ const router = Router();
  *               twelfth_board:
  *                 type: string
  *                 example: CBSE
+ *               twelfth_college:
+ *                 type: string
+ *                 example: St. Joseph's PU College
  *               diploma_percent:
  *                 type: number
- *                 description: Mutually exclusive with twelfth_percent
+ *                 description: Mutually exclusive with twelfth fields
+ *               diploma_year:
+ *                 type: integer
+ *               diploma_college:
+ *                 type: string
  *               ug_cgpa:
  *                 type: number
  *                 example: 8.5
- *               ug_year_of_passing:
- *                 type: integer
- *                 example: 2025
- *               pg_cgpa:
- *                 type: number
- *               backlogs:
+ *               history_of_backs:
  *                 type: integer
  *                 example: 0
+ *               updated_arrears:
+ *                 type: integer
+ *                 example: 0
+ *               gap_years:
+ *                 type: integer
+ *                 example: 0
+ *               cet_rank:
+ *                 type: integer
+ *                 example: 5000
+ *               comedk_rank:
+ *                 type: integer
+ *                 example: 3000
+ *               category:
+ *                 type: string
+ *                 example: General
  *     responses:
  *       201:
  *         description: Academic record created
@@ -100,14 +120,20 @@ router.get('/menu', studentAcademicController.getStudentsMenu);
  *     tags: [Student Academics]
  *     parameters:
  *       - in: query
- *         name: min_cgpa
+ *         name: minTenthPercent
  *         schema: { type: number }
  *       - in: query
- *         name: max_backlogs
- *         schema: { type: integer }
+ *         name: minTwelfthPercent
+ *         schema: { type: number }
  *       - in: query
- *         name: branch
+ *         name: minUgCgpa
+ *         schema: { type: number }
+ *       - in: query
+ *         name: category
  *         schema: { type: string }
+ *       - in: query
+ *         name: maxHistoryOfBacks
+ *         schema: { type: integer }
  *     responses:
  *       200:
  *         description: Filtered results
@@ -170,10 +196,40 @@ router.get('/:id', studentAcademicController.getStudentAcademicById);
  *             properties:
  *               tenth_percent:
  *                 type: number
+ *               tenth_year:
+ *                 type: integer
+ *               tenth_board:
+ *                 type: string
+ *               tenth_school:
+ *                 type: string
+ *               twelfth_percent:
+ *                 type: number
+ *               twelfth_year:
+ *                 type: integer
+ *               twelfth_board:
+ *                 type: string
+ *               twelfth_college:
+ *                 type: string
+ *               diploma_percent:
+ *                 type: number
+ *               diploma_year:
+ *                 type: integer
+ *               diploma_college:
+ *                 type: string
  *               ug_cgpa:
  *                 type: number
- *               backlogs:
+ *               history_of_backs:
  *                 type: integer
+ *               updated_arrears:
+ *                 type: integer
+ *               gap_years:
+ *                 type: integer
+ *               cet_rank:
+ *                 type: integer
+ *               comedk_rank:
+ *                 type: integer
+ *               category:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Record updated
@@ -199,10 +255,42 @@ router.put('/:id', studentAcademicController.updateStudentAcademicById);
  *           schema:
  *             type: object
  *             properties:
+ *               tenth_percent:
+ *                 type: number
+ *               tenth_year:
+ *                 type: integer
+ *               tenth_board:
+ *                 type: string
+ *               tenth_school:
+ *                 type: string
+ *               twelfth_percent:
+ *                 type: number
+ *               twelfth_year:
+ *                 type: integer
+ *               twelfth_board:
+ *                 type: string
+ *               twelfth_college:
+ *                 type: string
+ *               diploma_percent:
+ *                 type: number
+ *               diploma_year:
+ *                 type: integer
+ *               diploma_college:
+ *                 type: string
  *               ug_cgpa:
  *                 type: number
- *               backlogs:
+ *               history_of_backs:
  *                 type: integer
+ *               updated_arrears:
+ *                 type: integer
+ *               gap_years:
+ *                 type: integer
+ *               cet_rank:
+ *                 type: integer
+ *               comedk_rank:
+ *                 type: integer
+ *               category:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Record patched

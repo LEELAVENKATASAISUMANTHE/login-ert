@@ -6,14 +6,14 @@ export const getStudentsMenu = async (searchParams = {}) => {
     const client = await pool.connect();
     try {
         logger.info('getStudentsMenu (academics): Fetching students menu list', { searchParams });
-        
+
         const { search, searchField } = searchParams;
         const values = [];
         let whereClause = '';
-        
+
         if (search && search.trim() !== '') {
             const searchValue = `%${search.trim()}%`;
-            
+
             if (searchField === 'student_id') {
                 whereClause = 'WHERE s.student_id ILIKE $1';
                 values.push(searchValue);
@@ -25,7 +25,7 @@ export const getStudentsMenu = async (searchParams = {}) => {
                 values.push(searchValue);
             }
         }
-        
+
         const selectQuery = `
             SELECT 
                 sa.student_id,
@@ -35,7 +35,7 @@ export const getStudentsMenu = async (searchParams = {}) => {
             ${whereClause}
             ORDER BY s.full_name ASC
         `;
-        
+
         const result = await client.query(selectQuery, values);
 
         return {
@@ -77,8 +77,6 @@ export const createStudentAcademic = async (academic) => {
                 diploma_year,
                 diploma_college,
                 ug_cgpa,
-                ug_year_of_passing,
-                pg_cgpa,
                 history_of_backs,
                 updated_arrears,
                 gap_years,
@@ -87,7 +85,7 @@ export const createStudentAcademic = async (academic) => {
                 category
             ) VALUES (
                 $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-                $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
+                $11, $12, $13, $14, $15, $16, $17, $18, $19
             )
             RETURNING *
         `;
@@ -106,8 +104,6 @@ export const createStudentAcademic = async (academic) => {
             academic.diploma_year || null,
             academic.diploma_college || null,
             academic.ug_cgpa || null,
-            academic.ug_year_of_passing || null,
-            academic.pg_cgpa || null,
             academic.history_of_backs || null,
             academic.updated_arrears || null,
             academic.gap_years || null,
@@ -184,8 +180,6 @@ export const getAllStudentAcademics = async () => {
                 sa.diploma_year,
                 sa.diploma_college,
                 sa.ug_cgpa,
-                sa.ug_year_of_passing,
-                sa.pg_cgpa,
                 sa.history_of_backs,
                 sa.updated_arrears,
                 sa.gap_years,
@@ -235,14 +229,12 @@ export const updateStudentAcademicById = async (studentId, academic) => {
                 diploma_year = $11,
                 diploma_college = $12,
                 ug_cgpa = $13,
-                ug_year_of_passing = $14,
-                pg_cgpa = $15,
-                history_of_backs = $16,
-                updated_arrears = $17,
-                gap_years = $18,
-                cet_rank = $19,
-                comedk_rank = $20,
-                category = $21
+                history_of_backs = $14,
+                updated_arrears = $15,
+                gap_years = $16,
+                cet_rank = $17,
+                comedk_rank = $18,
+                category = $19
             WHERE student_id = $1
             RETURNING *
         `;
@@ -261,8 +253,6 @@ export const updateStudentAcademicById = async (studentId, academic) => {
             academic.diploma_year || null,
             academic.diploma_college || null,
             academic.ug_cgpa || null,
-            academic.ug_year_of_passing || null,
-            academic.pg_cgpa || null,
             academic.history_of_backs || null,
             academic.updated_arrears || null,
             academic.gap_years || null,
@@ -312,8 +302,7 @@ export const patchStudentAcademicById = async (studentId, updates) => {
             'tenth_percent', 'tenth_year', 'tenth_board', 'tenth_school',
             'twelfth_percent', 'twelfth_year', 'twelfth_board', 'twelfth_college',
             'diploma_percent', 'diploma_year', 'diploma_college',
-            'ug_cgpa', 'ug_year_of_passing', 'pg_cgpa',
-            'history_of_backs', 'updated_arrears', 'gap_years',
+            'ug_cgpa', 'history_of_backs', 'updated_arrears', 'gap_years',
             'cet_rank', 'comedk_rank', 'category'
         ];
 
@@ -478,11 +467,7 @@ export const getAcademicsWithFilters = async (filters = {}) => {
             values.push(filters.maxHistoryOfBacks);
         }
 
-        if (filters.ugYearOfPassing) {
-            paramCount++;
-            conditions.push(`sa.ug_year_of_passing = $${paramCount}`);
-            values.push(filters.ugYearOfPassing);
-        }
+
 
         const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
