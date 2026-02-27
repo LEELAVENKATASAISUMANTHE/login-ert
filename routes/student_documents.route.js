@@ -4,13 +4,48 @@ import { upload, uploadExcel } from '../utils/multer.js';
 
 const router = Router();
 
-// Download Excel template (place before parameterized routes)
+/**
+ * @swagger
+ * /student-documents/template:
+ *   get:
+ *     summary: Download Excel template for document import
+ *     tags: [Student Documents]
+ *     responses:
+ *       200:
+ *         description: Excel template file
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema:
+ *               type: string
+ *               format: binary
+ */
 router.get('/template', studentDocumentController.downloadTemplate);
 
-// Import from Excel file (POST only)
+/**
+ * @swagger
+ * /student-documents/import:
+ *   post:
+ *     summary: Import documents metadata from Excel file
+ *     tags: [Student Documents]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [file]
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Import successful
+ *       400:
+ *         description: Validation errors
+ */
 router.post('/import', uploadExcel.single('file'), studentDocumentController.importFromExcel);
 
-// GET /import - return helpful error message
 router.get('/import', (req, res) => {
     res.status(405).json({
         success: false,
@@ -19,22 +54,135 @@ router.get('/import', (req, res) => {
     });
 });
 
-// Create a new student document (with file upload)
+/**
+ * @swagger
+ * /student-documents:
+ *   post:
+ *     summary: Create a new student document (with file upload)
+ *     tags: [Student Documents]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [student_id, document_type, document]
+ *             properties:
+ *               student_id:
+ *                 type: string
+ *                 example: STU001
+ *               document_type:
+ *                 type: string
+ *                 example: Resume
+ *               document:
+ *                 type: string
+ *                 format: binary
+ *                 description: Document file to upload
+ *     responses:
+ *       201:
+ *         description: Document created (uploaded to Cloudinary)
+ *       400:
+ *         description: Validation error or missing file
+ */
 router.post('/', upload.single('document'), studentDocumentController.createStudentDocument);
 
-// Get all student documents
+/**
+ * @swagger
+ * /student-documents:
+ *   get:
+ *     summary: Get all student documents
+ *     tags: [Student Documents]
+ *     responses:
+ *       200:
+ *         description: Documents retrieved
+ */
 router.get('/', studentDocumentController.getAllStudentDocuments);
 
-// Get all documents for a specific student
+/**
+ * @swagger
+ * /student-documents/student/{studentId}:
+ *   get:
+ *     summary: Get all documents for a specific student
+ *     tags: [Student Documents]
+ *     parameters:
+ *       - in: path
+ *         name: studentId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Student documents retrieved
+ */
 router.get('/student/:studentId', studentDocumentController.getDocumentsByStudentId);
 
-// Get student document by ID
+/**
+ * @swagger
+ * /student-documents/{id}:
+ *   get:
+ *     summary: Get document by ID
+ *     tags: [Student Documents]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Document retrieved
+ *       404:
+ *         description: Not found
+ */
 router.get('/:id', studentDocumentController.getStudentDocumentById);
 
-// Update student document by ID (with optional file upload)
+/**
+ * @swagger
+ * /student-documents/{id}:
+ *   put:
+ *     summary: Update document by ID (with optional file re-upload)
+ *     tags: [Student Documents]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               student_id:
+ *                 type: string
+ *               document_type:
+ *                 type: string
+ *               document:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Document updated
+ *       404:
+ *         description: Not found
+ */
 router.put('/:id', upload.single('document'), studentDocumentController.updateStudentDocumentById);
 
-// Delete student document by ID
+/**
+ * @swagger
+ * /student-documents/{id}:
+ *   delete:
+ *     summary: Delete document by ID
+ *     tags: [Student Documents]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Document deleted
+ *       404:
+ *         description: Not found
+ */
 router.delete('/:id', studentDocumentController.deleteStudentDocumentById);
 
 export default router;

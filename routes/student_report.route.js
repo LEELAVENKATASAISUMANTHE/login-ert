@@ -7,13 +7,60 @@ import {
 
 const router = express.Router();
 
-// GET /api/student-report/summary - Get all students summary
+/**
+ * @swagger
+ * /student-report/summary:
+ *   get:
+ *     summary: Get all students summary
+ *     tags: [Student Reports]
+ *     responses:
+ *       200:
+ *         description: Students summary retrieved
+ */
 router.get('/summary', getAllStudentsSummary);
 
-// GET /api/student-report/:id/pdf - Generate PDF report for a student
+/**
+ * @swagger
+ * /student-report/{id}/pdf:
+ *   get:
+ *     summary: Generate PDF report for a student
+ *     tags: [Student Reports]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: Student ID
+ *     responses:
+ *       200:
+ *         description: PDF file
+ *         content:
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: Student not found
+ */
 router.get('/:id/pdf', generateStudentReport);
 
-// GET /api/student-report/:id - Get student report data as JSON
+/**
+ * @swagger
+ * /student-report/{id}:
+ *   get:
+ *     summary: Get student report data as JSON
+ *     tags: [Student Reports]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Student report data
+ *       404:
+ *         description: Student not found
+ */
 router.get('/:id', getStudentReportData);
 
 export default router;

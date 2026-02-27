@@ -5,84 +5,187 @@ import logger from '../utils/logger.js';
 const router = Router();
 
 /**
- * @route   POST /api/student-users
- * @desc    Create a new student user association
- * @access  Private (Admin only)
- * @body    { user_id: number }
- * @example POST /api/student-users
- *          {
- *            "user_id": 5
- *          }
+ * @swagger
+ * /student-users:
+ *   post:
+ *     summary: Create a new student-user association
+ *     tags: [Student Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [user_id]
+ *             properties:
+ *               user_id:
+ *                 type: integer
+ *                 example: 5
+ *     responses:
+ *       201:
+ *         description: Association created
+ *       400:
+ *         description: Validation error
  */
 router.post('/', studentUserController.createStudentUser);
 
 /**
- * @route   POST /api/student-users/bulk
- * @desc    Create multiple student user associations
- * @access  Private (Admin only)
- * @body    { user_ids: number[] }
- * @example POST /api/student-users/bulk
- *          {
- *            "user_ids": [1, 2, 3, 4, 5]
- *          }
+ * @swagger
+ * /student-users/bulk:
+ *   post:
+ *     summary: Bulk create student-user associations
+ *     tags: [Student Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [user_ids]
+ *             properties:
+ *               user_ids:
+ *                 type: array
+ *                 items: { type: integer }
+ *                 example: [1, 2, 3, 4, 5]
+ *     responses:
+ *       201:
+ *         description: Associations created
  */
 router.post('/bulk', studentUserController.bulkCreateStudentUsers);
 
 /**
- * @route   GET /api/student-users
- * @desc    Get all student user associations with pagination and filtering
- * @access  Private
- * @query   { page?: number, limit?: number, sortBy?: string, sortOrder?: 'ASC'|'DESC', user_id?: number, search?: string }
- * @example GET /api/student-users?page=1&limit=10&sortBy=student_id&sortOrder=ASC
+ * @swagger
+ * /student-users:
+ *   get:
+ *     summary: Get all student-user associations (paginated)
+ *     tags: [Student Users]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *       - in: query
+ *         name: sortBy
+ *         schema: { type: string }
+ *       - in: query
+ *         name: sortOrder
+ *         schema: { type: string, enum: [ASC, DESC] }
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Associations retrieved
  */
 router.get('/', studentUserController.getAllStudentUsers);
 
 /**
- * @route   GET /api/student-users/students
- * @desc    Get all students (users with student associations) with full user information
- * @access  Private
- * @query   { page?: number, limit?: number, sortBy?: string, sortOrder?: 'ASC'|'DESC', search?: string }
- * @example GET /api/student-users/students?page=1&limit=10&search=john
+ * @swagger
+ * /student-users/students:
+ *   get:
+ *     summary: Get all students with full user information
+ *     tags: [Student Users]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Students with user info retrieved
  */
 router.get('/students', studentUserController.getAllStudents);
 
 /**
- * @route   GET /api/student-users/:id
- * @desc    Get a specific student user by student ID
- * @access  Private
- * @params  { id: number }
- * @example GET /api/student-users/1
- */
-router.get('/:id', studentUserController.getStudentUserById);
-
-/**
- * @route   GET /api/student-users/user/:user_id
- * @desc    Get student user by user ID
- * @access  Private
- * @params  { user_id: number }
- * @example GET /api/student-users/user/5
+ * @swagger
+ * /student-users/user/{user_id}:
+ *   get:
+ *     summary: Get student-user by user ID
+ *     tags: [Student Users]
+ *     parameters:
+ *       - in: path
+ *         name: user_id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Association found
+ *       404:
+ *         description: Not found
  */
 router.get('/user/:user_id', studentUserController.getStudentUserByUserId);
 
 /**
- * @route   PUT /api/student-users/:id
- * @desc    Update a student user association
- * @access  Private (Admin only)
- * @params  { id: number }
- * @body    { user_id?: number }
- * @example PUT /api/student-users/1
- *          {
- *            "user_id": 6
- *          }
+ * @swagger
+ * /student-users/{id}:
+ *   get:
+ *     summary: Get student-user by student ID
+ *     tags: [Student Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Association found
+ *       404:
+ *         description: Not found
+ */
+router.get('/:id', studentUserController.getStudentUserById);
+
+/**
+ * @swagger
+ * /student-users/{id}:
+ *   put:
+ *     summary: Update a student-user association
+ *     tags: [Student Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user_id:
+ *                 type: integer
+ *                 example: 6
+ *     responses:
+ *       200:
+ *         description: Association updated
+ *       404:
+ *         description: Not found
  */
 router.put('/:id', studentUserController.updateStudentUser);
 
 /**
- * @route   DELETE /api/student-users/:id
- * @desc    Delete a student user association
- * @access  Private (Admin only)
- * @params  { id: number }
- * @example DELETE /api/student-users/1
+ * @swagger
+ * /student-users/{id}:
+ *   delete:
+ *     summary: Delete a student-user association
+ *     tags: [Student Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Association deleted
+ *       404:
+ *         description: Not found
  */
 router.delete('/:id', studentUserController.deleteStudentUser);
 

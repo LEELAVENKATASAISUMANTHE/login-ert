@@ -4,16 +4,63 @@ import { uploadExcel } from '../utils/multer.js';
 
 const router = Router();
 
-// Download Excel template (place before parameterized routes)
+/**
+ * @swagger
+ * /student-projects/template:
+ *   get:
+ *     summary: Download Excel template for project import
+ *     tags: [Student Projects]
+ *     responses:
+ *       200:
+ *         description: Excel template file
+ */
 router.get('/template', studentProjectController.downloadTemplate);
 
-// Search projects by tools used (place before :id route)
+/**
+ * @swagger
+ * /student-projects/search:
+ *   get:
+ *     summary: Search projects by tools used
+ *     tags: [Student Projects]
+ *     parameters:
+ *       - in: query
+ *         name: tools
+ *         required: true
+ *         schema: { type: string }
+ *         example: React,Node.js
+ *     responses:
+ *       200:
+ *         description: Search results
+ *       400:
+ *         description: Missing tools parameter
+ */
 router.get('/search', studentProjectController.searchProjectsByTools);
 
-// Import from Excel file (POST only)
+/**
+ * @swagger
+ * /student-projects/import:
+ *   post:
+ *     summary: Import projects from Excel file
+ *     tags: [Student Projects]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [file]
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Import successful
+ *       400:
+ *         description: Validation errors
+ */
 router.post('/import', uploadExcel.single('file'), studentProjectController.importFromExcel);
 
-// GET /import - return helpful error message
 router.get('/import', (req, res) => {
     res.status(405).json({
         success: false,
@@ -22,22 +69,143 @@ router.get('/import', (req, res) => {
     });
 });
 
-// Create a new student project
+/**
+ * @swagger
+ * /student-projects:
+ *   post:
+ *     summary: Create a new student project
+ *     tags: [Student Projects]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [student_id, title]
+ *             properties:
+ *               student_id:
+ *                 type: string
+ *                 example: STU001
+ *               title:
+ *                 type: string
+ *                 example: E-Commerce Platform
+ *               description:
+ *                 type: string
+ *                 example: Full-stack shopping website
+ *               tools_used:
+ *                 type: string
+ *                 example: React, Node.js, MongoDB
+ *               repo_link:
+ *                 type: string
+ *                 format: uri
+ *                 example: https://github.com/user/project
+ *     responses:
+ *       201:
+ *         description: Project created
+ *       400:
+ *         description: Validation error
+ */
 router.post('/', studentProjectController.createStudentProject);
 
-// Get all student projects
+/**
+ * @swagger
+ * /student-projects:
+ *   get:
+ *     summary: Get all student projects
+ *     tags: [Student Projects]
+ *     responses:
+ *       200:
+ *         description: Projects retrieved
+ */
 router.get('/', studentProjectController.getAllStudentProjects);
 
-// Get all projects for a specific student
+/**
+ * @swagger
+ * /student-projects/student/{studentId}:
+ *   get:
+ *     summary: Get all projects for a specific student
+ *     tags: [Student Projects]
+ *     parameters:
+ *       - in: path
+ *         name: studentId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Student projects retrieved
+ */
 router.get('/student/:studentId', studentProjectController.getProjectsByStudentId);
 
-// Get student project by ID
+/**
+ * @swagger
+ * /student-projects/{id}:
+ *   get:
+ *     summary: Get project by ID
+ *     tags: [Student Projects]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Project retrieved
+ *       404:
+ *         description: Not found
+ */
 router.get('/:id', studentProjectController.getStudentProjectById);
 
-// Update student project by ID
+/**
+ * @swagger
+ * /student-projects/{id}:
+ *   put:
+ *     summary: Update project by ID
+ *     tags: [Student Projects]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               tools_used:
+ *                 type: string
+ *               repo_link:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Project updated
+ *       404:
+ *         description: Not found
+ */
 router.put('/:id', studentProjectController.updateStudentProjectById);
 
-// Delete student project by ID
+/**
+ * @swagger
+ * /student-projects/{id}:
+ *   delete:
+ *     summary: Delete project by ID
+ *     tags: [Student Projects]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Project deleted
+ *       404:
+ *         description: Not found
+ */
 router.delete('/:id', studentProjectController.deleteStudentProjectById);
 
 export default router;
