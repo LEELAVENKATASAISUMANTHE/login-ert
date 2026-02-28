@@ -18,6 +18,8 @@ services:
       LOG_LEVEL: info
       LOKI_HOST: http://loki:3100
       KAFKA_BROKERS: redpanda:9092
+      # Redis
+      REDIS_URL: redis://redis:6379
 
     networks:
       - monitoring

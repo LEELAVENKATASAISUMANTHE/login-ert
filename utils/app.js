@@ -30,6 +30,8 @@ import jobsRoutes from '../routes/jobs.route.js';
 import jobRequirementsRoutes from '../routes/job_requirements.route.js';
 import combineRoutes from '../routes/combine.route.js';
 import studentOffersRoutes from '../routes/student_offers.route.js';
+import studentEligibleJobsRoutes from '../routes/studentEligibleJobs.route.js';
+import { redis } from '../db/redis.js';
 // import applicationsRoutes from '../routes/applications.route.js';
 const app = express();
 
@@ -188,6 +190,11 @@ app.get('/api/health/complete', async (req, res) => {
       status: 'UNKNOWN',
       responseTime: null,
       error: null
+    },
+    redis: {
+      status: 'UNKNOWN',
+      responseTime: null,
+      error: null
     }
   };
 
@@ -224,11 +231,37 @@ app.get('/api/health/complete', async (req, res) => {
       code: error.code || 'UNKNOWN_ERROR'
     };
 
-    overallStatus = 503; // Service Unavailable
+    overallStatus = 503;
+  }
+
+  // Test Redis connectivity
+  try {
+    const startTime = Date.now();
+    const pong = await redis.ping();
+    const endTime = Date.now();
+
+    healthStatus.redis = {
+      status: 'CONNECTED',
+      responseTime: `${endTime - startTime}ms`,
+      ping: pong
+    };
+  } catch (error) {
+    logger.error('Redis check failed in complete health check', {
+      error: error.message
+    });
+
+    healthStatus.redis = {
+      status: 'DISCONNECTED',
+      error: error.message
+    };
+
+    overallStatus = 503;
   }
 
   // Determine overall health
-  const isHealthy = healthStatus.database.status === 'CONNECTED';
+  const isHealthy =
+    healthStatus.database.status === 'CONNECTED' &&
+    healthStatus.redis.status === 'CONNECTED';
 
   res.status(overallStatus).json({
     success: isHealthy,
@@ -260,6 +293,7 @@ app.use('/api/jobs', jobsRoutes);
 app.use('/api/job-requirements', jobRequirementsRoutes);
 app.use('/api/jobs-with-requirements', combineRoutes);
 app.use('/api/student-offers', studentOffersRoutes);
+app.use('/api/students', studentEligibleJobsRoutes);
 // app.use('/api/applications', applicationsRoutes);
 
 // ===== SWAGGER DOCS =====
