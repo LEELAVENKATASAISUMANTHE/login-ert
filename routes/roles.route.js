@@ -5,7 +5,8 @@ import {
   getRoleById,
   updateRole,
   deleteRole,
-  checkRoleExists
+  checkRoleExists,
+  getRolesformenu
 } from '../controller/roles.controller.js';
 import logger from '../utils/logger.js';
 
@@ -229,6 +230,8 @@ router.delete('/:role_id', (req, res, next) => {
   req.params.id = req.params.role_id;
   deleteRole(req, res, next);
 });
+
+router.get('/menu', getRolesformenu); 
 
 // ===== ERROR HANDLING =====
 router.use('*', (req, res) => {

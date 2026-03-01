@@ -2174,6 +2174,69 @@
                     }
                 }
             ]
+        },
+        {
+            "name": "Student Eligible Jobs (Redis)",
+            "description": "Reads student:{studentId}:jobs sorted set from Redis, then fetches full job details from PostgreSQL. The write side (ZADD) is handled by the eligibility worker service.",
+            "item": [
+                {
+                    "name": "Get Eligible Jobs for Student",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/students/1BY23CS132/eligible-jobs",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "students",
+                                "1BY23CS132",
+                                "eligible-jobs"
+                            ]
+                        },
+                        "description": "Fetches all eligible jobs for the given student.\n\nHow it works:\n1. ZRANGE student:1BY23CS132:jobs 0 -1 → gets job IDs sorted by deadline from Redis\n2. SELECT ... WHERE job_id = ANY(ids) → fetches full details from PostgreSQL\n\nReturns jobs sorted by application deadline (earliest first)."
+                    }
+                },
+                {
+                    "name": "Get Eligible Jobs (using variable)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/students/{{studentId}}/eligible-jobs",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "students",
+                                "{{studentId}}",
+                                "eligible-jobs"
+                            ]
+                        },
+                        "description": "Same as above but uses the {{studentId}} collection variable."
+                    }
+                },
+                {
+                    "name": "Get Eligible Jobs - Empty Result",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/students/NONEXISTENT999/eligible-jobs",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "students",
+                                "NONEXISTENT999",
+                                "eligible-jobs"
+                            ]
+                        },
+                        "description": "Tests the response when a student has no eligible jobs in Redis. Should return { jobs: [], count: 0 }."
+                    }
+                }
+            ]
         }
     ]
 }

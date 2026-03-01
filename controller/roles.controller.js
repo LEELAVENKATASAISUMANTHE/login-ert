@@ -445,3 +445,31 @@ export const checkRoleExists = async (req, res) => {
     });
   }
 };
+
+
+export const getRolesformenu = async (req, res) => {
+  try {
+    const result = await roleDB.getRoles();
+    if (!result.success) {
+      return res.status(404).json({
+        success: false,
+        message: 'Roles not found'
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: 'Roles retrieved successfully',
+      data: result.data
+    });
+  } catch (error) {
+    logger.error('Error in getRolesformenu controller', {
+      error: error.message,
+      stack: error.stack
+    });
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: 'Something went wrong' // Removed env check - always show generic error
+    });
+  }
+};  

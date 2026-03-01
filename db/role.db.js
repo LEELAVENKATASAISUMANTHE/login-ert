@@ -1,7 +1,25 @@
 import pool from './connection.js';  // Fixed import path
 import logger from '../utils/logger.js';
 
-
+export const getRoles = async () => {
+    const Query = `SELECT role_id, role_name,role_description FROM roles`;
+    try {
+        logger.debug("getRoles: Attempting to fetch all roles");
+        const res = await pool.query(Query);
+        logger.info("getRoles: Successfully fetched all roles");
+        return {
+            success: true,
+            data: res.rows,
+            message: 'Roles fetched successfully'
+        };
+    } catch (error) {
+        logger.error(`error in getRoles: ${error.message}`, {
+            stack: error.stack,
+            error_message: error.message
+        });
+        throw new Error('Failed to fetch roles due to an unexpected error');
+    }
+}   
 //create a new role in the database 
 export const createRole = async (data) => {
     const Query = `INSERT INTO roles (role_name, role_description) VALUES ($1, $2) RETURNING *`;
