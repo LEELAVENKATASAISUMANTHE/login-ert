@@ -152,6 +152,8 @@ router.get('/count/total', async (req, res) => {
   }
 });
 
+router.get('/menu', getRolesformenu);
+
 /**
  * @swagger
  * /roles/{role_id}:
@@ -173,9 +175,6 @@ router.get('/:role_id', (req, res, next) => {
   req.params.id = req.params.role_id;
   getRoleById(req, res, next);
 });
-
-
-router.get('/menu', getRolesformenu); 
 /**
  * @swagger
  * /roles/{role_id}:
