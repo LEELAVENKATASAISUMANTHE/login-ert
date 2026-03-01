@@ -174,6 +174,8 @@ router.get('/:role_id', (req, res, next) => {
   getRoleById(req, res, next);
 });
 
+
+router.get('/menu', getRolesformenu); 
 /**
  * @swagger
  * /roles/{role_id}:
@@ -231,7 +233,6 @@ router.delete('/:role_id', (req, res, next) => {
   deleteRole(req, res, next);
 });
 
-router.get('/menu', getRolesformenu); 
 
 // ===== ERROR HANDLING =====
 router.use('*', (req, res) => {
