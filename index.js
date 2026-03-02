@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import app from "./utils/app.js";
 import { initKafka } from "./utils/kafka.js";
 import { connectRedis } from "./db/redis.js";

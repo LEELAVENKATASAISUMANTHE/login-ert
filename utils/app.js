@@ -5,7 +5,6 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import logger from './logger.js';
 import pool from '../db/connection.js'; // Import database connection
-import dotenv from "dotenv";
 import cookieParser from '../middleware/cookieParser.js';
 import { setupSwagger } from './swagger.js';
 
@@ -31,6 +30,7 @@ import jobRequirementsRoutes from '../routes/job_requirements.route.js';
 import combineRoutes from '../routes/combine.route.js';
 import studentOffersRoutes from '../routes/student_offers.route.js';
 import studentEligibleJobsRoutes from '../routes/studentEligibleJobs.route.js';
+import authRoutes from '../routes/auth.route.js';
 import { redis } from '../db/redis.js';
 // import applicationsRoutes from '../routes/applications.route.js';
 const app = express();
@@ -39,7 +39,6 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
-dotenv.config();
 
 // CORS middleware
 app.use(cors({
@@ -273,6 +272,7 @@ app.get('/api/health/complete', async (req, res) => {
 });
 
 // API Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/roles', rolesRoutes);
 app.use('/api/permissions', permissionsRoutes);
@@ -318,7 +318,11 @@ app.get('/api', (req, res) => {
     },
     documentation: {
       register: 'POST /api/users/register',
-      login: 'POST /api/users/login',
+      login: 'POST /api/auth/login',
+      refresh: 'POST /api/auth/refresh',
+      logout: 'POST /api/auth/logout',
+      logout_all: 'POST /api/auth/logout-all',
+      whoami: 'GET /api/auth/whoami',
       users: 'GET /api/users',
       roles: 'GET /api/roles',
       permissions: 'GET /api/permissions',
