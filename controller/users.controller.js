@@ -7,7 +7,6 @@ export const createUserSchema = Joi.object({
     username: Joi.string().trim().min(3).max(100).required(),
     password: Joi.string().min(8).max(100).required(),
     email: Joi.string().email().max(150).optional(),
-    full_name: Joi.string().trim().max(200).optional(),
     role_id: Joi.number().integer().min(1).optional(),
     is_active: Joi.boolean().default(true).optional(),
     student_id: Joi.alternatives().try(
@@ -19,7 +18,6 @@ export const createUserSchema = Joi.object({
 export const updateUserSchema = Joi.object({
     username: Joi.string().trim().min(3).max(100).optional(),
     email: Joi.string().email().max(150).optional().allow(''),
-    full_name: Joi.string().trim().max(200).optional().allow(''),
     role_id: Joi.number().integer().min(1).optional().allow(null),
     is_active: Joi.boolean().optional()
 }).min(1);

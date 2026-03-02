@@ -43,15 +43,14 @@ export const createUser = async (data) => {
 
         // Insert the user
         const insertQuery = `
-            INSERT INTO users (username, password_hash, email, full_name, role_id, is_active)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING user_id, username, email, full_name, role_id, is_active, created_at
+            INSERT INTO users (username, password_hash, email, role_id, is_active)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING user_id, username, email, role_id, is_active, created_at
         `;
         const values = [
             data.username,
             data.password_hash,
             data.email || null,
-            data.full_name || null,
             data.role_id || null,
             data.is_active !== undefined ? data.is_active : true
         ];
@@ -125,7 +124,7 @@ export const getAllUsers = async (params) => {
     }
 
     if (search) {
-        whereConditions.push(`(u.username ILIKE $${paramIndex} OR u.full_name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`);
+        whereConditions.push(`(u.username ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`);
         values.push(`%${search}%`);
         paramIndex++;
     }
@@ -149,12 +148,11 @@ export const getAllUsers = async (params) => {
                 u.user_id,
                 u.username,
                 u.email,
-                u.full_name,
                 u.role_id,
                 r.role_name,
                 u.is_active,
                 u.created_at,
-                u.last_login
+                u.updated_at
             FROM users u
             LEFT JOIN roles r ON u.role_id = r.role_id
             ${whereClause}
@@ -195,13 +193,12 @@ export const getUserById = async (user_id) => {
                 u.user_id,
                 u.username,
                 u.email,
-                u.full_name,
                 u.role_id,
                 r.role_name,
                 r.role_description,
                 u.is_active,
                 u.created_at,
-                u.last_login
+                u.updated_at
             FROM users u
             LEFT JOIN roles r ON u.role_id = r.role_id
             WHERE u.user_id = $1
@@ -258,12 +255,6 @@ export const updateUser = async (user_id, data) => {
             paramIndex++;
         }
 
-        if (data.full_name !== undefined) {
-            fields.push(`full_name = $${paramIndex}`);
-            values.push(data.full_name || null);
-            paramIndex++;
-        }
-
         if (data.role_id !== undefined) {
             const roleCheck = await client.query('SELECT role_id FROM roles WHERE role_id = $1', [data.role_id]);
             if (roleCheck.rows.length === 0) throw new Error('Role not found');
@@ -286,7 +277,7 @@ export const updateUser = async (user_id, data) => {
             UPDATE users 
             SET ${fields.join(', ')}
             WHERE user_id = $${paramIndex}
-            RETURNING user_id, username, email, full_name, role_id, is_active, created_at, last_login
+            RETURNING user_id, username, email, role_id, is_active, created_at, updated_at
         `;
 
         const result = await client.query(updateQuery, values);
