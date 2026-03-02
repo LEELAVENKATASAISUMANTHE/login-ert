@@ -70,7 +70,7 @@ export const getAllStudentUsers = async (params) => {
     }
     
     if (search) {
-        whereConditions.push(`(u.username ILIKE $${paramIndex} OR u.full_name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`);
+        whereConditions.push(`(u.username ILIKE $${paramIndex} OR s.full_name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`);
         values.push(`%${search}%`);
         paramIndex++;
     }
@@ -85,6 +85,7 @@ export const getAllStudentUsers = async (params) => {
             SELECT COUNT(*) as total
             FROM student_users su
             LEFT JOIN users u ON su.user_id = u.user_id
+            LEFT JOIN students s ON su.student_id = s.student_id
             ${whereClause}
         `;
         const countResult = await pool.query(countQuery, values);
@@ -97,11 +98,12 @@ export const getAllStudentUsers = async (params) => {
                 su.user_id,
                 u.username,
                 u.email,
-                u.full_name,
+                s.full_name,
                 u.is_active,
                 u.created_at as user_created_at
             FROM student_users su
             LEFT JOIN users u ON su.user_id = u.user_id
+            LEFT JOIN students s ON su.student_id = s.student_id
             ${whereClause}
             ORDER BY su.${sortBy} ${sortOrder}
             LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -148,7 +150,7 @@ export const getStudentUserById = async (student_id) => {
                 su.user_id,
                 u.username,
                 u.email,
-                u.full_name,
+                s.full_name,
                 u.role_id,
                 r.role_name,
                 u.is_active,
@@ -156,6 +158,7 @@ export const getStudentUserById = async (student_id) => {
                 u.last_login
             FROM student_users su
             LEFT JOIN users u ON su.user_id = u.user_id
+            LEFT JOIN students s ON su.student_id = s.student_id
             LEFT JOIN roles r ON u.role_id = r.role_id
             WHERE su.student_id = $1
         `;
@@ -193,7 +196,7 @@ export const getStudentUserByUserId = async (user_id) => {
                 su.user_id,
                 u.username,
                 u.email,
-                u.full_name,
+                s.full_name,
                 u.role_id,
                 r.role_name,
                 u.is_active,
@@ -201,6 +204,7 @@ export const getStudentUserByUserId = async (user_id) => {
                 u.last_login
             FROM student_users su
             LEFT JOIN users u ON su.user_id = u.user_id
+            LEFT JOIN students s ON su.student_id = s.student_id
             LEFT JOIN roles r ON u.role_id = r.role_id
             WHERE su.user_id = $1
         `;
@@ -340,7 +344,7 @@ export const getAllStudents = async (params) => {
     let paramIndex = 1;
     
     if (search) {
-        whereConditions.push(`(u.username ILIKE $${paramIndex} OR u.full_name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`);
+        whereConditions.push(`(u.username ILIKE $${paramIndex} OR s.full_name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`);
         values.push(`%${search}%`);
         paramIndex++;
     }
@@ -355,6 +359,7 @@ export const getAllStudents = async (params) => {
             SELECT COUNT(*) as total
             FROM student_users su
             INNER JOIN users u ON su.user_id = u.user_id
+            LEFT JOIN students s ON su.student_id = s.student_id
             ${whereClause}
         `;
         const countResult = await pool.query(countQuery, values);
@@ -367,7 +372,7 @@ export const getAllStudents = async (params) => {
                 su.user_id,
                 u.username,
                 u.email,
-                u.full_name,
+                s.full_name,
                 u.role_id,
                 r.role_name,
                 u.is_active,
@@ -375,6 +380,7 @@ export const getAllStudents = async (params) => {
                 u.last_login
             FROM student_users su
             INNER JOIN users u ON su.user_id = u.user_id
+            LEFT JOIN students s ON su.student_id = s.student_id
             LEFT JOIN roles r ON u.role_id = r.role_id
             ${whereClause}
             ORDER BY su.${sortBy} ${sortOrder}
