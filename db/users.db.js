@@ -61,7 +61,22 @@ export const createUser = async (data) => {
         // If the role is STUDENT and student_id is provided,
         // create the student_users association in the same transaction.
         if (data.student_id && roleName === 'STUDENT') {
-            // Ensure student_id is not already linked
+            // First, check if student exists in students table
+            const studentExists = await client.query(
+                'SELECT student_id FROM students WHERE student_id = $1',
+                [data.student_id]
+            );
+
+            // If student doesn't exist, create a minimal student record
+            if (studentExists.rows.length === 0) {
+                await client.query(
+                    'INSERT INTO students (student_id, created_at) VALUES ($1, NOW())',
+                    [data.student_id]
+                );
+                logger.info(`createUser: Created minimal student record for student_id=${data.student_id}`);
+            }
+
+            // Ensure student_id is not already linked to another user
             const studentIdCheck = await client.query(
                 'SELECT student_id FROM student_users WHERE student_id = $1',
                 [data.student_id]
