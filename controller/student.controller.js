@@ -3,6 +3,11 @@ import * as studentService from "../db/student.db.js";
 import joi from "joi";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 
+const isStudentIdUniqueViolation = (error) => {
+    if (!error || error.code !== '23505') return false;
+    if (error.constraint === 'students_pkey') return true;
+    return error.table === 'students' && typeof error.detail === 'string' && error.detail.includes('(student_id)=');
+};
 
 const studentSchema = joi.object({
     student_id: joi.string().alphanum().required(),
@@ -45,42 +50,38 @@ const updateStudentSchema = joi.object({
 
 export const createStudent = async (req, res) => {
     try {
-        // Debug: Log everything about the file
-        console.log("=== FILE DEBUG ===");
-        console.log("req.file exists:", !!req.file);
-        if (req.file) {
-            console.log("req.file.fieldname:", req.file.fieldname);
-            console.log("req.file.originalname:", req.file.originalname);
-            console.log("req.file.mimetype:", req.file.mimetype);
-            console.log("req.file.size:", req.file.size);
-            console.log("req.file.buffer exists:", !!req.file.buffer);
-            console.log("req.file.buffer length:", req.file.buffer ? req.file.buffer.length : 0);
-        }
-        console.log("=== END DEBUG ===");
-
         const { error, value } = studentSchema.validate(req.body);
         if (error) {
             return res.status(400).json({ message: error.details[0].message });
         }
 
-
+        // Avoid expensive uploads for known duplicates.
+        const existingStudent = await studentService.getStudentById(value.student_id);
+        if (existingStudent.success) {
+            return res.status(409).json({
+                message: `Student with ID ${value.student_id} already exists`
+            });
+        }
 
         // Check if file was uploaded
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            console.log("File received:", req.file.originalname, "Size:", req.file.size);
-
             // Upload buffer to Cloudinary
             const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "students");
             value.student_photo_path = cloudinaryResult.url;
         } else {
             // No file uploaded or empty buffer - set to null
-            console.log("No valid file uploaded, setting photo to null");
             value.student_photo_path = null;
         }
 
         const student = await studentService.createStudent(value);
         res.status(201).json(student);
     } catch (err) {
+        if (isStudentIdUniqueViolation(err)) {
+            return res.status(409).json({
+                message: `Student with ID ${req.body?.student_id} already exists`
+            });
+        }
+
         logger.error("Error creating student:", err);
         res.status(500).json({ message: "Internal server error" });
     }
