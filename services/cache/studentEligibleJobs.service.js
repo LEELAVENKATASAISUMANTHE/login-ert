@@ -37,7 +37,7 @@ const JOB_DETAILS_QUERY = `
     j.application_deadline,
     j.drive_date,
     j.year_of_graduation,
-    j.status
+    -- status column removed (not present in jobs table)
   FROM jobs j
   JOIN companies c ON c.company_id = j.company_id
   WHERE j.job_id = ANY($1::int[])
