@@ -24,11 +24,17 @@ export const producer = kafka.producer({
 
 export async function initKafka() {
   try {
-    await producer.connect();
+    // Timeout after 10s so the server isn't stuck waiting for Kafka
+    await Promise.race([
+      producer.connect(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Kafka connection timed out after 10s')), 10_000)
+      )
+    ]);
     logger.info("✅ Kafka connected successfully");
   } catch (err) {
-    logger.error("❌ Kafka connection failed", err);
-    process.exit(1);
+    logger.error("❌ Kafka connection failed", { error: err.message });
+    logger.warn("⚠️  Application will continue without Kafka");
   }
 }
 
