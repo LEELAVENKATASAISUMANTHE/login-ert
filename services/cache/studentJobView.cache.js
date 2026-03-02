@@ -16,7 +16,6 @@ const STUDENT_JOB_VIEW_QUERY = `
     j.application_deadline,
     j.drive_date,
     j.year_of_graduation,
-    j.status,
     jr.job_requirement_id,
     jr.tenth_percent,
     jr.twelfth_percent,
@@ -60,7 +59,6 @@ const mapToStudentView = (row) => {
       application_deadline: row.application_deadline,
       drive_date: row.drive_date,
       year_of_graduation: row.year_of_graduation,
-      status: row.status,
     },
     requirements: {
       job_requirement_id: row.job_requirement_id,

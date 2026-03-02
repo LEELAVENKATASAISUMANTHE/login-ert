@@ -2,14 +2,90 @@ import logger from "../utils/logger.js";
 import * as jobService from "../db/jobs.db.js";
 import joi from "joi";
 
-// Validation schema for query params (pagination & search)
+// ─── Validation Schemas ─────────────────────────────────────────────────────
+
+const idSchema = joi.object({
+    id: joi.number().integer().min(1).required()
+});
+
+const companyIdSchema = joi.object({
+    companyId: joi.number().integer().min(1).required()
+});
+
 const getJobsSchema = joi.object({
     page: joi.number().integer().min(1).default(1),
     limit: joi.number().integer().min(1).max(100).default(10),
-    sortBy: joi.string().valid('job_id', 'job_title', 'job_type', 'ctc_lpa', 'location', 'application_deadline', 'drive_date', 'year_of_graduation', 'status', 'created_at').default('job_id'),
+    sortBy: joi.string().valid('job_id', 'job_title', 'job_type', 'ctc_lpa', 'location', 'application_deadline', 'drive_date', 'year_of_graduation', 'created_at').default('job_id'),
     sortOrder: joi.string().valid('ASC', 'DESC', 'asc', 'desc').default('DESC'),
     search: joi.string().trim().max(100).optional().allow('')
 });
+
+const createJobSchema = joi.object({
+    company_id: joi.number().integer().min(1).required().messages({
+        'number.base': 'Company ID must be a number',
+        'any.required': 'Company ID is required'
+    }),
+    job_title: joi.string().trim().max(200).required().messages({
+        'string.empty': 'Job title is required',
+        'any.required': 'Job title is required'
+    }),
+    job_description: joi.string().trim().optional().allow(null, ''),
+    job_type: joi.string().trim().max(50).optional().allow(null, ''),
+    ctc_lpa: joi.number().precision(2).min(0).optional().allow(null),
+    stipend_per_month: joi.number().precision(2).min(0).optional().allow(null),
+    location: joi.string().trim().max(200).optional().allow(null, ''),
+    interview_mode: joi.string().trim().max(50).optional().allow(null, ''),
+    application_deadline: joi.date().iso().optional().allow(null),
+    drive_date: joi.date().iso().optional().allow(null),
+    year_of_graduation: joi.number().integer().min(2000).max(2100).optional().allow(null)
+});
+
+const updateJobSchema = joi.object({
+    company_id: joi.number().integer().min(1).optional(),
+    job_title: joi.string().trim().max(200).optional(),
+    job_description: joi.string().trim().optional().allow(null, ''),
+    job_type: joi.string().trim().max(50).optional().allow(null, ''),
+    ctc_lpa: joi.number().precision(2).min(0).optional().allow(null),
+    stipend_per_month: joi.number().precision(2).min(0).optional().allow(null),
+    location: joi.string().trim().max(200).optional().allow(null, ''),
+    interview_mode: joi.string().trim().max(50).optional().allow(null, ''),
+    application_deadline: joi.date().iso().optional().allow(null),
+    drive_date: joi.date().iso().optional().allow(null),
+    year_of_graduation: joi.number().integer().min(2000).max(2100).optional().allow(null)
+});
+
+// ─── Controllers ────────────────────────────────────────────────────────────
+
+// Create a new job
+export const createJob = async (req, res) => {
+    try {
+        const { error, value } = createJobSchema.validate(req.body);
+        if (error) {
+            logger.warn(`createJob: Validation failed - ${error.details[0].message}`);
+            return res.status(400).json({ 
+                success: false, 
+                message: error.details[0].message 
+            });
+        }
+
+        const result = await jobService.createJob(value);
+        res.status(201).json(result);
+    } catch (err) {
+        logger.error("Error creating job:", err);
+
+        if (err.message.includes('Company not found')) {
+            return res.status(404).json({ 
+                success: false, 
+                message: err.message 
+            });
+        }
+
+        res.status(500).json({ 
+            success: false, 
+            message: "Internal server error" 
+        });
+    }
+};
 
 // Get all jobs with pagination and search
 export const getAllJobs = async (req, res) => {

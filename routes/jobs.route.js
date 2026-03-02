@@ -6,6 +6,54 @@ const router = Router();
 /**
  * @swagger
  * /jobs:
+ *   post:
+ *     summary: Create a new job
+ *     tags: [Jobs]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [company_id, job_title]
+ *             properties:
+ *               company_id:
+ *                 type: integer
+ *               job_title:
+ *                 type: string
+ *               job_description:
+ *                 type: string
+ *               job_type:
+ *                 type: string
+ *               ctc_lpa:
+ *                 type: number
+ *               stipend_per_month:
+ *                 type: number
+ *               location:
+ *                 type: string
+ *               interview_mode:
+ *                 type: string
+ *               application_deadline:
+ *                 type: string
+ *                 format: date
+ *               drive_date:
+ *                 type: string
+ *                 format: date
+ *               year_of_graduation:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Job created
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Company not found
+ */
+router.post('/', jobController.createJob);
+
+/**
+ * @swagger
+ * /jobs:
  *   get:
  *     summary: Get all jobs (paginated, searchable)
  *     tags: [Jobs]

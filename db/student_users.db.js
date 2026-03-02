@@ -155,7 +155,7 @@ export const getStudentUserById = async (student_id) => {
                 r.role_name,
                 u.is_active,
                 u.created_at as user_created_at,
-                u.last_login
+                u.updated_at as user_updated_at
             FROM student_users su
             LEFT JOIN users u ON su.user_id = u.user_id
             LEFT JOIN students s ON su.student_id = s.student_id
@@ -201,7 +201,7 @@ export const getStudentUserByUserId = async (user_id) => {
                 r.role_name,
                 u.is_active,
                 u.created_at as user_created_at,
-                u.last_login
+                u.updated_at as user_updated_at
             FROM student_users su
             LEFT JOIN users u ON su.user_id = u.user_id
             LEFT JOIN students s ON su.student_id = s.student_id
@@ -377,7 +377,7 @@ export const getAllStudents = async (params) => {
                 r.role_name,
                 u.is_active,
                 u.created_at as user_created_at,
-                u.last_login
+                u.updated_at as user_updated_at
             FROM student_users su
             INNER JOIN users u ON su.user_id = u.user_id
             LEFT JOIN students s ON su.student_id = s.student_id

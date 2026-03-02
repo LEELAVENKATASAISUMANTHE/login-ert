@@ -1,13 +1,50 @@
 import pool from "./connection.js";
 import logger from "../utils/logger.js";
 
+// Create a new job
+export const createJob = async (job) => {
+    try {
+        // Verify company exists
+        const companyCheck = await pool.query('SELECT company_id FROM companies WHERE company_id = $1', [job.company_id]);
+        if (companyCheck.rows.length === 0) throw new Error('Company not found');
+
+        const insertQuery = `
+            INSERT INTO jobs (
+                company_id, job_title, job_description, job_type,
+                ctc_lpa, stipend_per_month, location, interview_mode,
+                application_deadline, drive_date, year_of_graduation
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            RETURNING *
+        `;
+        const values = [
+            job.company_id,
+            job.job_title,
+            job.job_description || null,
+            job.job_type || null,
+            job.ctc_lpa !== undefined ? job.ctc_lpa : null,
+            job.stipend_per_month !== undefined ? job.stipend_per_month : null,
+            job.location || null,
+            job.interview_mode || null,
+            job.application_deadline || null,
+            job.drive_date || null,
+            job.year_of_graduation !== undefined ? job.year_of_graduation : null
+        ];
+
+        const res = await pool.query(insertQuery, values);
+        return { success: true, data: res.rows[0], message: 'Job created successfully' };
+    } catch (err) {
+        logger.error('createJob failed', { error: err.message, job });
+        throw err;
+    }
+};
+
 // Get all jobs with pagination and search
 export const getAllJobs = async (params = {}) => {
     try {
         const { page = 1, limit = 10, sortBy = 'job_id', sortOrder = 'DESC', search = '' } = params;
         const offset = (page - 1) * limit;
 
-        const allowedSortFields = ['job_id', 'job_title', 'job_type', 'ctc_lpa', 'location', 'application_deadline', 'drive_date', 'year_of_graduation', 'status', 'created_at'];
+        const allowedSortFields = ['job_id', 'job_title', 'job_type', 'ctc_lpa', 'location', 'application_deadline', 'drive_date', 'year_of_graduation', 'created_at'];
         const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'job_id';
         const safeSortOrder = String(sortOrder).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
@@ -72,7 +109,7 @@ export const getJobById = async (jobId) => {
 
         // If job and requirements are returned in same row, separate requirement fields
         const row = res.rows[0];
-        const requirementFields = ['job_requirement_id','tenth_percent','twelfth_percent','ug_cgpa','min_experience_yrs','allowed_branches','skills_required','additional_notes','backlogs_allowed','created_at'];
+        const requirementFields = ['job_requirement_id','tenth_percent','twelfth_percent','ug_cgpa','min_experience_yrs','allowed_branches','skills_required','additional_notes','backlogs_allowed'];
         const requirements = {};
         for (const f of requirementFields) {
             if (row.hasOwnProperty(f)) {
@@ -94,7 +131,7 @@ export const getJobsByCompanyId = async (companyId, params = {}) => {
         const { page = 1, limit = 10, sortBy = 'job_id', sortOrder = 'DESC', search = '' } = params;
         const offset = (page - 1) * limit;
 
-        const allowedSortFields = ['job_id', 'job_title', 'job_type', 'ctc_lpa', 'location', 'application_deadline', 'drive_date', 'year_of_graduation', 'status', 'created_at'];
+        const allowedSortFields = ['job_id', 'job_title', 'job_type', 'ctc_lpa', 'location', 'application_deadline', 'drive_date', 'year_of_graduation', 'created_at'];
         const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'job_id';
         const safeSortOrder = String(sortOrder).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
@@ -153,9 +190,8 @@ export const updateJob = async (jobId, job) => {
                 interview_mode = COALESCE($8, interview_mode),
                 application_deadline = COALESCE($9, application_deadline),
                 drive_date = COALESCE($10, drive_date),
-                year_of_graduation = COALESCE($11, year_of_graduation),
-                status = COALESCE($12, status)
-            WHERE job_id = $13 RETURNING *
+                year_of_graduation = COALESCE($11, year_of_graduation)
+            WHERE job_id = $12 RETURNING *
         `;
 
         const values = [
@@ -170,7 +206,6 @@ export const updateJob = async (jobId, job) => {
             job.application_deadline ?? null,
             job.drive_date ?? null,
             job.year_of_graduation !== undefined ? job.year_of_graduation : null,
-            job.status ?? null,
             jobId
         ];
 

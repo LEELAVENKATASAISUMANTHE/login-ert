@@ -137,7 +137,7 @@ export const getStudentUserById = async (req, res) => {
             });
         }
 
-        const student_id = parseInt(req.params.id);
+        const student_id = req.params.id;
         const result = await studentUserDB.getStudentUserById(student_id);
         
         res.status(200).json(result);
@@ -218,7 +218,7 @@ export const updateStudentUser = async (req, res) => {
             });
         }
 
-        const student_id = parseInt(req.params.id);
+        const student_id = req.params.id;
         const result = await studentUserDB.updateStudentUser(student_id, req.body);
         
         res.status(200).json(result);
@@ -262,7 +262,7 @@ export const deleteStudentUser = async (req, res) => {
             });
         }
 
-        const student_id = parseInt(req.params.id);
+        const student_id = req.params.id;
         const result = await studentUserDB.deleteStudentUser(student_id);
         
         res.status(200).json(result);
