@@ -19,6 +19,44 @@ function isProduction() {
   return process.env.NODE_ENV === 'production';
 }
 
+function getAuthCookieBaseOptions() {
+  const cookieDomain = process.env.COOKIE_DOMAIN?.trim();
+  const configuredSameSite = process.env.COOKIE_SAMESITE?.trim().toLowerCase();
+  const configuredSecure = process.env.COOKIE_SECURE?.trim().toLowerCase();
+
+  const validSameSite = ['lax', 'strict', 'none'];
+  let sameSite = validSameSite.includes(configuredSameSite)
+    ? configuredSameSite
+    : (isProduction() ? 'none' : 'lax');
+
+  let secure;
+  if (configuredSecure === 'true') {
+    secure = true;
+  } else if (configuredSecure === 'false') {
+    secure = false;
+  } else {
+    secure = isProduction();
+  }
+
+  // Browsers reject SameSite=None cookies unless Secure is also true.
+  if (sameSite === 'none' && !secure) {
+    secure = true;
+  }
+
+  const cookieOptions = {
+    httpOnly: true,
+    secure,
+    sameSite,
+    path: '/',
+  };
+
+  if (cookieDomain) {
+    cookieOptions.domain = cookieDomain;
+  }
+
+  return cookieOptions;
+}
+
 // ─── Access Token ───────────────────────────────────────────────────────────────
 
 /**
@@ -46,10 +84,7 @@ export function verifyAccessToken(token) {
 /** Standard options for the access-token cookie. */
 export function getAccessTokenCookieOptions() {
   return {
-    httpOnly: true,
-    secure: isProduction(),
-    sameSite: 'Strict',
-    path: '/',
+    ...getAuthCookieBaseOptions(),
     maxAge: 15 * 60 * 1000, // 15 minutes
   };
 }
@@ -57,10 +92,7 @@ export function getAccessTokenCookieOptions() {
 /** Standard options for the refresh-token cookie. */
 export function getRefreshTokenCookieOptions() {
   return {
-    httpOnly: true,
-    secure: isProduction(),
-    sameSite: 'Strict',
-    path: '/',
+    ...getAuthCookieBaseOptions(),
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
 }
@@ -77,6 +109,7 @@ export function setAuthCookies(res, accessToken, rawRefreshToken) {
  * Clear both auth cookies.
  */
 export function clearAuthCookies(res) {
-  res.clearCookie('accessToken', { path: '/' });
-  res.clearCookie('refreshToken', { path: '/' });
+  const clearOptions = getAuthCookieBaseOptions();
+  res.clearCookie('accessToken', clearOptions);
+  res.clearCookie('refreshToken', clearOptions);
 }

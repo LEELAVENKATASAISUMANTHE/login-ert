@@ -35,6 +35,22 @@ import { redis } from '../db/redis.js';
 // import applicationsRoutes from '../routes/applications.route.js';
 const app = express();
 
+const DEFAULT_CORS_ORIGINS = [
+  'https://www.sumantheluri.tech',
+  'https://sumantheluri.tech',
+  'http://localhost:5173',
+  'http://localhost:3001',
+  'http://localhost:3000'
+];
+
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+  : DEFAULT_CORS_ORIGINS;
+
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // ===== MIDDLEWARE =====
 
 // Security middleware
@@ -42,7 +58,17 @@ app.use(helmet());
 
 // CORS middleware
 app.use(cors({
-  origin: ['https://www.sumantheluri.tech', 'http://localhost:5173', 'http://localhost:3001'],
+  origin: (origin, callback) => {
+    // Allow non-browser requests (no Origin header), e.g. health checks and Postman.
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    logger.warn('CORS blocked request', { origin });
+    return callback(null, false);
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
   credentials: true, // Enable credentials (cookies)
