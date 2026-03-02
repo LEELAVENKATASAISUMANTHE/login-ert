@@ -132,7 +132,10 @@ export const login = async (req, res) => {
       token_version: user.token_version,
     });
 
-    // 10. Store session in DB
+    // 10. For single login: delete any existing sessions for this user first
+    await authDB.deleteAllUserSessions(user.user_id);
+
+    // 11. Store session in DB
     await authDB.createSession({
       session_id: sessionId,
       user_id: user.user_id,
@@ -142,7 +145,7 @@ export const login = async (req, res) => {
       expires_at: new Date(Date.now() + REFRESH_TOKEN_LIFETIME_MS),
     });
 
-    // 11. Update last_login_at
+    // 12. Update last_login_at
     await authDB.updateLastLogin(user.user_id);
 
     // 12. Set HTTP-only cookies
