@@ -57,6 +57,7 @@ jobs:
           mkdir -p ~/.kube
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
+          kubectl config view > /dev/null || (echo "Invalid kubeconfig"; exit 1)
 
       - name: Apply namespace
         run: kubectl apply -f k8s/namespace.yaml
@@ -132,6 +133,7 @@ jobs:
           mkdir -p ~/.kube
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
+          kubectl config view > /dev/null || (echo "Invalid kubeconfig"; exit 1)
 
       - name: Rollback deployment
         run: kubectl rollout undo deployment/backend --namespace=erp
