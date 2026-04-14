@@ -16,7 +16,7 @@ const options = {
         },
         servers: [
             {
-                url: 'https://www.sumantheluri.tech/api',
+                url: 'https://api.sumantheluri.tech/api',
                 description: 'Production server',
             },
             {
