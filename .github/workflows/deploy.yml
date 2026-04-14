@@ -54,17 +54,16 @@ jobs:
 
       - name: Configure kubeconfig
         env:
-          KUBECONFIG_SECRET: ${{ secrets.KUBECONFIG }}
+          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
         run: |
           mkdir -p ~/.kube
-          echo "$KUBECONFIG_SECRET" | base64 -d > ~/.kube/config
+          # Store kubeconfig directly (no base64 decoding)
+          echo "$KUBECONFIG_DATA" > ~/.kube/config
           chmod 600 ~/.kube/config
           
           # Validate kubeconfig
           if ! kubectl config view > /dev/null 2>&1; then
             echo "ERROR: Invalid kubeconfig"
-            echo "First 500 chars of config file:"
-            head -c 500 ~/.kube/config
             exit 1
           fi
           echo "✓ Kubeconfig is valid"
@@ -140,17 +139,16 @@ jobs:
 
       - name: Configure kubeconfig
         env:
-          KUBECONFIG_SECRET: ${{ secrets.KUBECONFIG }}
+          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
         run: |
           mkdir -p ~/.kube
-          echo "$KUBECONFIG_SECRET" | base64 -d > ~/.kube/config
+          # Store kubeconfig directly (no base64 decoding)
+          echo "$KUBECONFIG_DATA" > ~/.kube/config
           chmod 600 ~/.kube/config
           
           # Validate kubeconfig
           if ! kubectl config view > /dev/null 2>&1; then
             echo "ERROR: Invalid kubeconfig"
-            echo "First 500 chars of config file:"
-            head -c 500 ~/.kube/config
             exit 1
           fi
           echo "✓ Kubeconfig is valid"
