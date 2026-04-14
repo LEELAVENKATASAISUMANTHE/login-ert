@@ -94,3 +94,6 @@ docker-compose.override.yml
 
 # Keep lockfiles and critical project files tracked (do not ignore):
 # package-lock.json, yarn.lock, Pipfile.lock, composer.lock, etc.
+
+# Kubernetes secrets - never commit real values
+k8s/secret.yaml

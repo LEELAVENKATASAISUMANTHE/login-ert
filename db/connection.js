@@ -5,11 +5,11 @@ const { Pool } = pkg;
 
 // Database configuration
 const dbConfig = {
-  user: 'admin',
-  host: '172.17.0.1',
-  database: 'placement',
-  password: 'sumanth123',
-  port: 5432,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: parseInt(process.env.DB_PORT || '5432', 10),
 
   // OPTIMIZED POOL SETTINGS
   max: 15,                          // ✅ Increased from 20 to handle more concurrent requests

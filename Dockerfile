@@ -1,6 +1,10 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN chown -R appuser:appgroup /app
+USER appuser
 
 # Create uploads directory
 RUN mkdir -p /tmp/uploads

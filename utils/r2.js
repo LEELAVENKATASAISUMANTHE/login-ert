@@ -1,6 +1,5 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import path from "path";
 
 const r2Client = new S3Client({
   region: "auto",
@@ -11,6 +10,25 @@ const r2Client = new S3Client({
   },
 });
 
+const BUCKET_CONFIG = {
+  students: {
+    bucket: process.env.R2_BUCKET_STUDENTS,
+    publicUrl: process.env.R2_PUBLIC_URL_STUDENTS,
+  },
+  student_documents: {
+    bucket: process.env.R2_BUCKET_DOCUMENTS,
+    publicUrl: process.env.R2_PUBLIC_URL_DOCUMENTS,
+  },
+  student_certifications: {
+    bucket: process.env.R2_BUCKET_CERTIFICATIONS,
+    publicUrl: process.env.R2_PUBLIC_URL_CERTIFICATIONS,
+  },
+  companies: {
+    bucket: process.env.R2_BUCKET_COMPANIES,
+    publicUrl: process.env.R2_PUBLIC_URL_COMPANIES,
+  },
+};
+
 export const uploadToStorage = async (
   fileBuffer,
   folder = "uploads",
@@ -20,11 +38,16 @@ export const uploadToStorage = async (
     throw new Error("File buffer is empty");
   }
 
+  const config = BUCKET_CONFIG[folder];
+  if (!config) {
+    throw new Error(`Unknown upload folder: "${folder}"`);
+  }
+
   const ext = mimeType ? `.${mimeType.split("/")[1].split(";")[0]}` : "";
-  const key = `${folder}/${randomUUID()}${ext}`;
+  const key = `${randomUUID()}${ext}`;
 
   const command = new PutObjectCommand({
-    Bucket: process.env.R2_BUCKET_NAME,
+    Bucket: config.bucket,
     Key: key,
     Body: fileBuffer,
     ContentType: mimeType || "application/octet-stream",
@@ -32,7 +55,7 @@ export const uploadToStorage = async (
 
   await r2Client.send(command);
 
-  const publicUrl = process.env.R2_PUBLIC_URL.replace(/\/$/, "");
+  const publicUrl = config.publicUrl.replace(/\/$/, "");
   return {
     url: `${publicUrl}/${key}`,
     key,
