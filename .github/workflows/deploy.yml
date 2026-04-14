@@ -53,11 +53,21 @@ jobs:
         uses: azure/setup-kubectl@v3
 
       - name: Configure kubeconfig
+        env:
+          KUBECONFIG_SECRET: ${{ secrets.KUBECONFIG }}
         run: |
           mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          echo "$KUBECONFIG_SECRET" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
-          kubectl config view > /dev/null || (echo "Invalid kubeconfig"; exit 1)
+          
+          # Validate kubeconfig
+          if ! kubectl config view > /dev/null 2>&1; then
+            echo "ERROR: Invalid kubeconfig"
+            echo "First 500 chars of config file:"
+            head -c 500 ~/.kube/config
+            exit 1
+          fi
+          echo "✓ Kubeconfig is valid"
 
       - name: Apply namespace
         run: kubectl apply -f k8s/namespace.yaml
@@ -129,11 +139,21 @@ jobs:
         uses: azure/setup-kubectl@v3
 
       - name: Configure kubeconfig
+        env:
+          KUBECONFIG_SECRET: ${{ secrets.KUBECONFIG }}
         run: |
           mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          echo "$KUBECONFIG_SECRET" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
-          kubectl config view > /dev/null || (echo "Invalid kubeconfig"; exit 1)
+          
+          # Validate kubeconfig
+          if ! kubectl config view > /dev/null 2>&1; then
+            echo "ERROR: Invalid kubeconfig"
+            echo "First 500 chars of config file:"
+            head -c 500 ~/.kube/config
+            exit 1
+          fi
+          echo "✓ Kubeconfig is valid"
 
       - name: Rollback deployment
         run: kubectl rollout undo deployment/backend --namespace=erp
