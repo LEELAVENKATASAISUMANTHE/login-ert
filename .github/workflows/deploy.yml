@@ -126,7 +126,7 @@ jobs:
         run: kubectl rollout status deployment/backend --namespace=erp --timeout=120s
 
       - name: Wait for pods ready
-        run: kubectl wait pods -n erp -l app=backend --for=condition=Ready --timeout=90s
+        run: kubectl wait pod -n erp -l app=backend --for=condition=Ready --timeout=90s --ignore-not-found
 
       - name: Print pod status
         run: kubectl get pods -n erp -l app=backend
