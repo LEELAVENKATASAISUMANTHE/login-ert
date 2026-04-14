@@ -43,8 +43,8 @@ export const createStudentDocument = async (req, res) => {
 
         // Handle file upload to R2
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            const r2Result = await uploadToStorage(req.file.buffer, "student_documents");
-            value.file_path = r2Result.url;
+            const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_DOCUMENTS", req.file.mimetype);
+            value.file_path = r2Result.key;
         } else {
             return res.status(400).json({ message: "Document file is required" });
         }
@@ -112,8 +112,8 @@ export const updateStudentDocumentById = async (req, res) => {
 
         // Handle file upload to R2 if new file provided
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            const r2Result = await uploadToStorage(req.file.buffer, "student_documents");
-            value.file_path = r2Result.url;
+            const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_DOCUMENTS", req.file.mimetype);
+            value.file_path = r2Result.key;
         }
 
         const result = await studentDocumentService.updateStudentDocumentById(id, value);

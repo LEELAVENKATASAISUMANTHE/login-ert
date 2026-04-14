@@ -1,4 +1,5 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "crypto";
 
 const r2Client = new S3Client({
@@ -10,44 +11,25 @@ const r2Client = new S3Client({
   },
 });
 
-const BUCKET_CONFIG = {
-  students: {
-    bucket: process.env.R2_BUCKET_STUDENTS,
-    publicUrl: process.env.R2_PUBLIC_URL_STUDENTS,
-  },
-  student_documents: {
-    bucket: process.env.R2_BUCKET_DOCUMENTS,
-    publicUrl: process.env.R2_PUBLIC_URL_DOCUMENTS,
-  },
-  student_certifications: {
-    bucket: process.env.R2_BUCKET_CERTIFICATIONS,
-    publicUrl: process.env.R2_PUBLIC_URL_CERTIFICATIONS,
-  },
-  companies: {
-    bucket: process.env.R2_BUCKET_COMPANIES,
-    publicUrl: process.env.R2_PUBLIC_URL_COMPANIES,
-  },
-};
-
 export const uploadToStorage = async (
   fileBuffer,
-  folder = "uploads",
+  bucketEnvKey,
   mimeType = ""
 ) => {
   if (!fileBuffer || fileBuffer.length === 0) {
     throw new Error("File buffer is empty");
   }
 
-  const config = BUCKET_CONFIG[folder];
-  if (!config) {
-    throw new Error(`Unknown upload folder: "${folder}"`);
+  const bucket = process.env[bucketEnvKey];
+  if (!bucket) {
+    throw new Error(`Bucket env var not set: "${bucketEnvKey}"`);
   }
 
   const ext = mimeType ? `.${mimeType.split("/")[1].split(";")[0]}` : "";
   const key = `${randomUUID()}${ext}`;
 
   const command = new PutObjectCommand({
-    Bucket: config.bucket,
+    Bucket: bucket,
     Key: key,
     Body: fileBuffer,
     ContentType: mimeType || "application/octet-stream",
@@ -55,9 +37,15 @@ export const uploadToStorage = async (
 
   await r2Client.send(command);
 
-  const publicUrl = config.publicUrl.replace(/\/$/, "");
-  return {
-    url: `${publicUrl}/${key}`,
-    key,
-  };
+  return { key };
+};
+
+export const getPresignedUrl = async (bucketEnvKey, key, expiresIn = 3600) => {
+  const bucket = process.env[bucketEnvKey];
+  if (!bucket) {
+    throw new Error(`Bucket env var not set: "${bucketEnvKey}"`);
+  }
+
+  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+  return getSignedUrl(r2Client, command, { expiresIn });
 };

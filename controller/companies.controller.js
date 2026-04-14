@@ -53,9 +53,8 @@ export const createCompany = async (req, res) => {
 
         // Check if file was uploaded for company logo
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            console.log("Logo file received:", req.file.originalname, "Size:", req.file.size);
-            const r2Result = await uploadToStorage(req.file.buffer, "companies");
-            value.company_logo = r2Result.url;
+            const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_COMPANIES", req.file.mimetype);
+            value.company_logo = r2Result.key;
         }
 
         const result = await companyService.createCompany(value);
@@ -161,8 +160,8 @@ export const updateCompany = async (req, res) => {
         // Check if file was uploaded for company logo
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
             console.log("Logo file received:", req.file.originalname, "Size:", req.file.size);
-            const r2Result = await uploadToStorage(req.file.buffer, "companies");
-            value.company_logo = r2Result.url;
+            const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_COMPANIES", req.file.mimetype);
+            value.company_logo = r2Result.key;
         }
 
         const { id } = req.params;

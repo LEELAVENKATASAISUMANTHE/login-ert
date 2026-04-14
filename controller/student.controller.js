@@ -66,8 +66,8 @@ export const createStudent = async (req, res) => {
         // Check if file was uploaded
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
             // Upload buffer to R2
-            const r2Result = await uploadToStorage(req.file.buffer, "students");
-            value.student_photo_path = r2Result.url;
+            const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_STUDENTS", req.file.mimetype);
+            value.student_photo_path = r2Result.key;
         } else {
             // No file uploaded or empty buffer - set to null
             value.student_photo_path = null;
@@ -129,8 +129,8 @@ export const updateStudentById = async (req, res) => {
 
         // Check if file was uploaded
         if (req.file) {
-            const r2Result = await uploadToStorage(req.file.buffer, "students");
-            value.student_photo_path = r2Result.url;
+            const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_STUDENTS", req.file.mimetype);
+            value.student_photo_path = r2Result.key;
         }
 
         const result = await studentService.updateStudentById(id, value);
@@ -160,8 +160,8 @@ export const patchStudentById = async (req, res) => {
 
         // Check if file was uploaded
         if (req.file) {
-            const r2Result = await uploadToStorage(req.file.buffer, "students");
-            value.student_photo_path = r2Result.url;
+            const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_STUDENTS", req.file.mimetype);
+            value.student_photo_path = r2Result.key;
         }
 
         const result = await studentService.patchStudentById(id, value);

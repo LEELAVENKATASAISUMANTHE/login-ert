@@ -32,6 +32,7 @@ import branchesRoutes from '../routes/branches.route.js';
 import studentOffersRoutes from '../routes/student_offers.route.js';
 import studentEligibleJobsRoutes from '../routes/studentEligibleJobs.route.js';
 import authRoutes from '../routes/auth.route.js';
+import filesRoutes from '../routes/files.route.js';
 import { redis } from '../db/redis.js';
 // import applicationsRoutes from '../routes/applications.route.js';
 const app = express();
@@ -300,6 +301,7 @@ app.get('/api/health/complete', async (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/files', filesRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/roles', rolesRoutes);
 app.use('/api/permissions', permissionsRoutes);
