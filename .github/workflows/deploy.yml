@@ -58,12 +58,14 @@ jobs:
         run: |
           mkdir -p ~/.kube
           # Store kubeconfig directly (no base64 decoding)
-          echo "$KUBECONFIG_DATA" > ~/.kube/config
+          printf '%s' "$KUBECONFIG_DATA" > ~/.kube/config
           chmod 600 ~/.kube/config
           
           # Validate kubeconfig
           if ! kubectl config view > /dev/null 2>&1; then
             echo "ERROR: Invalid kubeconfig"
+            echo "First 15 lines of config file:"
+            sed -n '1,15p' ~/.kube/config
             exit 1
           fi
           echo "✓ Kubeconfig is valid"
@@ -143,12 +145,14 @@ jobs:
         run: |
           mkdir -p ~/.kube
           # Store kubeconfig directly (no base64 decoding)
-          echo "$KUBECONFIG_DATA" > ~/.kube/config
+          printf '%s' "$KUBECONFIG_DATA" > ~/.kube/config
           chmod 600 ~/.kube/config
           
           # Validate kubeconfig
           if ! kubectl config view > /dev/null 2>&1; then
             echo "ERROR: Invalid kubeconfig"
+            echo "First 15 lines of config file:"
+            sed -n '1,15p' ~/.kube/config
             exit 1
           fi
           echo "✓ Kubeconfig is valid"
