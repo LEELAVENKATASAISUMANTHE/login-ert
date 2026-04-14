@@ -79,7 +79,6 @@ const router = Router();
  *               student_photo:
  *                 type: string
  *                 format: binary
- *                 description: New photo to replace existing (stored in Cloudflare R2)
  *                 description: Student photo upload (stored in Cloudflare R2)
  *     responses:
  *       201:
