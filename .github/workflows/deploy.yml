@@ -54,11 +54,11 @@ jobs:
 
       - name: Configure kubeconfig
         env:
-          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
+          KUBECONFIG_B64: ${{ secrets.KUBECONFIG }}
         run: |
           mkdir -p ~/.kube
-          # Store kubeconfig directly (no base64 decoding)
-          printf '%s' "$KUBECONFIG_DATA" > ~/.kube/config
+          # Decode kubeconfig from base64
+          printf '%s' "$KUBECONFIG_B64" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
           
           # Validate kubeconfig
@@ -141,11 +141,11 @@ jobs:
 
       - name: Configure kubeconfig
         env:
-          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
+          KUBECONFIG_B64: ${{ secrets.KUBECONFIG }}
         run: |
           mkdir -p ~/.kube
-          # Store kubeconfig directly (no base64 decoding)
-          printf '%s' "$KUBECONFIG_DATA" > ~/.kube/config
+          # Decode kubeconfig from base64
+          printf '%s' "$KUBECONFIG_B64" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
           
           # Validate kubeconfig
