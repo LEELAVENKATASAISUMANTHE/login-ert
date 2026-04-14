@@ -1,0 +1,13 @@
+[
+  { "code": "CSE",   "name": "Computer Science and Engineering" },
+  { "code": "ISE",   "name": "Information Science and Engineering" },
+  { "code": "AI",    "name": "Artificial Intelligence" },
+  { "code": "ECE",   "name": "Electronics and Communication Engineering" },
+  { "code": "MECH",  "name": "Mechanical Engineering" },
+  { "code": "EEE",   "name": "Electrical and Electronics Engineering" },
+  { "code": "CIVIL", "name": "Civil Engineering" },
+  { "code": "CSBS",  "name": "Computer Science and Business Systems" },
+  { "code": "ETE",   "name": "Electronics and Telecommunication Engineering" },
+  { "code": "MCA",   "name": "Master of Computer Applications" },
+  { "code": "ALL",   "name": "All Branches" }
+]

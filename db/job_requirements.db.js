@@ -1,6 +1,5 @@
 import logger from '../utils/logger.js';
 import pool from './connection.js';
-const Branches = ["CSE","AI","ECE","MECH","EEE","CIVIL","CSBS","ETE","MCA","ALL"];
 
 
 // Get all job requirements with pagination

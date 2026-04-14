@@ -3,6 +3,7 @@ import joi from "joi";
 import pool from "../db/connection.js";
 import { cacheStudentJobViewByJobId } from "../services/cache/studentJobView.cache.js";
 import { publishJobCreatedEligibilityEvent } from "../services/events/jobEligibility.publisher.js";
+import { getBranchCodes } from "../utils/branches.js";
 
 /* ----------------------------------------------------
    CONSTANTS
@@ -18,48 +19,40 @@ const JOB_TYPES = [
   "PBC",
 ];
 
-const BRANCHES = [
-  "CSE",
-  "AI",
-  "ECE",
-  "MECH",
-  "EEE",
-  "CIVIL",
-  "CSBS",
-  "ETE",
-  "MCA",
-  "ALL",
-];
-
 /* ----------------------------------------------------
    VALIDATION SCHEMA
+   Built per-request so it always reflects the current
+   branches.json without requiring a server restart.
 ---------------------------------------------------- */
 
-const jobSchema = joi.object({
-  company_id: joi.number().integer().required(),
-  job_title: joi.string().required(),
-  job_description: joi.string().required(),
-  job_type: joi.string().valid(...JOB_TYPES).required(),
-  ctc_lpa: joi.number().min(0).required(),
-  stipend_per_month: joi.number().min(0).required(),
-  location: joi.string().required(),
-  interview_mode: joi.string().required(),
-  application_deadline: joi.date().required(),
-  drive_date: joi.date().required(),
-  year_of_graduation: joi.number().integer().required(),
+const buildJobSchema = () => {
+  const branches = getBranchCodes();
+  return joi.object({
+    company_id: joi.number().integer().required(),
+    job_title: joi.string().required(),
+    job_description: joi.string().required(),
+    job_type: joi.string().valid(...JOB_TYPES).required(),
+    ctc_lpa: joi.number().min(0).required(),
+    stipend_per_month: joi.number().min(0).required(),
+    location: joi.string().required(),
+    interview_mode: joi.string().required(),
+    application_deadline: joi.date().required(),
+    drive_date: joi.date().required(),
+    year_of_graduation: joi.number().integer().required(),
 
-  tenth_percent: joi.number().min(0).max(100).required(),
-  twelfth_percent: joi.number().min(0).max(100).required(),
-  ug_cgpa: joi.number().min(0).max(10).required(),
-  min_experience_yrs: joi.number().min(0).required(),
-  allowed_branches: joi
-    .array()
-    .items(joi.string().valid(...BRANCHES))
-    .required(),
-  backlogs_allowed: joi.number().integer().min(0).required(),
-  skills_required: joi.string().required(),
-  additional_notes: joi.string().allow(""),
-});
+    tenth_percent: joi.number().min(0).max(100).required(),
+    twelfth_percent: joi.number().min(0).max(100).required(),
+    ug_cgpa: joi.number().min(0).max(10).required(),
+    min_experience_yrs: joi.number().min(0).required(),
+    allowed_branches: joi
+      .array()
+      .items(joi.string().valid(...branches))
+      .required(),
+    backlogs_allowed: joi.number().integer().min(0).required(),
+    skills_required: joi.string().required(),
+    additional_notes: joi.string().optional().allow(null, ""),
+  });
+};
 
 const getHttpStatusFromError = (error) => {
   if (error?.isJoi) return 400;
@@ -143,7 +136,7 @@ export const createJobWithRequirements = async (data) => {
   const client = await pool.connect();
 
   try {
-    const validated = await jobSchema.validateAsync(data);
+    const validated = await buildJobSchema().validateAsync(data);
 
     await client.query("BEGIN");
 
@@ -208,7 +201,7 @@ export const createJobWithRequirements = async (data) => {
       validated.min_experience_yrs,
       validated.allowed_branches,
       validated.skills_required,
-      validated.additional_notes,
+      validated.additional_notes ?? null,
       validated.backlogs_allowed,
     ];
 
@@ -260,7 +253,7 @@ export const updateJobWithRequirements = async (jobId, data) => {
       throw new Error("jobId is required for update");
     }
 
-    const validated = await jobSchema.validateAsync(data);
+    const validated = await buildJobSchema().validateAsync(data);
 
     await client.query("BEGIN");
 
@@ -331,7 +324,7 @@ export const updateJobWithRequirements = async (jobId, data) => {
       validated.min_experience_yrs,
       validated.allowed_branches,
       validated.skills_required,
-      validated.additional_notes,
+      validated.additional_notes ?? null,
       validated.backlogs_allowed,
       jobId,
     ];
