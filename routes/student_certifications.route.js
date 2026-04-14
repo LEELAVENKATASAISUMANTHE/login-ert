@@ -98,10 +98,36 @@ router.get('/import', (req, res) => {
  *               certificate:
  *                 type: string
  *                 format: binary
- *                 description: Certificate file to upload
+ *                 description: Certificate file to upload (stored in Cloudflare R2; optional)
  *     responses:
  *       201:
  *         description: Certification created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 certification_id:
+ *                   type: integer
+ *                   example: 1
+ *                 student_id:
+ *                   type: string
+ *                   example: STU001
+ *                 skill_name:
+ *                   type: string
+ *                   example: AWS Solutions Architect
+ *                 duration:
+ *                   type: string
+ *                   example: 3 months
+ *                 vendor:
+ *                   type: string
+ *                   example: Amazon Web Services
+ *                 certificate_file:
+ *                   type: string
+ *                   format: uri
+ *                   nullable: true
+ *                   description: Public URL of the uploaded certificate in Cloudflare R2
+ *                   example: https://pub-xxxx.r2.dev/student_certifications/uuid.pdf
  *       400:
  *         description: Validation error
  */
@@ -183,9 +209,21 @@ router.get('/:id', studentCertificationController.getStudentCertificationById);
  *               certificate:
  *                 type: string
  *                 format: binary
+ *                 description: New certificate file to replace existing (stored in Cloudflare R2)
  *     responses:
  *       200:
  *         description: Certification updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 certificate_file:
+ *                   type: string
+ *                   format: uri
+ *                   nullable: true
+ *                   description: New Cloudflare R2 URL if file was replaced
+ *                   example: https://pub-xxxx.r2.dev/student_certifications/uuid.pdf
  *       404:
  *         description: Not found
  */

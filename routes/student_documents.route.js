@@ -77,10 +77,29 @@ router.get('/import', (req, res) => {
  *               document:
  *                 type: string
  *                 format: binary
- *                 description: Document file to upload
+ *                 description: Document file to upload (stored in Cloudflare R2)
  *     responses:
  *       201:
- *         description: Document created (uploaded to Cloudinary)
+ *         description: Document created, file stored in Cloudflare R2
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 document_id:
+ *                   type: integer
+ *                   example: 1
+ *                 student_id:
+ *                   type: string
+ *                   example: STU001
+ *                 document_type:
+ *                   type: string
+ *                   example: Resume
+ *                 file_path:
+ *                   type: string
+ *                   format: uri
+ *                   description: Public URL of the uploaded file in Cloudflare R2
+ *                   example: https://pub-xxxx.r2.dev/student_documents/uuid.pdf
  *       400:
  *         description: Validation error or missing file
  */
@@ -158,9 +177,20 @@ router.get('/:id', studentDocumentController.getStudentDocumentById);
  *               document:
  *                 type: string
  *                 format: binary
+ *                 description: New document file to replace existing (stored in Cloudflare R2)
  *     responses:
  *       200:
  *         description: Document updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 file_path:
+ *                   type: string
+ *                   format: uri
+ *                   description: New Cloudflare R2 URL if file was replaced
+ *                   example: https://pub-xxxx.r2.dev/student_documents/uuid.pdf
  *       404:
  *         description: Not found
  */

@@ -1,7 +1,7 @@
 import logger from "../utils/logger.js";
 import * as companyService from "../db/companies.db.js";
 import joi from "joi";
-import { uploadToCloudinary } from "../utils/cloudinary.js";
+import { uploadToStorage } from "../utils/r2.js";
 
 // Validation schema for creating a company
 const createCompanySchema = joi.object({
@@ -54,8 +54,8 @@ export const createCompany = async (req, res) => {
         // Check if file was uploaded for company logo
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
             console.log("Logo file received:", req.file.originalname, "Size:", req.file.size);
-            const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "companies");
-            value.company_logo = cloudinaryResult.url;
+            const r2Result = await uploadToStorage(req.file.buffer, "companies");
+            value.company_logo = r2Result.url;
         }
 
         const result = await companyService.createCompany(value);
@@ -161,8 +161,8 @@ export const updateCompany = async (req, res) => {
         // Check if file was uploaded for company logo
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
             console.log("Logo file received:", req.file.originalname, "Size:", req.file.size);
-            const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "companies");
-            value.company_logo = cloudinaryResult.url;
+            const r2Result = await uploadToStorage(req.file.buffer, "companies");
+            value.company_logo = r2Result.url;
         }
 
         const { id } = req.params;

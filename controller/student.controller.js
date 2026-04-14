@@ -1,7 +1,7 @@
 import logger from "../utils/logger.js";
 import * as studentService from "../db/student.db.js";
 import joi from "joi";
-import { uploadToCloudinary } from "../utils/cloudinary.js";
+import { uploadToStorage } from "../utils/r2.js";
 
 const isStudentIdUniqueViolation = (error) => {
     if (!error || error.code !== '23505') return false;
@@ -65,9 +65,9 @@ export const createStudent = async (req, res) => {
 
         // Check if file was uploaded
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            // Upload buffer to Cloudinary
-            const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "students");
-            value.student_photo_path = cloudinaryResult.url;
+            // Upload buffer to R2
+            const r2Result = await uploadToStorage(req.file.buffer, "students");
+            value.student_photo_path = r2Result.url;
         } else {
             // No file uploaded or empty buffer - set to null
             value.student_photo_path = null;
@@ -129,8 +129,8 @@ export const updateStudentById = async (req, res) => {
 
         // Check if file was uploaded
         if (req.file) {
-            const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "students");
-            value.student_photo_path = cloudinaryResult.url;
+            const r2Result = await uploadToStorage(req.file.buffer, "students");
+            value.student_photo_path = r2Result.url;
         }
 
         const result = await studentService.updateStudentById(id, value);
@@ -160,8 +160,8 @@ export const patchStudentById = async (req, res) => {
 
         // Check if file was uploaded
         if (req.file) {
-            const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "students");
-            value.student_photo_path = cloudinaryResult.url;
+            const r2Result = await uploadToStorage(req.file.buffer, "students");
+            value.student_photo_path = r2Result.url;
         }
 
         const result = await studentService.patchStudentById(id, value);

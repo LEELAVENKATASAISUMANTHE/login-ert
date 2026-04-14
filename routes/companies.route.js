@@ -39,10 +39,27 @@ const router = Router();
  *               company_logo:
  *                 type: string
  *                 format: binary
- *                 description: Company logo image
+ *                 description: Company logo image (stored in Cloudflare R2)
  *     responses:
  *       201:
  *         description: Company created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 company_id:
+ *                   type: integer
+ *                   example: 1
+ *                 company_name:
+ *                   type: string
+ *                   example: Google India
+ *                 company_logo:
+ *                   type: string
+ *                   format: uri
+ *                   nullable: true
+ *                   description: Public URL of the logo stored in Cloudflare R2
+ *                   example: https://pub-xxxx.r2.dev/companies/uuid.png
  *       400:
  *         description: Validation error
  */
@@ -123,9 +140,21 @@ router.get('/:id', companyController.getCompanyById);
  *               company_logo:
  *                 type: string
  *                 format: binary
+ *                 description: New logo image to replace existing (stored in Cloudflare R2)
  *     responses:
  *       200:
  *         description: Company updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 company_logo:
+ *                   type: string
+ *                   format: uri
+ *                   nullable: true
+ *                   description: New Cloudflare R2 URL if logo was replaced
+ *                   example: https://pub-xxxx.r2.dev/companies/uuid.png
  *       404:
  *         description: Not found
  */

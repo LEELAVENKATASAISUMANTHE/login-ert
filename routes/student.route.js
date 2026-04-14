@@ -79,10 +79,28 @@ const router = Router();
  *               student_photo:
  *                 type: string
  *                 format: binary
- *                 description: Student photo upload
+ *                 description: New photo to replace existing (stored in Cloudflare R2)
+ *                 description: Student photo upload (stored in Cloudflare R2)
  *     responses:
  *       201:
  *         description: Student created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 student_id:
+ *                   type: string
+ *                   example: STU001
+ *                 full_name:
+ *                   type: string
+ *                   example: John Michael Doe
+ *                 student_photo_path:
+ *                   type: string
+ *                   format: uri
+ *                   nullable: true
+ *                   description: Public URL of the photo stored in Cloudflare R2
+ *                   example: https://pub-xxxx.r2.dev/students/uuid.jpg
  *       400:
  *         description: Validation error or student already exists
  */
@@ -179,6 +197,7 @@ router.get('/:id', studentController.getStudentById);
  *               student_photo:
  *                 type: string
  *                 format: binary
+ *                 description: New photo to replace existing (stored in Cloudflare R2)
  *     responses:
  *       200:
  *         description: Student updated
@@ -246,6 +265,7 @@ router.put('/:id', upload.single('student_photo'), studentController.updateStude
  *               student_photo:
  *                 type: string
  *                 format: binary
+ *                 description: New photo to replace existing (stored in Cloudflare R2)
  *     responses:
  *       200:
  *         description: Student patched

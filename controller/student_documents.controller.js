@@ -1,7 +1,7 @@
 import logger from "../utils/logger.js";
 import * as studentDocumentService from "../db/student_documents.db.js";
 import { parseExcelBuffer, validateColumns, generateExcelTemplate } from "../utils/excelParser.js";
-import { uploadToCloudinary } from "../utils/cloudinary.js";
+import { uploadToStorage } from "../utils/r2.js";
 import joi from "joi";
 
 // Validation schema for creating student document record
@@ -41,10 +41,10 @@ export const createStudentDocument = async (req, res) => {
             return res.status(400).json({ message: error.details[0].message });
         }
 
-        // Handle file upload to Cloudinary
+        // Handle file upload to R2
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "student_documents");
-            value.file_path = cloudinaryResult.url;
+            const r2Result = await uploadToStorage(req.file.buffer, "student_documents");
+            value.file_path = r2Result.url;
         } else {
             return res.status(400).json({ message: "Document file is required" });
         }
@@ -110,10 +110,10 @@ export const updateStudentDocumentById = async (req, res) => {
             return res.status(400).json({ message: error.details[0].message });
         }
 
-        // Handle file upload to Cloudinary if new file provided
+        // Handle file upload to R2 if new file provided
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            const cloudinaryResult = await uploadToCloudinary(req.file.buffer, "student_documents");
-            value.file_path = cloudinaryResult.url;
+            const r2Result = await uploadToStorage(req.file.buffer, "student_documents");
+            value.file_path = r2Result.url;
         }
 
         const result = await studentDocumentService.updateStudentDocumentById(id, value);
