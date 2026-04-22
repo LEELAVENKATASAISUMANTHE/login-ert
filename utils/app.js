@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
+import { STATUS_CODES } from 'node:http';
 import logger from './logger.js';
 import pool from '../db/connection.js'; // Import database connection
 import cookieParser from '../middleware/cookieParser.js';
@@ -48,6 +49,37 @@ const DEFAULT_CORS_ORIGINS = [
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
   : DEFAULT_CORS_ORIGINS;
+
+const availableEndpoints = {
+  root: 'GET /api',
+  health: 'GET /api/health',
+  database_health: 'GET /api/health/database',
+  complete_health: 'GET /api/health/complete',
+  swagger_docs: 'GET /api/docs',
+  swagger_json: 'GET /api/docs.json',
+  users: 'GET /api/users',
+  roles: 'GET /api/roles',
+  permissions: 'GET /api/permissions',
+  role_permissions: 'GET /api/role-permissions',
+  student_users: 'GET /api/student-users'
+};
+
+const getErrorStatusCode = (error, res) => {
+  const statusCode = Number(error.statusCode || error.status || res.statusCode);
+  return statusCode >= 400 && statusCode < 600 ? statusCode : 500;
+};
+
+const getErrorMessage = (error, statusCode) => {
+  if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
+    return 'Invalid JSON payload';
+  }
+
+  if (statusCode >= 500) {
+    return 'Internal server error';
+  }
+
+  return error.message || STATUS_CODES[statusCode] || 'Request failed';
+};
 
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
@@ -340,6 +372,8 @@ app.get('/api', (req, res) => {
       health: '/api/health',
       database_health: '/api/health/database',
       complete_health: '/api/health/complete',
+      swagger_docs: '/api/docs',
+      swagger_json: '/api/docs.json',
       users: '/api/users',
       roles: '/api/roles',
       permissions: '/api/permissions',
@@ -374,37 +408,51 @@ app.use('*', (req, res) => {
 
   res.status(404).json({
     success: false,
-    message: 'Endpoint not found',
-    error: `Cannot ${req.method} ${req.originalUrl}`,
-    availableEndpoints: {
-      root: 'GET /api',
-      health: 'GET /api/health',
-      database_health: 'GET /api/health/database',
-      complete_health: 'GET /api/health/complete',
-      users: 'GET /api/users',
-      roles: 'GET /api/roles',
-      permissions: 'GET /api/permissions',
-      role_permissions: 'GET /api/role-permissions',
-      student_users: 'GET /api/student-users'
-    }
+    statusCode: 404,
+    error: 'Not Found',
+    message: `Route ${req.method} ${req.originalUrl} not found`,
+    path: req.originalUrl,
+    method: req.method,
+    timestamp: new Date().toISOString(),
+    availableEndpoints
   });
 });
 
 // Global error handler
 app.use((error, req, res, next) => {
+  if (res.headersSent) {
+    return next(error);
+  }
+
+  const statusCode = getErrorStatusCode(error, res);
+  const responseBody = {
+    success: false,
+    statusCode,
+    error: STATUS_CODES[statusCode] || 'Error',
+    message: getErrorMessage(error, statusCode),
+    path: req.originalUrl,
+    method: req.method,
+    timestamp: new Date().toISOString()
+  };
+
+  if (statusCode < 500 && (error.code || error.type)) {
+    responseBody.code = error.code || error.type;
+  }
+
+  if (process.env.NODE_ENV !== 'production' && error.stack) {
+    responseBody.stack = error.stack;
+  }
+
   logger.error('Global error handler', {
     error: error.message,
     stack: error.stack,
+    statusCode,
     method: req.method,
     url: req.originalUrl,
     ip: req.ip
   });
 
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error',
-    error: 'Something went wrong'
-  });
+  return res.status(statusCode).json(responseBody);
 });
 
 export default app;
