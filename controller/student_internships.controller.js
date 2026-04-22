@@ -1,5 +1,6 @@
 import logger from "../utils/logger.js";
 import * as studentInternshipService from "../db/student_internships.db.js";
+import { handleError } from "../utils/errors.js";
 import { parseExcelBuffer, validateColumns, generateExcelTemplate } from "../utils/excelParser.js";
 import joi from "joi";
 
@@ -61,11 +62,7 @@ export const createStudentInternship = async (req, res) => {
         const internship = await studentInternshipService.createStudentInternship(value);
         res.status(201).json(internship);
     } catch (err) {
-        logger.error("Error creating student internship:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'createStudentInternship');
     }
 };
 
@@ -75,8 +72,7 @@ export const getAllStudentInternships = async (req, res) => {
         const result = await studentInternshipService.getAllStudentInternships();
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student internships:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentInternships');
     }
 };
 
@@ -92,8 +88,7 @@ export const getStudentInternshipById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student internship:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentInternships');
     }
 };
 
@@ -104,8 +99,7 @@ export const getInternshipsByStudentId = async (req, res) => {
         const result = await studentInternshipService.getInternshipsByStudentId(studentId);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student internships:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentInternships');
     }
 };
 
@@ -127,11 +121,7 @@ export const updateStudentInternshipById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error updating student internship:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'updateStudentInternship');
     }
 };
 
@@ -147,8 +137,7 @@ export const deleteStudentInternshipById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error deleting student internship:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentInternships');
     }
 };
 
@@ -227,8 +216,7 @@ export const importFromExcel = async (req, res) => {
 
         res.status(result.success ? 201 : 400).json(result);
     } catch (err) {
-        logger.error("Error importing student internships from Excel:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentInternships');
     }
 };
 
@@ -247,7 +235,6 @@ export const downloadTemplate = async (req, res) => {
         res.setHeader('Content-Disposition', 'attachment; filename=student_internships_template.xlsx');
         res.send(buffer);
     } catch (err) {
-        logger.error("Error generating template:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentInternships');
     }
 };

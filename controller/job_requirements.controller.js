@@ -1,5 +1,6 @@
 import logger from '../utils/logger.js';
 import * as jobRequirementsDB from '../db/job_requirements.db.js';
+import { handleError } from '../utils/errors.js';
 
 //contrlleer for getting  all job requirement
 export const getAllJobRequirements = async (req, res) => {
@@ -15,7 +16,7 @@ export const getAllJobRequirements = async (req, res) => {
         res.status(200).json(result);
     } catch (error) {
         logger.error(`Error in getAllJobRequirements: ${error.message}`);
-        res.status(500).json({ success: false, message: 'Internal server error' });
+        return handleError(error, res, 'jobRequirements');
     }
 };
 
@@ -29,7 +30,7 @@ export const getJobRequirementById = async (req, res) => {
         res.status(200).json(result);
     } catch (error) {
         logger.error(`Error in getJobRequirementById: ${error.message}`);
-        res.status(500).json({ success: false, message: 'Internal server error' });
+        return handleError(error, res, 'jobRequirements');
     }
 };
 
@@ -43,7 +44,7 @@ export const getJobRequirementByJobId = async (req, res) => {
         res.status(200).json(result);
     } catch (error) {
         logger.error(`Error in getJobRequirementByJobId: ${error.message}`);
-        res.status(500).json({ success: false, message: 'Internal server error' });
+        return handleError(error, res, 'jobRequirements');
     }   
 };
 export const deleteJobRequirementByID = async (req, res) => {
@@ -56,7 +57,7 @@ export const deleteJobRequirementByID = async (req, res) => {
         res.status(200).json(data);
     } catch (error) {        
         logger.error(`Error in deleteJobRequirementByID: ${error.message}`);
-        res.status(500).json({ success: false, message: 'Internal server error' });
+        return handleError(error, res, 'jobRequirements');
     }
 
 };

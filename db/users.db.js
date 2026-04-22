@@ -1,6 +1,7 @@
 import pool from './connection.js';
 import logger from '../utils/logger.js';
 import bcrypt from 'bcrypt';
+import { AppError } from '../utils/errors.js';
 
 // Get role_name by role_id (used for dynamic role checks)
 export const getRoleNameById = async (roleId) => {
@@ -22,7 +23,7 @@ export const createUser = async (data) => {
         if (data.role_id) {
             const roleCheck = await client.query('SELECT role_id, role_name FROM roles WHERE role_id = $1', [data.role_id]);
             if (roleCheck.rows.length === 0) {
-                throw new Error('Role not found');
+                throw new AppError(422, 'Role not found');
             }
             roleName = roleCheck.rows[0].role_name;
         }
@@ -37,7 +38,7 @@ export const createUser = async (data) => {
         if (data.email) {
             const emailCheck = await client.query('SELECT email FROM users WHERE email = $1', [data.email]);
             if (emailCheck.rows.length > 0) {
-                throw new Error('Email already exists');
+                throw new AppError(409, 'Email already exists');
             }
         }
 
@@ -82,7 +83,7 @@ export const createUser = async (data) => {
                 [data.student_id]
             );
             if (studentIdCheck.rows.length > 0) {
-                throw new Error('Student ID is already associated with another user');
+                throw new AppError(409, 'Student ID is already associated with another user');
             }
 
             await client.query(
@@ -221,7 +222,7 @@ export const getUserById = async (user_id) => {
         const result = await pool.query(query, [user_id]);
 
         if (result.rows.length === 0) {
-            throw new Error('User not found');
+            throw new AppError(404, 'User not found');
         }
 
         return {
@@ -246,7 +247,7 @@ export const updateUser = async (user_id, data) => {
         // Check if user exists
         const userCheck = await client.query('SELECT user_id FROM users WHERE user_id = $1', [user_id]);
         if (userCheck.rows.length === 0) {
-            throw new Error('User not found');
+            throw new AppError(404, 'User not found');
         }
 
         // Build dynamic update query
@@ -256,7 +257,7 @@ export const updateUser = async (user_id, data) => {
 
         if (data.username !== undefined) {
             const usernameCheck = await client.query('SELECT user_id FROM users WHERE username = $1 AND user_id != $2', [data.username, user_id]);
-            if (usernameCheck.rows.length > 0) throw new Error('Username already exists');
+            if (usernameCheck.rows.length > 0) throw new AppError(409, 'Username already exists');
             fields.push(`username = $${paramIndex}`);
             values.push(data.username);
             paramIndex++;
@@ -264,7 +265,7 @@ export const updateUser = async (user_id, data) => {
 
         if (data.email !== undefined) {
             const emailCheck = await client.query('SELECT user_id FROM users WHERE email = $1 AND user_id != $2', [data.email, user_id]);
-            if (emailCheck.rows.length > 0) throw new Error('Email already exists');
+            if (emailCheck.rows.length > 0) throw new AppError(409, 'Email already exists');
             fields.push(`email = $${paramIndex}`);
             values.push(data.email || null);
             paramIndex++;
@@ -272,7 +273,7 @@ export const updateUser = async (user_id, data) => {
 
         if (data.role_id !== undefined) {
             const roleCheck = await client.query('SELECT role_id FROM roles WHERE role_id = $1', [data.role_id]);
-            if (roleCheck.rows.length === 0) throw new Error('Role not found');
+            if (roleCheck.rows.length === 0) throw new AppError(422, 'Role not found');
             fields.push(`role_id = $${paramIndex}`);
             values.push(data.role_id);
             paramIndex++;
@@ -324,7 +325,7 @@ export const deleteUser = async (user_id) => {
             RETURNING user_id, username, is_active
         `;
         const result = await pool.query(deleteQuery, [user_id]);
-        if (result.rows.length === 0) throw new Error('User not found');
+        if (result.rows.length === 0) throw new AppError(404, 'User not found');
         return { success: true, data: result.rows[0], message: 'User deleted successfully' };
     } catch (error) {
         logger.error(`deleteUser: ${error.message}`);
@@ -337,10 +338,10 @@ export const changePassword = async (user_id, currentPassword, newPasswordHash) 
     try {
         const userQuery = `SELECT password_hash FROM users WHERE user_id = $1 AND is_active = true`;
         const userResult = await pool.query(userQuery, [user_id]);
-        if (userResult.rows.length === 0) throw new Error('User not found or inactive');
+        if (userResult.rows.length === 0) throw new AppError(404, 'User not found or inactive');
 
         const isCurrentPasswordValid = await bcrypt.compare(currentPassword, userResult.rows[0].password_hash);
-        if (!isCurrentPasswordValid) throw new Error('Current password is incorrect');
+        if (!isCurrentPasswordValid) throw new AppError(400, 'Current password is incorrect');
 
         const updateQuery = `UPDATE users SET password_hash = $1 WHERE user_id = $2 RETURNING user_id, username`;
         const result = await pool.query(updateQuery, [newPasswordHash, user_id]);

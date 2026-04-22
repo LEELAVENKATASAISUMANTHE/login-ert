@@ -1,5 +1,6 @@
 import logger from "../utils/logger.js";
 import * as studentDocumentService from "../db/student_documents.db.js";
+import { handleError } from "../utils/errors.js";
 import { parseExcelBuffer, validateColumns, generateExcelTemplate } from "../utils/excelParser.js";
 import { uploadToStorage } from "../utils/r2.js";
 import joi from "joi";
@@ -52,11 +53,7 @@ export const createStudentDocument = async (req, res) => {
         const document = await studentDocumentService.createStudentDocument(value);
         res.status(201).json(document);
     } catch (err) {
-        logger.error("Error creating student document:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'createStudentDocument');
     }
 };
 
@@ -66,8 +63,7 @@ export const getAllStudentDocuments = async (req, res) => {
         const result = await studentDocumentService.getAllStudentDocuments();
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student documents:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentDocuments');
     }
 };
 
@@ -83,8 +79,7 @@ export const getStudentDocumentById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student document:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentDocuments');
     }
 };
 
@@ -95,8 +90,7 @@ export const getDocumentsByStudentId = async (req, res) => {
         const result = await studentDocumentService.getDocumentsByStudentId(studentId);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student documents:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentDocuments');
     }
 };
 
@@ -124,11 +118,7 @@ export const updateStudentDocumentById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error updating student document:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'updateStudentDocument');
     }
 };
 
@@ -144,8 +134,7 @@ export const deleteStudentDocumentById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error deleting student document:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentDocuments');
     }
 };
 
@@ -213,8 +202,7 @@ export const importFromExcel = async (req, res) => {
 
         res.status(result.success ? 201 : 400).json(result);
     } catch (err) {
-        logger.error("Error importing student documents from Excel:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentDocuments');
     }
 };
 
@@ -233,7 +221,6 @@ export const downloadTemplate = async (req, res) => {
         res.setHeader('Content-Disposition', 'attachment; filename=student_documents_template.xlsx');
         res.send(buffer);
     } catch (err) {
-        logger.error("Error generating template:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentDocuments');
     }
 };

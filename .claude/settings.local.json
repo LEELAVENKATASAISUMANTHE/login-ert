@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm uninstall *)",
+      "Bash(npm install *)",
+      "Bash(node -e \"import\\('@opentelemetry/api-logs'\\).then\\(m => console.log\\(Object.keys\\(m\\)\\)\\).catch\\(console.error\\)\")",
+      "Bash(node -e \"import\\('@opentelemetry/sdk-logs'\\).then\\(m => console.log\\(Object.keys\\(m\\)\\)\\).catch\\(console.error\\)\")",
+      "Bash(node -e \"import\\('@opentelemetry/api-logs'\\).then\\(m => { const sn = m.SeverityNumber; console.log\\(JSON.stringify\\({ERROR: sn.ERROR, WARN: sn.WARN, INFO: sn.INFO, DEBUG: sn.DEBUG, DEBUG2: sn.DEBUG2, DEBUG4: sn.DEBUG4, TRACE: sn.TRACE}\\)\\); }\\).catch\\(console.error\\)\")",
+      "Bash(node -e \"import\\('@opentelemetry/exporter-logs-otlp-http'\\).then\\(m => console.log\\(Object.keys\\(m\\)\\)\\).catch\\(console.error\\)\")",
+      "Bash(node -e \"import\\('@opentelemetry/resources'\\).then\\(m => console.log\\(Object.keys\\(m\\)\\)\\).catch\\(console.error\\)\")",
+      "Bash(node -e \"import\\('@opentelemetry/resources'\\).then\\(m => { const r = m.resourceFromAttributes\\({'service.name':'test','deployment.environment':'dev'}\\); console.log\\(JSON.stringify\\(r\\)\\); }\\).catch\\(console.error\\)\")",
+      "Bash(node -e \"import\\('@opentelemetry/sdk-logs'\\).then\\(m => { const lp = new m.LoggerProvider\\(\\); console.log\\(Object.getOwnPropertyNames\\(Object.getPrototypeOf\\(lp\\)\\)\\); }\\).catch\\(console.error\\)\")",
+      "Bash(node -e \"const s=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const p=JSON.parse\\(s\\); console.log\\(p.version\\);\")",
+      "Bash(node -e \"import\\('@opentelemetry/sdk-logs'\\).then\\(m => { const p = new m.LoggerProvider\\({ processors: [] }\\); console.log\\('processors option OK'\\); p.shutdown\\(\\).catch\\(\\(\\)=>{}\\); }\\).catch\\(e => console.error\\(e.message\\)\\)\")",
+      "Bash(node -e \"import\\('./package.json', {with:{type:'json'}}\\).then\\(m => { const d = m.default.dependencies; console.log\\('winston-loki present:', 'winston-loki' in d\\); const otel = Object.keys\\(d\\).filter\\(k => k.startsWith\\('@opentelemetry'\\)\\); console.log\\('OTel packages:', otel.join\\(', '\\)\\); }\\).catch\\(console.error\\)\")"
+    ]
+  }
+}

@@ -1,5 +1,6 @@
 import logger from '../utils/logger.js';
 import pool from './connection.js';
+import { AppError } from '../utils/errors.js';
 
 // Create a new company
 export const createCompany = async (company) => {
@@ -13,7 +14,7 @@ export const createCompany = async (company) => {
         const checkResult = await client.query(checkQuery, [company.company_name]);
         
         if (checkResult.rows.length > 0) {
-            throw new Error('Company with this name already exists');
+            throw new AppError(409, 'Company with this name already exists');
         }
 
         const insertQuery = `
@@ -178,7 +179,7 @@ export const updateCompany = async (companyId, company) => {
         const existResult = await client.query(checkExistQuery, [companyId]);
         
         if (existResult.rows.length === 0) {
-            throw new Error('Company not found');
+            throw new AppError(404, 'Company not found');
         }
 
         // Check if new company name conflicts with another company
@@ -187,7 +188,7 @@ export const updateCompany = async (companyId, company) => {
             const nameResult = await client.query(checkNameQuery, [company.company_name, companyId]);
             
             if (nameResult.rows.length > 0) {
-                throw new Error('Company with this name already exists');
+                throw new AppError(409, 'Company with this name already exists');
             }
         }
 
@@ -248,7 +249,7 @@ export const deleteCompany = async (companyId) => {
         const checkResult = await client.query(checkQuery, [companyId]);
         
         if (checkResult.rows.length === 0) {
-            throw new Error('Company not found');
+            throw new AppError(404, 'Company not found');
         }
 
         const deleteQuery = `DELETE FROM companies WHERE company_id = $1 RETURNING *`;

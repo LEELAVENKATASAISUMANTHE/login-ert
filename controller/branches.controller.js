@@ -1,5 +1,6 @@
 import joi from 'joi';
 import logger from '../utils/logger.js';
+import { handleError } from '../utils/errors.js';
 import { readBranches, addBranch, removeBranch } from '../utils/branches.js';
 
 const addBranchSchema = joi.object({
@@ -12,8 +13,7 @@ export const listBranches = (req, res) => {
     const branches = readBranches();
     return res.status(200).json({ success: true, data: branches });
   } catch (error) {
-    logger.error('listBranches failed', { error: error.message });
-    return res.status(500).json({ success: false, message: error.message });
+    return handleError(error, res, 'listBranches');
   }
 };
 
@@ -31,9 +31,7 @@ export const createBranch = (req, res) => {
     logger.info('Branch added', { code: value.code, by: req.user?.user_id });
     return res.status(201).json({ success: true, data: updated });
   } catch (err) {
-    const status = err.message.includes('already exists') ? 409 : 500;
-    logger.error('createBranch failed', { error: err.message });
-    return res.status(status).json({ success: false, message: err.message });
+    return handleError(err, res, 'createBranch');
   }
 };
 
@@ -48,8 +46,6 @@ export const deleteBranch = (req, res) => {
     logger.info('Branch removed', { code, by: req.user?.user_id });
     return res.status(200).json({ success: true, data: updated });
   } catch (err) {
-    const status = err.message.includes('not found') ? 404 : 500;
-    logger.error('deleteBranch failed', { error: err.message });
-    return res.status(status).json({ success: false, message: err.message });
+    return handleError(err, res, 'deleteBranch');
   }
 };

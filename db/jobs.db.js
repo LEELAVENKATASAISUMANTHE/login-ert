@@ -1,12 +1,13 @@
 import pool from "./connection.js";
 import logger from "../utils/logger.js";
+import { AppError } from '../utils/errors.js';
 
 // Create a new job
 export const createJob = async (job) => {
     try {
         // Verify company exists
         const companyCheck = await pool.query('SELECT company_id FROM companies WHERE company_id = $1', [job.company_id]);
-        if (companyCheck.rows.length === 0) throw new Error('Company not found');
+        if (companyCheck.rows.length === 0) throw new AppError(422, 'Company not found');
 
         const insertQuery = `
             INSERT INTO jobs (
@@ -210,7 +211,7 @@ export const updateJob = async (jobId, job) => {
         ];
 
         const res = await pool.query(updateQuery, values);
-        if (res.rowCount === 0) throw new Error('Job not found');
+        if (res.rowCount === 0) throw new AppError(404, 'Job not found');
         return { success: true, data: res.rows[0], message: 'Job updated successfully' };
     } catch (err) {
         logger.error('updateJob failed', { error: err.message, jobId, job });
@@ -222,7 +223,7 @@ export const updateJob = async (jobId, job) => {
 export const deleteJob = async (jobId) => {
     try {
         const res = await pool.query('DELETE FROM jobs WHERE job_id = $1 RETURNING *', [jobId]);
-        if (res.rowCount === 0) throw new Error('Job not found');
+        if (res.rowCount === 0) throw new AppError(404, 'Job not found');
         return { success: true, data: res.rows[0], message: 'Job deleted successfully' };
     } catch (err) {
         logger.error('deleteJob failed', { error: err.message, jobId });

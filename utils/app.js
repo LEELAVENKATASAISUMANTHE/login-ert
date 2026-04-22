@@ -1,5 +1,6 @@
 
 import express from 'express';
+import { classifyError } from './errors.js';
 import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
@@ -65,8 +66,10 @@ const availableEndpoints = {
 };
 
 const getErrorStatusCode = (error, res) => {
-  const statusCode = Number(error.statusCode || error.status || res.statusCode);
-  return statusCode >= 400 && statusCode < 600 ? statusCode : 500;
+  const classified = classifyError(error);
+  if (classified !== 500) return classified;
+  const resStatus = Number(res.statusCode);
+  return resStatus >= 400 && resStatus < 500 ? resStatus : 500;
 };
 
 const getErrorMessage = (error, statusCode) => {

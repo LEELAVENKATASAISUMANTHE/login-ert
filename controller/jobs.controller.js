@@ -1,6 +1,7 @@
 import logger from "../utils/logger.js";
 import * as jobService from "../db/jobs.db.js";
 import joi from "joi";
+import { handleError } from "../utils/errors.js";
 
 // ─── Validation Schemas ─────────────────────────────────────────────────────
 
@@ -71,19 +72,7 @@ export const createJob = async (req, res) => {
         const result = await jobService.createJob(value);
         res.status(201).json(result);
     } catch (err) {
-        logger.error("Error creating job:", err);
-
-        if (err.message.includes('Company not found')) {
-            return res.status(404).json({ 
-                success: false, 
-                message: err.message 
-            });
-        }
-
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'createJob');
     }
 };
 
@@ -102,11 +91,7 @@ export const getAllJobs = async (req, res) => {
         const result = await jobService.getAllJobs(value);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching jobs:", err);
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'getAllJobs');
     }
 };
 
@@ -131,11 +116,7 @@ export const getJobById = async (req, res) => {
         
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching job:", err);
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'getJobById');
     }
 };
 
@@ -164,11 +145,7 @@ export const getJobsByCompanyId = async (req, res) => {
         const result = await jobService.getJobsByCompanyId(companyId, queryValue);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching jobs by company:", err);
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'getJobsByCompanyId');
     }
 };
 
@@ -205,19 +182,7 @@ export const updateJob = async (req, res) => {
         const result = await jobService.updateJob(id, value);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error updating job:", err);
-        
-        if (err.message.includes('not found')) {
-            return res.status(404).json({ 
-                success: false, 
-                message: err.message 
-            });
-        }
-        
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'updateJob');
     }
 };
 
@@ -237,18 +202,6 @@ export const deleteJob = async (req, res) => {
         const result = await jobService.deleteJob(id);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error deleting job:", err);
-        
-        if (err.message.includes('not found')) {
-            return res.status(404).json({ 
-                success: false, 
-                message: err.message 
-            });
-        }
-        
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'deleteJob');
     }
 };

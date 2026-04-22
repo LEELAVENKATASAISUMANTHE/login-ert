@@ -1,6 +1,7 @@
 import Joi from 'joi';
 import * as studentUserDB from '../db/student_users.db.js';
 import logger from '../utils/logger.js';
+import { handleError } from '../utils/errors.js';
 
 export const createStudentUserSchema = Joi.object({
     student_id: Joi.alternatives().try(
@@ -71,29 +72,7 @@ export const createStudentUser = async (req, res) => {
         
         res.status(201).json(result);
     } catch (error) {
-        logger.error(`createStudentUser: ${error.message}`, { 
-            body: req.body, 
-            stack: error.stack 
-        });
-        
-        if (error.message.includes('already exists') || error.message.includes('duplicate')) {
-            return res.status(409).json({
-                success: false,
-                message: error.message
-            });
-        }
-        
-        if (error.message.includes('User not found')) {
-            return res.status(404).json({
-                success: false,
-                message: error.message
-            });
-        }
-        
-        res.status(500).json({
-            success: false,
-            message: 'Failed to create student user association'
-        });
+        return handleError(error, res, 'createStudentUser');
     }
 };
 
@@ -113,15 +92,7 @@ export const getAllStudentUsers = async (req, res) => {
         
         res.status(200).json(result);
     } catch (error) {
-        logger.error(`getAllStudentUsers: ${error.message}`, { 
-            query: req.query,
-            stack: error.stack 
-        });
-        
-        res.status(500).json({
-            success: false,
-            message: 'Failed to retrieve student users'
-        });
+        return handleError(error, res, 'getAllStudentUsers');
     }
 };
 
@@ -142,22 +113,7 @@ export const getStudentUserById = async (req, res) => {
         
         res.status(200).json(result);
     } catch (error) {
-        logger.error(`getStudentUserById: ${error.message}`, { 
-            params: req.params,
-            stack: error.stack 
-        });
-        
-        if (error.message.includes('not found')) {
-            return res.status(404).json({
-                success: false,
-                message: error.message
-            });
-        }
-        
-        res.status(500).json({
-            success: false,
-            message: 'Failed to retrieve student user'
-        });
+        return handleError(error, res, 'getStudentUserById');
     }
 };
 
@@ -178,22 +134,7 @@ export const getStudentUserByUserId = async (req, res) => {
         
         res.status(200).json(result);
     } catch (error) {
-        logger.error(`getStudentUserByUserId: ${error.message}`, { 
-            params: req.params,
-            stack: error.stack 
-        });
-        
-        if (error.message.includes('not found')) {
-            return res.status(404).json({
-                success: false,
-                message: error.message
-            });
-        }
-        
-        res.status(500).json({
-            success: false,
-            message: 'Failed to retrieve student user'
-        });
+        return handleError(error, res, 'getStudentUserByUserId');
     }
 };
 
@@ -223,30 +164,7 @@ export const updateStudentUser = async (req, res) => {
         
         res.status(200).json(result);
     } catch (error) {
-        logger.error(`updateStudentUser: ${error.message}`, { 
-            params: req.params,
-            body: req.body, 
-            stack: error.stack 
-        });
-        
-        if (error.message.includes('not found')) {
-            return res.status(404).json({
-                success: false,
-                message: error.message
-            });
-        }
-        
-        if (error.message.includes('already exists') || error.message.includes('duplicate')) {
-            return res.status(409).json({
-                success: false,
-                message: error.message
-            });
-        }
-        
-        res.status(500).json({
-            success: false,
-            message: 'Failed to update student user association'
-        });
+        return handleError(error, res, 'updateStudentUser');
     }
 };
 
@@ -267,22 +185,7 @@ export const deleteStudentUser = async (req, res) => {
         
         res.status(200).json(result);
     } catch (error) {
-        logger.error(`deleteStudentUser: ${error.message}`, { 
-            params: req.params,
-            stack: error.stack 
-        });
-        
-        if (error.message.includes('not found')) {
-            return res.status(404).json({
-                success: false,
-                message: error.message
-            });
-        }
-        
-        res.status(500).json({
-            success: false,
-            message: 'Failed to delete student user association'
-        });
+        return handleError(error, res, 'deleteStudentUser');
     }
 };
 
@@ -302,15 +205,7 @@ export const getAllStudents = async (req, res) => {
         
         res.status(200).json(result);
     } catch (error) {
-        logger.error(`getAllStudents: ${error.message}`, { 
-            query: req.query,
-            stack: error.stack 
-        });
-        
-        res.status(500).json({
-            success: false,
-            message: 'Failed to retrieve students'
-        });
+        return handleError(error, res, 'getAllStudents');
     }
 };
 
@@ -339,14 +234,6 @@ export const bulkCreateStudentUsers = async (req, res) => {
         
         res.status(201).json(result);
     } catch (error) {
-        logger.error(`bulkCreateStudentUsers: ${error.message}`, { 
-            body: req.body,
-            stack: error.stack 
-        });
-        
-        res.status(500).json({
-            success: false,
-            message: 'Failed to create student user associations'
-        });
+        return handleError(error, res, 'bulkCreateStudentUsers');
     }
 };

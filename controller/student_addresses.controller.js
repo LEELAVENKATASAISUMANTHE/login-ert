@@ -1,6 +1,7 @@
 import logger from "../utils/logger.js";
 import * as studentAddressService from "../db/student_addresses.db.js";
 import joi from "joi";
+import { handleError } from "../utils/errors.js";
 
 const studentAddressSchema = joi.object({
     student_id: joi.string().max(50).required(),
@@ -39,11 +40,7 @@ export const createStudentAddress = async (req, res) => {
         const address = await studentAddressService.createStudentAddress(value);
         res.status(201).json(address);
     } catch (err) {
-        logger.error("Error creating student address:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'createStudentAddress');
     }
 };
 
@@ -53,8 +50,7 @@ export const getAllStudentAddresses = async (req, res) => {
         const result = await studentAddressService.getAllStudentAddresses();
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student addresses:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentAddresses');
     }
 };
 
@@ -70,8 +66,7 @@ export const getStudentAddressById = async (req, res) => {
         
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student address:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentAddresses');
     }
 };
 
@@ -87,8 +82,7 @@ export const getAddressByStudentId = async (req, res) => {
         
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student address by student ID:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentAddresses');
     }
 };
 
@@ -110,11 +104,7 @@ export const updateStudentAddressById = async (req, res) => {
         
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error updating student address:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'updateStudentAddress');
     }
 };
 
@@ -136,11 +126,7 @@ export const patchStudentAddressById = async (req, res) => {
         
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error patching student address:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'patchStudentAddress');
     }
 };
 
@@ -156,8 +142,7 @@ export const deleteStudentAddressById = async (req, res) => {
         
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error deleting student address:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentAddresses');
     }
 };
 
@@ -174,8 +159,7 @@ export const getStudentsMenu = async (req, res) => {
         const result = await studentAddressService.getStudentsMenu(searchParams);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching students menu:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentAddresses');
     }
 };
 

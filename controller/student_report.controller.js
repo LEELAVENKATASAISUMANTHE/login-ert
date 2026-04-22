@@ -1,5 +1,6 @@
 import logger from "../utils/logger.js";
 import * as studentReportService from "../db/student_report.db.js";
+import { handleError } from "../utils/errors.js";
 import PDFDocument from "pdfkit";
 
 // Helper function to format date
@@ -219,9 +220,8 @@ export const generateStudentReport = async (req, res) => {
         logger.info('generateStudentReport: PDF generated', { studentId: id });
 
     } catch (err) {
-        logger.error("Error generating student report:", err);
         if (!res.headersSent) {
-            res.status(500).json({ message: "Internal server error" });
+            return handleError(err, res, 'generateStudentReport');
         }
     }
 };
@@ -279,8 +279,7 @@ export const getStudentReportData = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student report data:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'getStudentReportData');
     }
 };
 
@@ -290,7 +289,6 @@ export const getAllStudentsSummary = async (req, res) => {
         const result = await studentReportService.getAllStudentsSummary();
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching students summary:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'getAllStudentsSummary');
     }
 };

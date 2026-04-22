@@ -1,5 +1,6 @@
 import logger from "../utils/logger.js";
 import joi from "joi";
+import { handleError } from "../utils/errors.js";
 import pool from "../db/connection.js";
 import { cacheStudentJobViewByJobId } from "../services/cache/studentJobView.cache.js";
 import { publishJobCreatedEligibilityEvent } from "../services/events/jobEligibility.publisher.js";
@@ -52,16 +53,6 @@ const buildJobSchema = () => {
     skills_required: joi.string().required(),
     additional_notes: joi.string().optional().allow(null, ""),
   });
-};
-
-const getHttpStatusFromError = (error) => {
-  if (error?.isJoi) return 400;
-
-  if (error?.message === "Job not found") return 404;
-  if (error?.message === "Job requirements not found") return 404;
-  if (error?.message === "jobId is required for update") return 400;
-
-  return 500;
 };
 
 const cacheStudentJobView = async (client, jobId) => {
@@ -372,20 +363,7 @@ export const createCombinedJob = async (req, res) => {
     const result = await createJobWithRequirements(req.body);
     return res.status(201).json(result);
   } catch (error) {
-    const statusCode = getHttpStatusFromError(error);
-    logger.error("createCombinedJob failed", { error: error.message });
-
-    if (error?.isJoi) {
-      return res.status(statusCode).json({
-        success: false,
-        message: error.details?.[0]?.message || "Validation error",
-      });
-    }
-
-    return res.status(statusCode).json({
-      success: false,
-      message: error.message || "Internal server error",
-    });
+    return handleError(error, res, 'createCombinedJob');
   }
 };
 
@@ -402,19 +380,6 @@ export const updateCombinedJob = async (req, res) => {
     const result = await updateJobWithRequirements(jobId, req.body);
     return res.status(200).json(result);
   } catch (error) {
-    const statusCode = getHttpStatusFromError(error);
-    logger.error("updateCombinedJob failed", { error: error.message });
-
-    if (error?.isJoi) {
-      return res.status(statusCode).json({
-        success: false,
-        message: error.details?.[0]?.message || "Validation error",
-      });
-    }
-
-    return res.status(statusCode).json({
-      success: false,
-      message: error.message || "Internal server error",
-    });
+    return handleError(error, res, 'updateCombinedJob');
   }
 };

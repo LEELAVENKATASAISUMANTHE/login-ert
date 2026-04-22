@@ -1,5 +1,6 @@
 import logger from "../utils/logger.js";
 import * as studentFamilyService from "../db/student_family.db.js";
+import { handleError } from "../utils/errors.js";
 import { parseExcelBuffer, validateColumns, generateExcelTemplate } from "../utils/excelParser.js";
 import joi from "joi";
 
@@ -58,14 +59,7 @@ export const createStudentFamily = async (req, res) => {
         const family = await studentFamilyService.createStudentFamily(value);
         res.status(201).json(family);
     } catch (err) {
-        logger.error("Error creating student family:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        if (err.code === '23505') {
-            return res.status(400).json({ message: "Family record for this student already exists" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'createStudentFamily');
     }
 };
 
@@ -75,8 +69,7 @@ export const getAllStudentFamilies = async (req, res) => {
         const result = await studentFamilyService.getAllStudentFamilies();
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student families:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentFamily');
     }
 };
 
@@ -92,8 +85,7 @@ export const getStudentFamilyById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student family:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentFamily');
     }
 };
 
@@ -115,8 +107,7 @@ export const updateStudentFamilyById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error updating student family:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentFamily');
     }
 };
 
@@ -132,8 +123,7 @@ export const deleteStudentFamilyById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error deleting student family:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentFamily');
     }
 };
 
@@ -194,8 +184,7 @@ export const importFromExcel = async (req, res) => {
         const result = await studentFamilyService.bulkInsertStudentFamilies(validatedData);
         res.status(result.success ? 201 : 400).json(result);
     } catch (err) {
-        logger.error("Error importing student families from Excel:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentFamily');
     }
 };
 
@@ -213,7 +202,6 @@ export const downloadTemplate = async (req, res) => {
         res.setHeader('Content-Disposition', 'attachment; filename=student_family_template.xlsx');
         res.send(buffer);
     } catch (err) {
-        logger.error("Error generating template:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentFamily');
     }
 };

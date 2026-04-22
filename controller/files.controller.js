@@ -1,5 +1,6 @@
 import { getPresignedUrlByType, BUCKET_MAP } from "../utils/presignedUrl.js";
 import logger from "../utils/logger.js";
+import { handleError } from "../utils/errors.js";
 
 const VALID_TYPES = Object.keys(BUCKET_MAP);
 
@@ -29,7 +30,6 @@ export const getPresignedUrl = async (req, res) => {
       expiresIn: 3600,
     });
   } catch (err) {
-    logger.error("Error generating presigned URL:", err);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return handleError(err, res, 'getPresignedUrl');
   }
 };

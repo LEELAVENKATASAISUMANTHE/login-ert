@@ -1,6 +1,7 @@
 import logger from "../utils/logger.js";
 import * as studentOfferService from "../db/student_offers.db.js";
 import joi from "joi";
+import { handleError } from "../utils/errors.js";
 
 // Validation schema for creating a student offer
 const createStudentOfferSchema = joi.object({
@@ -86,25 +87,7 @@ export const createStudentOffer = async (req, res) => {
         const result = await studentOfferService.createStudentOffer(value);
         res.status(201).json(result);
     } catch (err) {
-        logger.error("Error creating student offer:", err);
-        
-        if (err.message.includes('not found')) {
-            return res.status(404).json({ 
-                success: false, 
-                message: err.message 
-            });
-        }
-        if (err.message.includes('already exists')) {
-            return res.status(409).json({ 
-                success: false, 
-                message: err.message 
-            });
-        }
-        
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'createStudentOffer');
     }
 };
 
@@ -123,11 +106,7 @@ export const getAllStudentOffers = async (req, res) => {
         const result = await studentOfferService.getAllStudentOffers(value);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student offers:", err);
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'getAllStudentOffers');
     }
 };
 
@@ -152,11 +131,7 @@ export const getStudentOfferById = async (req, res) => {
         
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student offer:", err);
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'getStudentOfferById');
     }
 };
 
@@ -185,11 +160,7 @@ export const getOffersByStudentId = async (req, res) => {
         const result = await studentOfferService.getOffersByStudentId(studentId, queryValue);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching offers by student:", err);
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'getOffersByStudentId');
     }
 };
 
@@ -218,11 +189,7 @@ export const getOffersByJobId = async (req, res) => {
         const result = await studentOfferService.getOffersByJobId(jobId, queryValue);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching offers by job:", err);
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'getOffersByJobId');
     }
 };
 
@@ -258,19 +225,7 @@ export const updateStudentOffer = async (req, res) => {
         const result = await studentOfferService.updateStudentOffer(id, value);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error updating student offer:", err);
-        
-        if (err.message.includes('not found')) {
-            return res.status(404).json({ 
-                success: false, 
-                message: err.message 
-            });
-        }
-        
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'updateStudentOffer');
     }
 };
 
@@ -290,18 +245,6 @@ export const deleteStudentOffer = async (req, res) => {
         const result = await studentOfferService.deleteStudentOffer(id);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error deleting student offer:", err);
-        
-        if (err.message.includes('not found')) {
-            return res.status(404).json({ 
-                success: false, 
-                message: err.message 
-            });
-        }
-        
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'deleteStudentOffer');
     }
 };

@@ -1,6 +1,7 @@
 import Joi from 'joi';
 import * as rolePermissionDB from '../db/role_permissions.db.js';
 import logger from '../utils/logger.js';
+import { handleError } from '../utils/errors.js';
 
 export const assignPermissionSchema = Joi.object({
     role_id: Joi.number().integer().min(1).required().messages({
@@ -59,29 +60,7 @@ export const assignPermissionToRole = async (req, res) => {
         
         res.status(201).json(result);
     } catch (error) {
-        logger.error(`assignPermissionToRole: ${error.message}`, { 
-            body: req.body, 
-            stack: error.stack 
-        });
-        
-        if (error.message.includes('already assigned') || error.message.includes('already exists')) {
-            return res.status(409).json({
-                success: false,
-                message: error.message
-            });
-        }
-        
-        if (error.message.includes('Role not found') || error.message.includes('Permission not found')) {
-            return res.status(404).json({
-                success: false,
-                message: error.message
-            });
-        }
-        
-        res.status(500).json({
-            success: false,
-            message: 'Failed to assign permission to role'
-        });
+        return handleError(error, res, 'assignPermissionToRole');
     }
 };
 
@@ -101,22 +80,7 @@ export const assignPermissionsToRole = async (req, res) => {
         
         res.status(201).json(result);
     } catch (error) {
-        logger.error(`assignPermissionsToRole: ${error.message}`, { 
-            body: req.body, 
-            stack: error.stack 
-        });
-        
-        if (error.message.includes('Role not found')) {
-            return res.status(404).json({
-                success: false,
-                message: error.message
-            });
-        }
-        
-        res.status(500).json({
-            success: false,
-            message: 'Failed to assign permissions to role'
-        });
+        return handleError(error, res, 'assignPermissionsToRole');
     }
 };
 
@@ -148,16 +112,7 @@ export const getRolePermissions = async (req, res) => {
         
         res.status(200).json(result);
     } catch (error) {
-        logger.error(`getRolePermissions: ${error.message}`, { 
-            params: req.params,
-            query: req.query,
-            stack: error.stack 
-        });
-        
-        res.status(500).json({
-            success: false,
-            message: 'Failed to retrieve role permissions'
-        });
+        return handleError(error, res, 'getRolePermissions');
     }
 };
 
@@ -177,15 +132,7 @@ export const getAllRolePermissions = async (req, res) => {
         
         res.status(200).json(result);
     } catch (error) {
-        logger.error(`getAllRolePermissions: ${error.message}`, { 
-            query: req.query,
-            stack: error.stack 
-        });
-        
-        res.status(500).json({
-            success: false,
-            message: 'Failed to retrieve role permissions'
-        });
+        return handleError(error, res, 'getAllRolePermissions');
     }
 };
 
@@ -205,22 +152,7 @@ export const removePermissionFromRole = async (req, res) => {
         
         res.status(200).json(result);
     } catch (error) {
-        logger.error(`removePermissionFromRole: ${error.message}`, { 
-            body: req.body, 
-            stack: error.stack 
-        });
-        
-        if (error.message.includes('not found') || error.message.includes('does not exist')) {
-            return res.status(404).json({
-                success: false,
-                message: error.message
-            });
-        }
-        
-        res.status(500).json({
-            success: false,
-            message: 'Failed to remove permission from role'
-        });
+        return handleError(error, res, 'removePermissionFromRole');
     }
 };
 
@@ -241,21 +173,6 @@ export const removeAllPermissionsFromRole = async (req, res) => {
         
         res.status(200).json(result);
     } catch (error) {
-        logger.error(`removeAllPermissionsFromRole: ${error.message}`, { 
-            params: req.params,
-            stack: error.stack 
-        });
-        
-        if (error.message.includes('Role not found')) {
-            return res.status(404).json({
-                success: false,
-                message: error.message
-            });
-        }
-        
-        res.status(500).json({
-            success: false,
-            message: 'Failed to remove permissions from role'
-        });
+        return handleError(error, res, 'removeAllPermissionsFromRole');
     }
 };

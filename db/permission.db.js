@@ -1,5 +1,6 @@
 import pool from './connection.js';
 import logger from '../utils/logger.js';
+import { AppError } from '../utils/errors.js';
 
 // Create a new permission in the database
 export const createPermission = async (data) => {
@@ -30,7 +31,7 @@ export const createPermission = async (data) => {
         });
 
         if (error.code === '23505') { // Unique constraint violation
-            throw new Error('Permission name already exists');
+            throw new AppError(409, 'Permission name already exists');
         }
 
         throw new Error('Permission creation failed due to an unexpected error');
@@ -68,7 +69,7 @@ export const updatePermission = async (permission_id, data) => {
         });
 
         if (error.code === '23505') {
-            throw new Error('Permission with this name already exists');
+            throw new AppError(409, 'Permission with this name already exists');
         }
 
         throw new Error('Permission update failed due to an unexpected error');
@@ -89,7 +90,7 @@ export const getAllPermissions = async (options = {}) => {
     const allowedSortOrders = ['ASC', 'DESC'];
 
     if (!allowedSortFields.includes(sortBy) || !allowedSortOrders.includes(sortOrder.toUpperCase())) {
-        throw new Error('Invalid sort parameters');
+        throw new AppError(400, 'Invalid sort parameters');
     }
 
     try {

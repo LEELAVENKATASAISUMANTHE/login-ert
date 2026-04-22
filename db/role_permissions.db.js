@@ -1,5 +1,6 @@
 import pool from './connection.js';
 import logger from '../utils/logger.js';
+import { AppError } from '../utils/errors.js';
 
 // Assign a single permission to a role
 export const assignPermissionToRole = async (data) => {
@@ -13,13 +14,13 @@ export const assignPermissionToRole = async (data) => {
         // Check if role exists
         const roleCheck = await client.query('SELECT role_id FROM roles WHERE role_id = $1', [data.role_id]);
         if (roleCheck.rows.length === 0) {
-            throw new Error('Role not found');
+            throw new AppError(422, 'Role not found');
         }
         
         // Check if permission exists
         const permissionCheck = await client.query('SELECT permission_id FROM permissions WHERE permission_id = $1', [data.permission_id]);
         if (permissionCheck.rows.length === 0) {
-            throw new Error('Permission not found');
+            throw new AppError(422, 'Permission not found');
         }
         
         // Check if assignment already exists
@@ -29,7 +30,7 @@ export const assignPermissionToRole = async (data) => {
         );
         
         if (existingAssignment.rows.length > 0) {
-            throw new Error('Permission is already assigned to this role');
+            throw new AppError(409, 'Permission is already assigned to this role');
         }
         
         // Insert the assignment
@@ -71,7 +72,7 @@ export const assignPermissionsToRole = async (data) => {
         // Check if role exists
         const roleCheck = await client.query('SELECT role_id FROM roles WHERE role_id = $1', [data.role_id]);
         if (roleCheck.rows.length === 0) {
-            throw new Error('Role not found');
+            throw new AppError(422, 'Role not found');
         }
         
         const assignments = [];
@@ -307,7 +308,7 @@ export const removePermissionFromRole = async (data) => {
         const checkResult = await client.query(checkQuery, [data.role_id, data.permission_id]);
         
         if (checkResult.rows.length === 0) {
-            throw new Error('Permission assignment not found for this role');
+            throw new AppError(404, 'Permission assignment not found for this role');
         }
         
         // Remove the assignment
@@ -349,7 +350,7 @@ export const removeAllPermissionsFromRole = async (role_id) => {
         // Check if role exists
         const roleCheck = await client.query('SELECT role_id FROM roles WHERE role_id = $1', [role_id]);
         if (roleCheck.rows.length === 0) {
-            throw new Error('Role not found');
+            throw new AppError(422, 'Role not found');
         }
         
         // Get count of permissions before deletion

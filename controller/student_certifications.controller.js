@@ -1,5 +1,6 @@
 import logger from "../utils/logger.js";
 import * as studentCertificationService from "../db/student_certifications.db.js";
+import { handleError } from "../utils/errors.js";
 import { parseExcelBuffer, validateColumns, generateExcelTemplate } from "../utils/excelParser.js";
 import { uploadToStorage } from "../utils/r2.js";
 import joi from "joi";
@@ -60,11 +61,7 @@ export const createStudentCertification = async (req, res) => {
         const certification = await studentCertificationService.createStudentCertification(value);
         res.status(201).json(certification);
     } catch (err) {
-        logger.error("Error creating student certification:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'createStudentCertification');
     }
 };
 
@@ -74,8 +71,7 @@ export const getAllStudentCertifications = async (req, res) => {
         const result = await studentCertificationService.getAllStudentCertifications();
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student certifications:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentCertifications');
     }
 };
 
@@ -91,8 +87,7 @@ export const getStudentCertificationById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student certification:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentCertifications');
     }
 };
 
@@ -103,8 +98,7 @@ export const getCertificationsByStudentId = async (req, res) => {
         const result = await studentCertificationService.getCertificationsByStudentId(studentId);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student certifications:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentCertifications');
     }
 };
 
@@ -123,8 +117,7 @@ export const searchCertificationsBySkill = async (req, res) => {
         const result = await studentCertificationService.searchCertificationsBySkill(skill);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error searching certifications by skill:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentCertifications');
     }
 };
 
@@ -152,11 +145,7 @@ export const updateStudentCertificationById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error updating student certification:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'updateStudentCertification');
     }
 };
 
@@ -172,8 +161,7 @@ export const deleteStudentCertificationById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error deleting student certification:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentCertifications');
     }
 };
 
@@ -234,8 +222,7 @@ export const importFromExcel = async (req, res) => {
         const result = await studentCertificationService.bulkInsertStudentCertifications(validatedData);
         res.status(result.success ? 201 : 400).json(result);
     } catch (err) {
-        logger.error("Error importing student certifications from Excel:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentCertifications');
     }
 };
 
@@ -253,7 +240,6 @@ export const downloadTemplate = async (req, res) => {
         res.setHeader('Content-Disposition', 'attachment; filename=student_certifications_template.xlsx');
         res.send(buffer);
     } catch (err) {
-        logger.error("Error generating template:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentCertifications');
     }
 };

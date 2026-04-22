@@ -1,6 +1,7 @@
 import Joi from 'joi';
 import * as permissionDB from '../db/permission.db.js';
 import logger from '../utils/logger.js';
+import { handleError } from '../utils/errors.js';
 
 export const createPermissionSchema = Joi.object({
     permission_name: Joi.string().trim().min(3).max(100).required().messages({
@@ -65,8 +66,7 @@ export const createPermission = async (req, res) => {
             });
             return res.status(400).json({
                 success: false,
-                message: 'Validation error',
-                error: error.details[0].message
+                message: error.details[0].message
             });
         }
 
@@ -98,11 +98,7 @@ export const createPermission = async (req, res) => {
             stack: error.stack,
             body: req.body
         });
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: 'Something went wrong'
-        });
+        return handleError(error, res, 'permissions');
     }
 };
 
@@ -139,11 +135,7 @@ export const getAllPermissions = async (req, res) => {
             stack: error.stack,
             query: req.query
         });
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: 'Something went wrong'
-        });
+        return handleError(error, res, 'permissions');
     }
 };
 
@@ -191,11 +183,7 @@ export const getPermissionById = async (req, res) => {
             stack: error.stack,
             permissionId: req.params.id
         });
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: 'Something went wrong'
-        });
+        return handleError(error, res, 'permissions');
     }
 };
 
@@ -226,8 +214,7 @@ export const updatePermission = async (req, res) => {
             });
             return res.status(400).json({
                 success: false,
-                message: 'Validation error',
-                error: error.details[0].message
+                message: error.details[0].message
             });
         }
 
@@ -284,11 +271,7 @@ export const updatePermission = async (req, res) => {
             permissionId: req.params.id,
             body: req.body
         });
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: 'Something went wrong'
-        });
+        return handleError(error, res, 'permissions');
     }
 };
 
@@ -344,11 +327,7 @@ export const deletePermission = async (req, res) => {
             stack: error.stack,
             permissionId: req.params.id
         });
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: 'Something went wrong'
-        });
+        return handleError(error, res, 'permissions');
     }
 };
 
@@ -386,10 +365,6 @@ export const checkPermissionExists = async (req, res) => {
             stack: error.stack,
             permission_name: req.params.permission_name
         });
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: 'Something went wrong'
-        });
+        return handleError(error, res, 'permissions');
     }
 }; 

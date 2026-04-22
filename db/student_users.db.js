@@ -1,5 +1,6 @@
 import pool from './connection.js';
 import logger from '../utils/logger.js';
+import { AppError } from '../utils/errors.js';
 
 // Create a new student user association
 export const createStudentUser = async (data) => {
@@ -13,19 +14,19 @@ export const createStudentUser = async (data) => {
         // Check if user exists
         const userCheck = await client.query('SELECT user_id FROM users WHERE user_id = $1', [data.user_id]);
         if (userCheck.rows.length === 0) {
-            throw new Error('User not found');
+            throw new AppError(422, 'User not found');
         }
 
         // Check if student ID already exists
         const studentIdCheck = await client.query('SELECT student_id FROM student_users WHERE student_id = $1', [data.student_id]);
         if (studentIdCheck.rows.length > 0) {
-            throw new Error('Student ID is already associated with a user');
+            throw new AppError(409, 'Student ID is already associated with a user');
         }
         
         // Check if student user association already exists
         const existingStudent = await client.query('SELECT student_id FROM student_users WHERE user_id = $1', [data.user_id]);
         if (existingStudent.rows.length > 0) {
-            throw new Error('User is already associated with a student record');
+            throw new AppError(409, 'User is already associated with a student record');
         }
         
         // Insert the student user association
@@ -165,7 +166,7 @@ export const getStudentUserById = async (student_id) => {
         const result = await pool.query(query, [student_id]);
         
         if (result.rows.length === 0) {
-            throw new Error('Student user not found');
+            throw new AppError(404, 'Student user not found');
         }
         
         logger.debug(`getStudentUserById: Successfully retrieved student user with ID: ${student_id}`);
@@ -211,7 +212,7 @@ export const getStudentUserByUserId = async (user_id) => {
         const result = await pool.query(query, [user_id]);
         
         if (result.rows.length === 0) {
-            throw new Error('Student user not found');
+            throw new AppError(404, 'Student user not found');
         }
         
         logger.debug(`getStudentUserByUserId: Successfully retrieved student user with user ID: ${user_id}`);
@@ -243,20 +244,20 @@ export const updateStudentUser = async (student_id, data) => {
         // Check if student user exists
         const studentCheck = await client.query('SELECT student_id FROM student_users WHERE student_id = $1', [student_id]);
         if (studentCheck.rows.length === 0) {
-            throw new Error('Student user not found');
+            throw new AppError(404, 'Student user not found');
         }
         
         // If updating user_id, check if user exists
         if (data.user_id) {
             const userCheck = await client.query('SELECT user_id FROM users WHERE user_id = $1', [data.user_id]);
             if (userCheck.rows.length === 0) {
-                throw new Error('User not found');
+                throw new AppError(422, 'User not found');
             }
             
             // Check if user is already associated with another student record
             const existingStudent = await client.query('SELECT student_id FROM student_users WHERE user_id = $1 AND student_id != $2', [data.user_id, student_id]);
             if (existingStudent.rows.length > 0) {
-                throw new Error('User is already associated with another student record');
+                throw new AppError(409, 'User is already associated with another student record');
             }
         }
         
@@ -305,7 +306,7 @@ export const deleteStudentUser = async (student_id) => {
         // Check if student user exists
         const studentCheck = await client.query('SELECT student_id, user_id FROM student_users WHERE student_id = $1', [student_id]);
         if (studentCheck.rows.length === 0) {
-            throw new Error('Student user not found');
+            throw new AppError(404, 'Student user not found');
         }
         
         // Delete the student user association

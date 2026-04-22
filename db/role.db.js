@@ -1,5 +1,6 @@
 import pool from './connection.js';  // Fixed import path
 import logger from '../utils/logger.js';
+import { AppError } from '../utils/errors.js';
 
 export const getRoles = async () => {
     const Query = `SELECT role_id, role_name,role_description FROM roles`;
@@ -49,7 +50,7 @@ export const createRole = async (data) => {
         });
 
         if (error.code === '23505') { // Unique constraint violation
-            throw new Error('Role name already exists');
+            throw new AppError(409, 'Role name already exists');
         }
 
         throw new Error('Role creation failed due to an unexpected error');
@@ -90,7 +91,7 @@ export const updateRole = async (role_id, data) => {
         });
 
         if (error.code === '23505') {
-            throw new Error('Role with this name already exists');
+            throw new AppError(409, 'Role with this name already exists');
         }
 
         throw new Error('Role update failed due to an unexpected error');
@@ -120,7 +121,7 @@ export const getAllRoles = async (options = {}) => {
     const allowedSortOrders = ['ASC', 'DESC'];
 
     if (!allowedSortFields.includes(sortBy) || !allowedSortOrders.includes(sortOrder.toUpperCase())) {
-        throw new Error('Invalid sort parameters');
+        throw new AppError(400, 'Invalid sort parameters');
     }
 
     try {

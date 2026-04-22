@@ -1,5 +1,6 @@
 import logger from '../utils/logger.js';
 import pool from './connection.js';
+import { AppError } from '../utils/errors.js';
 
 
 // Get all job requirements with pagination
@@ -179,7 +180,7 @@ export const deleteJobRequirement = async (requirementId) => {
         const checkResult = await client.query(checkQuery, [requirementId]);
         
         if (checkResult.rows.length === 0) {
-            throw new Error('Job requirement not found');
+            throw new AppError(404, 'Job requirement not found');
         }
 
         const deleteQuery = `DELETE FROM job_requirements WHERE job_requirement_id = $1 RETURNING *`;

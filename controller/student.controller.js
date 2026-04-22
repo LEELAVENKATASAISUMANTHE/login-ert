@@ -2,12 +2,7 @@ import logger from "../utils/logger.js";
 import * as studentService from "../db/student.db.js";
 import joi from "joi";
 import { uploadToStorage } from "../utils/r2.js";
-
-const isStudentIdUniqueViolation = (error) => {
-    if (!error || error.code !== '23505') return false;
-    if (error.constraint === 'students_pkey') return true;
-    return error.table === 'students' && typeof error.detail === 'string' && error.detail.includes('(student_id)=');
-};
+import { handleError } from "../utils/errors.js";
 
 const studentSchema = joi.object({
     student_id: joi.string().alphanum().required(),
@@ -76,14 +71,7 @@ export const createStudent = async (req, res) => {
         const student = await studentService.createStudent(value);
         res.status(201).json(student);
     } catch (err) {
-        if (isStudentIdUniqueViolation(err)) {
-            return res.status(409).json({
-                message: `Student with ID ${req.body?.student_id} already exists`
-            });
-        }
-
-        logger.error("Error creating student:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'createStudent');
     }
 };
 
@@ -93,8 +81,7 @@ export const getAllStudents = async (req, res) => {
         const result = await studentService.getAllStudents();
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching students:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'getAllStudents');
     }
 };
 
@@ -110,8 +97,7 @@ export const getStudentById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'getStudentById');
     }
 };
 
@@ -141,8 +127,7 @@ export const updateStudentById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error updating student:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'updateStudentById');
     }
 };
 
@@ -172,8 +157,7 @@ export const patchStudentById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error patching student:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'patchStudentById');
     }
 };
 
@@ -189,7 +173,6 @@ export const deleteStudentById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error deleting student:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'deleteStudentById');
     }
 };

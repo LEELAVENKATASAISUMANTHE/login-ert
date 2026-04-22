@@ -2,6 +2,7 @@ import logger from "../utils/logger.js";
 import * as companyService from "../db/companies.db.js";
 import joi from "joi";
 import { uploadToStorage } from "../utils/r2.js";
+import { handleError } from "../utils/errors.js";
 
 // Validation schema for creating a company
 const createCompanySchema = joi.object({
@@ -60,19 +61,7 @@ export const createCompany = async (req, res) => {
         const result = await companyService.createCompany(value);
         res.status(201).json(result);
     } catch (err) {
-        logger.error("Error creating company:", err);
-        
-        if (err.message.includes('already exists')) {
-            return res.status(409).json({ 
-                success: false, 
-                message: err.message 
-            });
-        }
-        
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'createCompany');
     }
 };
 
@@ -91,11 +80,7 @@ export const getAllCompanies = async (req, res) => {
         const result = await companyService.getAllCompanies(value);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching companies:", err);
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'getAllCompanies');
     }
 };
 
@@ -120,11 +105,7 @@ export const getCompanyById = async (req, res) => {
         
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching company:", err);
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'getCompanyById');
     }
 };
 
@@ -168,26 +149,7 @@ export const updateCompany = async (req, res) => {
         const result = await companyService.updateCompany(id, value);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error updating company:", err);
-        
-        if (err.message.includes('not found')) {
-            return res.status(404).json({ 
-                success: false, 
-                message: err.message 
-            });
-        }
-        
-        if (err.message.includes('already exists')) {
-            return res.status(409).json({ 
-                success: false, 
-                message: err.message 
-            });
-        }
-        
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'updateCompany');
     }
 };
 
@@ -207,18 +169,6 @@ export const deleteCompany = async (req, res) => {
         const result = await companyService.deleteCompany(id);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error deleting company:", err);
-        
-        if (err.message.includes('not found')) {
-            return res.status(404).json({ 
-                success: false, 
-                message: err.message 
-            });
-        }
-        
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
+        return handleError(err, res, 'deleteCompany');
     }
 };

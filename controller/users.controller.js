@@ -1,6 +1,7 @@
 import Joi from 'joi';
 import * as userDB from '../db/users.db.js';
 import logger from '../utils/logger.js';
+import { handleError } from '../utils/errors.js';
 import bcrypt from 'bcrypt';
 
 export const createUserSchema = Joi.object({
@@ -44,8 +45,7 @@ export const createUser = async (req, res) => {
         const result = await userDB.createUser(userData);
         res.status(201).json(result);
     } catch (error) {
-        logger.error(`createUser error: ${error.message}`);
-        res.status(500).json({ success: false, message: error.message });
+        return handleError(error, res, 'createUser');
     }
 };
 
@@ -54,8 +54,7 @@ export const getAllUsers = async (req, res) => {
         const result = await userDB.getAllUsers(req.query);
         res.status(200).json(result);
     } catch (error) {
-        logger.error(`getAllUsers error: ${error.message}`);
-        res.status(500).json({ success: false, message: 'Failed to retrieve users' });
+        return handleError(error, res, 'getAllUsers');
     }
 };
 
@@ -64,7 +63,7 @@ export const getUserById = async (req, res) => {
         const result = await userDB.getUserById(parseInt(req.params.id));
         res.status(200).json(result);
     } catch (error) {
-        res.status(error.message.includes('not found') ? 404 : 500).json({ success: false, message: error.message });
+        return handleError(error, res, 'getUserById');
     }
 };
 
@@ -76,7 +75,7 @@ export const updateUser = async (req, res) => {
         const result = await userDB.updateUser(parseInt(req.params.id), req.body);
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        return handleError(error, res, 'updateUser');
     }
 };
 
@@ -85,6 +84,6 @@ export const deleteUser = async (req, res) => {
         const result = await userDB.deleteUser(parseInt(req.params.id));
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        return handleError(error, res, 'deleteUser');
     }
 };

@@ -1,5 +1,6 @@
 import logger from "../utils/logger.js";
 import * as studentLanguageService from "../db/student_languages.db.js";
+import { handleError } from "../utils/errors.js";
 import { ALLOWED_LANGUAGES } from "../db/student_languages.db.js";
 import joi from "joi";
 
@@ -52,14 +53,7 @@ export const createStudentLanguage = async (req, res) => {
         const result = await studentLanguageService.createStudentLanguage(value);
         res.status(201).json(result);
     } catch (err) {
-        logger.error("Error creating student language:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        if (err.code === '23505') {
-            return res.status(400).json({ message: "This language already exists for this student" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'createStudentLanguage');
     }
 };
 
@@ -88,11 +82,7 @@ export const bulkCreateStudentLanguages = async (req, res) => {
         const result = await studentLanguageService.bulkCreateStudentLanguages(student_id, languages);
         res.status(201).json(result);
     } catch (err) {
-        logger.error("Error bulk creating student languages:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'bulkCreateStudentLanguages');
     }
 };
 
@@ -102,8 +92,7 @@ export const getAllStudentLanguages = async (req, res) => {
         const result = await studentLanguageService.getAllStudentLanguages();
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student languages:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentLanguages');
     }
 };
 
@@ -119,8 +108,7 @@ export const getStudentLanguageById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student language:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentLanguages');
     }
 };
 
@@ -131,8 +119,7 @@ export const getLanguagesByStudentId = async (req, res) => {
         const result = await studentLanguageService.getLanguagesByStudentId(studentId);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student languages:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentLanguages');
     }
 };
 
@@ -144,8 +131,7 @@ export const getStudentTopLanguages = async (req, res) => {
         const result = await studentLanguageService.getStudentTopLanguages(studentId, minLevel);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student top languages:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentLanguages');
     }
 };
 
@@ -166,8 +152,7 @@ export const getStudentsByLanguage = async (req, res) => {
         const result = await studentLanguageService.getStudentsByLanguage(matchedLang);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching students by language:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentLanguages');
     }
 };
 
@@ -189,8 +174,7 @@ export const getLanguageExperts = async (req, res) => {
         const result = await studentLanguageService.getLanguageExperts(matchedLang, minLevel);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching language experts:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentLanguages');
     }
 };
 
@@ -206,8 +190,7 @@ export const getProficientStudents = async (req, res) => {
         const result = await studentLanguageService.getProficientStudents(minLevel);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching proficient students:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentLanguages');
     }
 };
 
@@ -239,8 +222,7 @@ export const searchStudentLanguages = async (req, res) => {
         const result = await studentLanguageService.searchStudentLanguages(searchParams);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error searching student languages:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentLanguages');
     }
 };
 
@@ -255,8 +237,7 @@ export const getStudentLanguagesMenu = async (req, res) => {
         const result = await studentLanguageService.getStudentLanguagesMenu(searchParams);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching menu:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentLanguages');
     }
 };
 
@@ -270,8 +251,7 @@ export const getAllowedLanguages = async (req, res) => {
             count: ALLOWED_LANGUAGES.length
         });
     } catch (err) {
-        logger.error("Error fetching allowed languages:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentLanguages');
     }
 };
 
@@ -296,14 +276,7 @@ export const updateStudentLanguageById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error updating student language:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        if (err.code === '23505') {
-            return res.status(400).json({ message: "This language already exists for this student" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'updateStudentLanguage');
     }
 };
 
@@ -329,11 +302,7 @@ export const bulkUpdateStudentLanguages = async (req, res) => {
         const result = await studentLanguageService.bulkUpdateStudentLanguages(studentId, languages);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error bulk updating student languages:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'bulkUpdateStudentLanguages');
     }
 };
 
@@ -349,8 +318,7 @@ export const deleteStudentLanguageById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error deleting student language:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentLanguages');
     }
 };
 
@@ -361,8 +329,7 @@ export const deleteAllStudentLanguages = async (req, res) => {
         const result = await studentLanguageService.deleteAllStudentLanguages(studentId);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error deleting all student languages:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentLanguages');
     }
 };
 
@@ -388,7 +355,6 @@ export const deleteStudentSpecificLanguage = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error deleting student specific language:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentLanguages');
     }
 };

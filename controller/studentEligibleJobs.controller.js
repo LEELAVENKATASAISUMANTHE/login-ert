@@ -1,5 +1,6 @@
 import logger from "../utils/logger.js";
 import { getStudentEligibleJobs } from "../services/cache/studentEligibleJobs.service.js";
+import { handleError } from "../utils/errors.js";
 
 /**
  * GET /api/students/:studentId/eligible-jobs
@@ -34,9 +35,6 @@ export const getEligibleJobs = async (req, res) => {
             error: err.message,
             stack: err.stack,
         });
-        res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
+        return handleError(err, res, 'getEligibleJobs');
     }
 };

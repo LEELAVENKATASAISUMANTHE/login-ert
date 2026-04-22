@@ -1,5 +1,6 @@
 import logger from '../utils/logger.js';
 import pool from './connection.js';
+import { AppError } from '../utils/errors.js';
 
 // Create a new student offer
 export const createStudentOffer = async (offer) => {
@@ -12,7 +13,7 @@ export const createStudentOffer = async (offer) => {
         const studentCheck = `SELECT student_id FROM students WHERE student_id = $1`;
         const studentResult = await client.query(studentCheck, [offer.student_id]);
         if (studentResult.rows.length === 0) {
-            throw new Error('Student not found');
+            throw new AppError(422, 'Student not found');
         }
 
         const isOffcampus = offer.is_offcampus || false;
@@ -22,14 +23,14 @@ export const createStudentOffer = async (offer) => {
             const jobCheck = `SELECT job_id FROM jobs WHERE job_id = $1`;
             const jobResult = await client.query(jobCheck, [offer.job_id]);
             if (jobResult.rows.length === 0) {
-                throw new Error('Job not found');
+                throw new AppError(422, 'Job not found');
             }
 
             // Check for duplicate offer (same student + job) - only for on-campus
             const duplicateCheck = `SELECT offer_id FROM student_offers WHERE student_id = $1 AND job_id = $2`;
             const duplicateResult = await client.query(duplicateCheck, [offer.student_id, offer.job_id]);
             if (duplicateResult.rows.length > 0) {
-                throw new Error('Offer already exists for this student and job');
+                throw new AppError(409, 'Offer already exists for this student and job');
             }
         }
 
@@ -286,7 +287,7 @@ export const updateStudentOffer = async (offerId, offer) => {
         const existResult = await client.query(checkExistQuery, [offerId]);
         
         if (existResult.rows.length === 0) {
-            throw new Error('Student offer not found');
+            throw new AppError(404, 'Student offer not found');
         }
 
         const updateQuery = `
@@ -349,7 +350,7 @@ export const deleteStudentOffer = async (offerId) => {
         const checkResult = await client.query(checkQuery, [offerId]);
         
         if (checkResult.rows.length === 0) {
-            throw new Error('Student offer not found');
+            throw new AppError(404, 'Student offer not found');
         }
 
         const deleteQuery = `DELETE FROM student_offers WHERE offer_id = $1 RETURNING *`;

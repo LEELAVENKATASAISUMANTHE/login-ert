@@ -1,5 +1,6 @@
 import logger from "../utils/logger.js";
 import * as studentProjectService from "../db/student_projects.db.js";
+import { handleError } from "../utils/errors.js";
 import { parseExcelBuffer, validateColumns, generateExcelTemplate } from "../utils/excelParser.js";
 import joi from "joi";
 
@@ -49,11 +50,7 @@ export const createStudentProject = async (req, res) => {
         const project = await studentProjectService.createStudentProject(value);
         res.status(201).json(project);
     } catch (err) {
-        logger.error("Error creating student project:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'createStudentProject');
     }
 };
 
@@ -63,8 +60,7 @@ export const getAllStudentProjects = async (req, res) => {
         const result = await studentProjectService.getAllStudentProjects();
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student projects:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentProjects');
     }
 };
 
@@ -80,8 +76,7 @@ export const getStudentProjectById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student project:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentProjects');
     }
 };
 
@@ -92,8 +87,7 @@ export const getProjectsByStudentId = async (req, res) => {
         const result = await studentProjectService.getProjectsByStudentId(studentId);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student projects:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentProjects');
     }
 };
 
@@ -112,8 +106,7 @@ export const searchProjectsByTools = async (req, res) => {
         const result = await studentProjectService.searchProjectsByTools(tools);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error searching projects by tools:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentProjects');
     }
 };
 
@@ -135,11 +128,7 @@ export const updateStudentProjectById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error updating student project:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'updateStudentProject');
     }
 };
 
@@ -155,8 +144,7 @@ export const deleteStudentProjectById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error deleting student project:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentProjects');
     }
 };
 
@@ -224,8 +212,7 @@ export const importFromExcel = async (req, res) => {
 
         res.status(result.success ? 201 : 400).json(result);
     } catch (err) {
-        logger.error("Error importing student projects from Excel:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentProjects');
     }
 };
 
@@ -244,7 +231,6 @@ export const downloadTemplate = async (req, res) => {
         res.setHeader('Content-Disposition', 'attachment; filename=student_projects_template.xlsx');
         res.send(buffer);
     } catch (err) {
-        logger.error("Error generating template:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentProjects');
     }
 };

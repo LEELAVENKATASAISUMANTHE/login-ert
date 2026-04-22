@@ -1,6 +1,7 @@
 import logger from "../utils/logger.js";
 import * as studentAcademicService from "../db/student_academics.db.js";
 import joi from "joi";
+import { handleError } from "../utils/errors.js";
 
 // Validation schema for creating student academic record
 const studentAcademicSchema = joi.object({
@@ -87,14 +88,7 @@ export const createStudentAcademic = async (req, res) => {
         const academic = await studentAcademicService.createStudentAcademic(value);
         res.status(201).json(academic);
     } catch (err) {
-        logger.error("Error creating student academic record:", err);
-        if (err.code === '23503') {
-            return res.status(400).json({ message: "Student ID does not exist" });
-        }
-        if (err.code === '23505') {
-            return res.status(400).json({ message: "Academic record for this student already exists" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'createStudentAcademic');
     }
 };
 
@@ -104,8 +98,7 @@ export const getAllStudentAcademics = async (req, res) => {
         const result = await studentAcademicService.getAllStudentAcademics();
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student academics:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentAcademics');
     }
 };
 
@@ -121,8 +114,7 @@ export const getStudentAcademicById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching student academic:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentAcademics');
     }
 };
 
@@ -133,8 +125,7 @@ export const getStudentsMenu = async (req, res) => {
         const result = await studentAcademicService.getStudentsMenu({ search, searchField });
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching students menu:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentAcademics');
     }
 };
 
@@ -162,8 +153,7 @@ export const updateStudentAcademicById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error updating student academic:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentAcademics');
     }
 };
 
@@ -191,8 +181,7 @@ export const patchStudentAcademicById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error patching student academic:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentAcademics');
     }
 };
 
@@ -208,8 +197,7 @@ export const deleteStudentAcademicById = async (req, res) => {
 
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error deleting student academic:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentAcademics');
     }
 };
 
@@ -220,8 +208,7 @@ export const getAcademicsByCategory = async (req, res) => {
         const result = await studentAcademicService.getAcademicsByCategory(category);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching academics by category:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentAcademics');
     }
 };
 
@@ -246,7 +233,6 @@ export const getAcademicsWithFilters = async (req, res) => {
         const result = await studentAcademicService.getAcademicsWithFilters(filters);
         res.status(200).json(result);
     } catch (err) {
-        logger.error("Error fetching filtered academics:", err);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(err, res, 'studentAcademics');
     }
 };

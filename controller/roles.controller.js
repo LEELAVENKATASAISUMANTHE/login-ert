@@ -1,6 +1,7 @@
 import Joi from 'joi';
 import * as roleDB from '../db/role.db.js';
 import logger from '../utils/logger.js';
+import { handleError } from '../utils/errors.js';
 
 // ===== VALIDATION SCHEMAS =====
 
@@ -64,8 +65,7 @@ export const createRole = async (req, res) => {
       });
       return res.status(400).json({
         success: false,
-        message: 'Validation error',
-        error: error.details[0].message
+        message: error.details[0].message
       });
     }
 
@@ -101,11 +101,7 @@ export const createRole = async (req, res) => {
       body: req.body
     });
 
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: 'Something went wrong' // Removed env check - always show generic error
-    });
+    return handleError(error, res, 'roles');
   }
 };
 
@@ -130,8 +126,7 @@ export const getAllRoles = async (req, res) => {
       });
       return res.status(400).json({
         success: false,
-        message: 'Validation error',
-        error: error.details[0].message
+        message: error.details[0].message
       });
     }
 
@@ -157,11 +152,7 @@ export const getAllRoles = async (req, res) => {
       query: req.query
     });
 
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: 'Something went wrong' // Removed env check - always show generic error
-    });
+    return handleError(error, res, 'roles');
   }
 };
 
@@ -217,11 +208,7 @@ export const getRoleById = async (req, res) => {
       roleId: req.params.id
     });
 
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: 'Something went wrong' // Removed env check - always show generic error
-    });
+    return handleError(error, res, 'roles');
   }
 };
 
@@ -259,8 +246,7 @@ export const updateRole = async (req, res) => {
       });
       return res.status(400).json({
         success: false,
-        message: 'Validation error',
-        error: error.details[0].message
+        message: error.details[0].message
       });
     }
 
@@ -318,11 +304,7 @@ export const updateRole = async (req, res) => {
       body: req.body
     });
 
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: 'Something went wrong' // Removed env check - always show generic error
-    });
+    return handleError(error, res, 'roles');
   }
 };
 
@@ -389,11 +371,7 @@ export const deleteRole = async (req, res) => {
       roleId: req.params.id
     });
 
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: 'Something went wrong' // Removed env check - always show generic error
-    });
+    return handleError(error, res, 'roles');
   }
 };
 
@@ -438,11 +416,7 @@ export const checkRoleExists = async (req, res) => {
       role_name: req.params.role_name
     });
 
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: 'Something went wrong' // Removed env check - always show generic error
-    });
+    return handleError(error, res, 'roles');
   }
 };
 
@@ -466,10 +440,6 @@ export const getRolesformenu = async (req, res) => {
       error: error.message,
       stack: error.stack
     });
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: 'Something went wrong' // Removed env check - always show generic error
-    });
+    return handleError(error, res, 'roles');
   }
 };  
