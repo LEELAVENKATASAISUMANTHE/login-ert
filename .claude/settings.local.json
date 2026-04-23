@@ -12,7 +12,8 @@
       "Bash(node -e \"import\\('@opentelemetry/sdk-logs'\\).then\\(m => { const lp = new m.LoggerProvider\\(\\); console.log\\(Object.getOwnPropertyNames\\(Object.getPrototypeOf\\(lp\\)\\)\\); }\\).catch\\(console.error\\)\")",
       "Bash(node -e \"const s=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const p=JSON.parse\\(s\\); console.log\\(p.version\\);\")",
       "Bash(node -e \"import\\('@opentelemetry/sdk-logs'\\).then\\(m => { const p = new m.LoggerProvider\\({ processors: [] }\\); console.log\\('processors option OK'\\); p.shutdown\\(\\).catch\\(\\(\\)=>{}\\); }\\).catch\\(e => console.error\\(e.message\\)\\)\")",
-      "Bash(node -e \"import\\('./package.json', {with:{type:'json'}}\\).then\\(m => { const d = m.default.dependencies; console.log\\('winston-loki present:', 'winston-loki' in d\\); const otel = Object.keys\\(d\\).filter\\(k => k.startsWith\\('@opentelemetry'\\)\\); console.log\\('OTel packages:', otel.join\\(', '\\)\\); }\\).catch\\(console.error\\)\")"
+      "Bash(node -e \"import\\('./package.json', {with:{type:'json'}}\\).then\\(m => { const d = m.default.dependencies; console.log\\('winston-loki present:', 'winston-loki' in d\\); const otel = Object.keys\\(d\\).filter\\(k => k.startsWith\\('@opentelemetry'\\)\\); console.log\\('OTel packages:', otel.join\\(', '\\)\\); }\\).catch\\(console.error\\)\")",
+      "Bash(node -e \"import\\('winston-loki'\\).then\\(\\(\\)=>console.log\\('winston-loki OK'\\)\\); import\\('prom-client'\\).then\\(\\(\\)=>console.log\\('prom-client OK'\\)\\); import\\('zod'\\).then\\(\\(\\)=>console.log\\('zod OK'\\)\\);\")"
     ]
   }
 }
