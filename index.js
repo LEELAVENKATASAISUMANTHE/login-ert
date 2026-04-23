@@ -1,11 +1,8 @@
 import 'dotenv/config';
-import { initOtel } from "./utils/otel.js";
 import app from "./utils/app.js";
 import { initKafka } from "./utils/kafka.js";
 import { connectRedis } from "./db/redis.js";
 import logger from "./utils/logger.js";
-
-initOtel();
 
 const PORT = process.env.PORT || 3225;
 

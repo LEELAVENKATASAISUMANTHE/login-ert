@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import { STATUS_CODES } from 'node:http';
 import logger from './logger.js';
+import { metricsMiddleware, metricsHandler } from './metrics.js';
 import pool from '../db/connection.js'; // Import database connection
 import cookieParser from '../middleware/cookieParser.js';
 import { setupSwagger } from './swagger.js';
@@ -90,6 +91,9 @@ if (process.env.NODE_ENV === 'production') {
 
 // ===== MIDDLEWARE =====
 
+// Prometheus metrics instrumentation (before all routes)
+app.use(metricsMiddleware);
+
 // Security middleware
 app.use(helmet());
 
@@ -166,6 +170,9 @@ app.use((req, res, next) => {
 });
 
 // ===== ROUTES =====
+
+// Prometheus metrics endpoint (scraped by Prometheus; no auth by design in internal deploys)
+app.get('/metrics', metricsHandler);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
