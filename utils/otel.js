@@ -9,8 +9,8 @@ export function initOtel() {
     'deployment.environment': process.env.NODE_ENV || 'development',
   });
 
- const exporter = new OTLPLogExporter({
-  url: 'http://172.17.0.1:4318/v1/logs',  // Docker host IP
+const exporter = new OTLPLogExporter({
+  url: 'http://otel-collector:4318/v1/logs',
 });
 
   const provider = new LoggerProvider({
