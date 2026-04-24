@@ -50,24 +50,32 @@ function getClientIp(req) {
 // ─── LOGIN ──────────────────────────────────────────────────────────────────────
 
 export const login = async (req, res) => {
+  const ip = getClientIp(req);
+  const userAgent = req.headers['user-agent'] || null;
+
   try {
     // 1. Validate request body
     const { error, value } = loginSchema.validate(req.body);
     if (error) {
+      logger.warn('login: validation failed', { message: error.details[0].message, ip });
       return res.status(400).json({ success: false, message: error.details[0].message });
     }
 
     const { email, password } = value;
 
+    logger.info('login: attempt', { email, ip, userAgent });
+
     // 2. Find user
     const user = await authDB.findUserByEmail(email);
     if (!user) {
+      logger.warn('login: unknown email', { email, ip });
       // Generic message — don't reveal whether email exists
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
     // 3. Check account active
     if (!user.is_active) {
+      logger.warn('login: account inactive', { user_id: user.user_id, email, ip });
       return res.status(403).json({ success: false, message: 'Account is deactivated. Contact an administrator.' });
     }
 
@@ -77,12 +85,14 @@ export const login = async (req, res) => {
       const lockExpiry = new Date(user.lock_until);
       if (now < lockExpiry) {
         const minutesLeft = Math.ceil((lockExpiry - now) / 60000);
+        logger.warn('login: account locked', { user_id: user.user_id, email, ip, lock_until: user.lock_until, minutesLeft });
         return res.status(423).json({
           success: false,
           message: `Account is locked. Try again in ${minutesLeft} minute(s).`,
         });
       }
       // Lock expired — reset
+      logger.info('login: lock expired, resetting', { user_id: user.user_id, email });
       await authDB.resetFailedAttempts(user.user_id);
       user.failed_attempts = 0;
       user.is_locked = false;
@@ -98,6 +108,9 @@ export const login = async (req, res) => {
       if (newCount >= MAX_FAILED_ATTEMPTS) {
         const lockUntil = new Date(Date.now() + LOCK_DURATION_MS);
         await authDB.lockAccount(user.user_id, lockUntil);
+        logger.warn('login: account locked after too many failures', {
+          user_id: user.user_id, email, ip, failed_attempts: newCount, lock_until: lockUntil,
+        });
         return res.status(423).json({
           success: false,
           message: `Too many failed attempts. Account locked for 15 minutes.`,
@@ -105,6 +118,7 @@ export const login = async (req, res) => {
       }
 
       const remaining = MAX_FAILED_ATTEMPTS - newCount;
+      logger.warn('login: wrong password', { user_id: user.user_id, email, ip, failed_attempts: newCount, remaining });
       return res.status(401).json({
         success: false,
         message: `Invalid email or password. ${remaining} attempt(s) remaining.`,
@@ -140,18 +154,25 @@ export const login = async (req, res) => {
       session_id: sessionId,
       user_id: user.user_id,
       refresh_token_hash: refreshTokenHash,
-      ip_address: getClientIp(req),
-      user_agent: req.headers['user-agent'] || null,
+      ip_address: ip,
+      user_agent: userAgent,
       expires_at: new Date(Date.now() + REFRESH_TOKEN_LIFETIME_MS),
     });
 
     // 12. Update last_login_at
     await authDB.updateLastLogin(user.user_id);
 
-    // 12. Set HTTP-only cookies
+    // 13. Set HTTP-only cookies
     setAuthCookies(res, accessToken, rawRefreshToken);
 
-    logger.info(`User logged in: user_id=${user.user_id}, session=${sessionId}`);
+    logger.info('login: success', {
+      user_id: user.user_id,
+      email,
+      role: user.role_name,
+      session_id: sessionId,
+      ip,
+      userAgent,
+    });
 
     return res.status(200).json({
       success: true,
@@ -179,8 +200,10 @@ export const refreshToken = async (req, res) => {
   try {
     const rawRefreshToken = req.cookies?.refreshToken;
     if (!rawRefreshToken) {
+      logger.warn('refreshToken: missing cookie', { ip: getClientIp(req) });
       return res.status(401).json({ success: false, message: 'Refresh token missing' });
     }
+    logger.info('refreshToken: attempt', { ip: getClientIp(req) });
 
     // 1. Try to extract session_id from the (possibly expired) access token
     let sessionId = null;
@@ -319,8 +342,10 @@ export const logoutAll = async (req, res) => {
 
 export const whoami = async (req, res) => {
   try {
+    logger.info('whoami', { user_id: req.user?.user_id });
     const user = await authDB.getUserForAuth(req.user.user_id);
     if (!user) {
+      logger.warn('whoami: user not found', { user_id: req.user?.user_id });
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
