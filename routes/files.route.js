@@ -18,8 +18,8 @@ const router = Router();
  *         required: true
  *         schema:
  *           type: string
- *           enum: [student_photo, document, certification, company_logo]
- *         description: The category of the file
+ *           enum: [document]
+ *         description: File category — only the documents bucket is private. Student photos, certifications, and company logos are served via public URLs stored directly in the database.
  *       - in: query
  *         name: key
  *         required: true

@@ -97,9 +97,8 @@ router.get('/import', (req, res) => {
  *                   example: Resume
  *                 file_path:
  *                   type: string
- *                   format: uri
- *                   description: Public URL of the uploaded file in Cloudflare R2
- *                   example: https://pub-xxxx.r2.dev/student_documents/uuid.pdf
+ *                   description: R2 object key for the document (private bucket — use GET /api/files/presigned?type=document&key=<key> to obtain a time-limited URL)
+ *                   example: 550e8400-e29b-41d4-a716-446655440000.pdf
  *       400:
  *         description: Validation error or missing file
  */
@@ -188,9 +187,7 @@ router.get('/:id', studentDocumentController.getStudentDocumentById);
  *               properties:
  *                 file_path:
  *                   type: string
- *                   format: uri
- *                   description: New Cloudflare R2 URL if file was replaced
- *                   example: https://pub-xxxx.r2.dev/student_documents/uuid.pdf
+ *                   description: New R2 object key if file was replaced
  *       404:
  *         description: Not found
  */

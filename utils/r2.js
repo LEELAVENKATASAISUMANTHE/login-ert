@@ -11,11 +11,22 @@ const r2Client = new S3Client({
   },
 });
 
-export const uploadToStorage = async (
-  fileBuffer,
-  bucketEnvKey,
-  mimeType = ""
-) => {
+// Buckets listed here serve files publicly via their R2 public URL.
+// R2_BUCKET_DOCUMENTS is intentionally absent — it is private.
+const PUBLIC_DOMAINS = {
+  R2_BUCKET_STUDENTS:        process.env.R2_PUBLIC_URL_STUDENTS,
+  R2_BUCKET_CERTIFICATIONS:  process.env.R2_PUBLIC_URL_CERTIFICATIONS,
+  R2_BUCKET_COMPANIES:       process.env.R2_PUBLIC_URL_COMPANIES,
+};
+
+/**
+ * Upload a file to R2.
+ *
+ * Returns { key, url } where:
+ *   - key  — the raw R2 object key (always present; use this for private buckets)
+ *   - url  — full public URL for public buckets, null for private buckets
+ */
+export const uploadToStorage = async (fileBuffer, bucketEnvKey, mimeType = "") => {
   if (!fileBuffer || fileBuffer.length === 0) {
     throw new Error("File buffer is empty");
   }
@@ -28,16 +39,19 @@ export const uploadToStorage = async (
   const ext = mimeType ? `.${mimeType.split("/")[1].split(";")[0]}` : "";
   const key = `${randomUUID()}${ext}`;
 
-  const command = new PutObjectCommand({
-    Bucket: bucket,
-    Key: key,
-    Body: fileBuffer,
-    ContentType: mimeType || "application/octet-stream",
-  });
+  await r2Client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: fileBuffer,
+      ContentType: mimeType || "application/octet-stream",
+    })
+  );
 
-  await r2Client.send(command);
+  const publicDomain = PUBLIC_DOMAINS[bucketEnvKey];
+  const url = publicDomain ? `${publicDomain.replace(/\/$/, "")}/${key}` : null;
 
-  return { key };
+  return { key, url };
 };
 
 export const getPresignedUrl = async (bucketEnvKey, key, expiresIn = 3600) => {

@@ -1,17 +1,9 @@
-// utils/multer.js
 import multer from "multer";
 import path from "path";
-import NodeClam from "clamscan";
 import logger from "../utils/logger.js";
 
-// ------------------------------
-// Multer storage
-// ------------------------------
 const storage = multer.memoryStorage();
 
-// ------------------------------
-// Allowed / Blocked types
-// ------------------------------
 const allowedMimeTypes = [
   "image/jpeg",
   "image/jpg",
@@ -44,14 +36,8 @@ const blockedMimeTypes = [
   "application/x-dosexec",
 ];
 
-// ------------------------------
-// Logger helper
-// ------------------------------
 const logSecurity = (level, message, meta = {}) => {
-  logger[level]?.(message, {
-    tag: "FILE_UPLOAD_SECURITY",
-    ...meta,
-  });
+  logger[level]?.(message, { tag: "FILE_UPLOAD_SECURITY", ...meta });
 };
 
 // ------------------------------
@@ -145,72 +131,6 @@ const signatureGuard = (req, res, next) => {
 };
 
 // ------------------------------
-// Layer 3: ClamAV malware scan
-// ------------------------------
-let clam = null;
-
-const initClam = async () => {
-  if (clam) return clam;
-
-  try {
-    clam = await new NodeClam().init({
-      removeInfected: false,
-      quarantineInfected: false,
-      debugMode: false,
-
-      // IMPORTANT: Ubuntu uses socket, NOT port 3310
-      clamdscan: {
-        socket: "/run/clamav/clamd.ctl",
-        timeout: 60000,
-        localFallback: true,
-      },
-
-      preference: "clamdscan",
-    });
-
-    logger.info("ClamAV initialized");
-    return clam;
-  } catch (err) {
-    logger.error("ClamAV init failed", err);
-    return null;
-  }
-};
-
-const malwareScan = async (req, res, next) => {
-  try {
-    if (!req.file) return next();
-
-    const scanner = await initClam();
-
-    if (!scanner) {
-      logSecurity("warn", "ClamAV unavailable, skipping scan");
-      return next();
-    }
-
-    const { isInfected, viruses } = await scanner.scanBuffer(req.file.buffer);
-
-    if (isInfected) {
-      logSecurity("error", "Malware detected", {
-        filename: req.file.originalname,
-        viruses,
-        ip: req.ip,
-        user: req.user?.id,
-      });
-
-      return res.status(400).json({
-        success: false,
-        message: "Malware detected in file",
-      });
-    }
-
-    next();
-  } catch (err) {
-    logSecurity("error", "Malware scan failed", { error: err.message });
-    next(err);
-  }
-};
-
-// ------------------------------
 // Base multer instance
 // ------------------------------
 const multerInstance = multer({
@@ -219,28 +139,11 @@ const multerInstance = multer({
   fileFilter,
 });
 
-// ------------------------------
-// Upload object with .single() and .array() methods
-// ------------------------------
 export const upload = {
-  single: (fieldName) => [
-    multerInstance.single(fieldName),
-    signatureGuard,
-    malwareScan,
-  ],
-  array: (fieldName, maxCount) => [
-    multerInstance.array(fieldName, maxCount),
-    signatureGuard,
-    malwareScan,
-  ],
-  fields: (fields) => [
-    multerInstance.fields(fields),
-    signatureGuard,
-    malwareScan,
-  ],
-  none: () => [
-    multerInstance.none(),
-  ],
+  single: (fieldName) => [multerInstance.single(fieldName), signatureGuard],
+  array: (fieldName, maxCount) => [multerInstance.array(fieldName, maxCount), signatureGuard],
+  fields: (fields) => [multerInstance.fields(fields), signatureGuard],
+  none: () => [multerInstance.none()],
 };
 
 // ------------------------------
@@ -259,10 +162,7 @@ const excelMulterInstance = multer({
     ];
     const excelExtensions = [".xlsx", ".xls", ".csv"];
 
-    if (
-      excelMimeTypes.includes(file.mimetype) &&
-      excelExtensions.includes(ext)
-    ) {
+    if (excelMimeTypes.includes(file.mimetype) && excelExtensions.includes(ext)) {
       return cb(null, true);
     }
 
@@ -270,13 +170,6 @@ const excelMulterInstance = multer({
   },
 });
 
-// ------------------------------
-// Excel-only upload
-// ------------------------------
 export const uploadExcel = {
-  single: (fieldName) => [
-    excelMulterInstance.single(fieldName),
-    signatureGuard,
-    malwareScan,
-  ],
+  single: (fieldName) => [excelMulterInstance.single(fieldName), signatureGuard],
 };

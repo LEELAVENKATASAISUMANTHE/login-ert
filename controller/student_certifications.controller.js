@@ -53,7 +53,7 @@ export const createStudentCertification = async (req, res) => {
         // Handle file upload to R2
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
             const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_CERTIFICATIONS", req.file.mimetype);
-            value.certificate_file = r2Result.key;
+            value.certificate_file = r2Result.url;
         } else {
             value.certificate_file = null;
         }
@@ -134,7 +134,7 @@ export const updateStudentCertificationById = async (req, res) => {
         // Handle file upload to R2 if new file provided
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
             const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_CERTIFICATIONS", req.file.mimetype);
-            value.certificate_file = r2Result.key;
+            value.certificate_file = r2Result.url;
         }
 
         const result = await studentCertificationService.updateStudentCertificationById(id, value);
