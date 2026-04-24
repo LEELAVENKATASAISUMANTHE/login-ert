@@ -57,25 +57,25 @@ export const login = async (req, res) => {
     // 1. Validate request body
     const { error, value } = loginSchema.validate(req.body);
     if (error) {
-      logger.warn('login: validation failed', { message: error.details[0].message, ip });
+      logger.warn({ message: error.details[0].message, ip }, 'login: validation failed');
       return res.status(400).json({ success: false, message: error.details[0].message });
     }
 
     const { email, password } = value;
 
-    logger.info('login: attempt', { email, ip, userAgent });
+    logger.info({ email, ip, userAgent }, 'login: attempt');
 
     // 2. Find user
     const user = await authDB.findUserByEmail(email);
     if (!user) {
-      logger.warn('login: unknown email', { email, ip });
+      logger.warn({ email, ip }, 'login: unknown email');
       // Generic message — don't reveal whether email exists
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
     // 3. Check account active
     if (!user.is_active) {
-      logger.warn('login: account inactive', { user_id: user.user_id, email, ip });
+      logger.warn({ user_id: user.user_id, email, ip }, 'login: account inactive');
       return res.status(403).json({ success: false, message: 'Account is deactivated. Contact an administrator.' });
     }
 
@@ -85,14 +85,14 @@ export const login = async (req, res) => {
       const lockExpiry = new Date(user.lock_until);
       if (now < lockExpiry) {
         const minutesLeft = Math.ceil((lockExpiry - now) / 60000);
-        logger.warn('login: account locked', { user_id: user.user_id, email, ip, lock_until: user.lock_until, minutesLeft });
+        logger.warn({ user_id: user.user_id, email, ip, lock_until: user.lock_until, minutesLeft }, 'login: account locked');
         return res.status(423).json({
           success: false,
           message: `Account is locked. Try again in ${minutesLeft} minute(s).`,
         });
       }
       // Lock expired — reset
-      logger.info('login: lock expired, resetting', { user_id: user.user_id, email });
+      logger.info({ user_id: user.user_id, email }, 'login: lock expired, resetting');
       await authDB.resetFailedAttempts(user.user_id);
       user.failed_attempts = 0;
       user.is_locked = false;
@@ -108,9 +108,9 @@ export const login = async (req, res) => {
       if (newCount >= MAX_FAILED_ATTEMPTS) {
         const lockUntil = new Date(Date.now() + LOCK_DURATION_MS);
         await authDB.lockAccount(user.user_id, lockUntil);
-        logger.warn('login: account locked after too many failures', {
+        logger.warn({
           user_id: user.user_id, email, ip, failed_attempts: newCount, lock_until: lockUntil,
-        });
+        }, 'login: account locked after too many failures');
         return res.status(423).json({
           success: false,
           message: `Too many failed attempts. Account locked for 15 minutes.`,
@@ -118,7 +118,7 @@ export const login = async (req, res) => {
       }
 
       const remaining = MAX_FAILED_ATTEMPTS - newCount;
-      logger.warn('login: wrong password', { user_id: user.user_id, email, ip, failed_attempts: newCount, remaining });
+      logger.warn({ user_id: user.user_id, email, ip, failed_attempts: newCount, remaining }, 'login: wrong password');
       return res.status(401).json({
         success: false,
         message: `Invalid email or password. ${remaining} attempt(s) remaining.`,
@@ -165,14 +165,14 @@ export const login = async (req, res) => {
     // 13. Set HTTP-only cookies
     setAuthCookies(res, accessToken, rawRefreshToken);
 
-    logger.info('login: success', {
+    logger.info({
       user_id: user.user_id,
       email,
       role: user.role_name,
       session_id: sessionId,
       ip,
       userAgent,
-    });
+    }, 'login: success');
 
     return res.status(200).json({
       success: true,
@@ -189,7 +189,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (err) {
-    logger.error('Login error', { error: err.message, stack: err.stack });
+    logger.error({ error: err.message, stack: err.stack }, 'Login error');
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
@@ -200,10 +200,10 @@ export const refreshToken = async (req, res) => {
   try {
     const rawRefreshToken = req.cookies?.refreshToken;
     if (!rawRefreshToken) {
-      logger.warn('refreshToken: missing cookie', { ip: getClientIp(req) });
+      logger.warn({ ip: getClientIp(req) }, 'refreshToken: missing cookie');
       return res.status(401).json({ success: false, message: 'Refresh token missing' });
     }
-    logger.info('refreshToken: attempt', { ip: getClientIp(req) });
+    logger.info({ ip: getClientIp(req) }, 'refreshToken: attempt');
 
     // 1. Try to extract session_id from the (possibly expired) access token
     let sessionId = null;
@@ -285,7 +285,7 @@ export const refreshToken = async (req, res) => {
       message: 'Token refreshed successfully',
     });
   } catch (err) {
-    logger.error('Refresh token error', { error: err.message, stack: err.stack });
+    logger.error({ error: err.message, stack: err.stack }, 'Refresh token error');
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
@@ -306,7 +306,7 @@ export const logout = async (req, res) => {
 
     return res.status(200).json({ success: true, message: 'Logged out successfully' });
   } catch (err) {
-    logger.error('Logout error', { error: err.message, stack: err.stack });
+    logger.error({ error: err.message, stack: err.stack }, 'Logout error');
     // Still clear cookies even on error
     clearAuthCookies(res);
     return res.status(200).json({ success: true, message: 'Logged out' });
@@ -332,7 +332,7 @@ export const logoutAll = async (req, res) => {
       message: `Logged out from all ${count} session(s)`,
     });
   } catch (err) {
-    logger.error('Logout-all error', { error: err.message, stack: err.stack });
+    logger.error({ error: err.message, stack: err.stack }, 'Logout-all error');
     clearAuthCookies(res);
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
@@ -342,10 +342,10 @@ export const logoutAll = async (req, res) => {
 
 export const whoami = async (req, res) => {
   try {
-    logger.info('whoami', { user_id: req.user?.user_id });
+    logger.info({ user_id: req.user?.user_id }, 'whoami');
     const user = await authDB.getUserForAuth(req.user.user_id);
     if (!user) {
-      logger.warn('whoami: user not found', { user_id: req.user?.user_id });
+      logger.warn({ user_id: req.user?.user_id }, 'whoami: user not found');
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
@@ -361,7 +361,7 @@ export const whoami = async (req, res) => {
       },
     });
   } catch (err) {
-    logger.error('Whoami error', { error: err.message, stack: err.stack });
+    logger.error({ error: err.message, stack: err.stack }, 'Whoami error');
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

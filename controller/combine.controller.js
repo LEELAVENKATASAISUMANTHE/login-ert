@@ -58,16 +58,16 @@ const buildJobSchema = () => {
 const cacheStudentJobView = async (client, jobId) => {
   try {
     const { key, ttlSeconds } = await cacheStudentJobViewByJobId(client, jobId);
-    logger.info("Student job view cached in Redis", {
+    logger.info({
       jobId,
       redisKey: key,
       ttlSeconds,
-    });
+    }, "Student job view cached in Redis");
   } catch (error) {
-    logger.warn("Failed to cache student job view in Redis", {
+    logger.warn({
       jobId,
       error: error.message,
-    });
+    }, "Failed to cache student job view in Redis");
   }
 };
 
@@ -110,12 +110,12 @@ const publishEligibilityEvent = async ({
       },
     });
 
-    logger.info("Job eligibility event published", { jobId });
+    logger.info({ jobId }, "Job eligibility event published");
   } catch (error) {
-    logger.warn("Failed to publish job eligibility event", {
+    logger.warn({
       jobId,
       error: error.message,
-    });
+    }, "Failed to publish job eligibility event");
   }
 };
 
@@ -214,7 +214,7 @@ export const createJobWithRequirements = async (data) => {
       companyName,
     });
 
-    logger.info("Job created successfully", { jobId });
+    logger.info({ jobId }, "Job created successfully");
 
     return {
       success: true,
@@ -223,7 +223,7 @@ export const createJobWithRequirements = async (data) => {
     };
   } catch (error) {
     await client.query("ROLLBACK");
-    logger.error("Job creation failed", { error: error.message });
+    logger.error({ error: error.message }, "Job creation failed");
     throw error;
   } finally {
     client.release();
@@ -342,7 +342,7 @@ export const updateJobWithRequirements = async (jobId, data) => {
       companyName,
     });
 
-    logger.info("Job updated successfully", { jobId });
+    logger.info({ jobId }, "Job updated successfully");
 
     return {
       success: true,
@@ -351,7 +351,7 @@ export const updateJobWithRequirements = async (jobId, data) => {
     };
   } catch (error) {
     await client.query("ROLLBACK");
-    logger.error("Job update failed", { error: error.message });
+    logger.error({ error: error.message }, "Job update failed");
     throw error;
   } finally {
     client.release();

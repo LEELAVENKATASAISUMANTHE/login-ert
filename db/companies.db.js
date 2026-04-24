@@ -52,10 +52,10 @@ export const createCompany = async (company) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`createCompany: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             company
-        });
+        }, `createCompany: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -129,10 +129,10 @@ export const getAllCompanies = async (params = {}) => {
             message: 'Companies retrieved successfully'
         };
     } catch (error) {
-        logger.error(`getAllCompanies: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             params
-        });
+        }, `getAllCompanies: ${error.message}`);
         throw error;
     }
 };
@@ -159,10 +159,10 @@ export const getCompanyById = async (companyId) => {
             message: 'Company fetched successfully'
         };
     } catch (error) {
-        logger.error(`getCompanyById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             companyId
-        });
+        }, `getCompanyById: ${error.message}`);
         throw error;
     }
 };
@@ -226,11 +226,11 @@ export const updateCompany = async (companyId, company) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`updateCompany: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             companyId,
             company
-        });
+        }, `updateCompany: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -264,10 +264,10 @@ export const deleteCompany = async (companyId) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteCompany: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             companyId
-        });
+        }, `deleteCompany: ${error.message}`);
         throw error;
     } finally {
         client.release();

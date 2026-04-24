@@ -27,12 +27,12 @@ export const requireRole = (allowedRoles = []) => {
       const userRole = (req.user.role_name || '').toUpperCase();
 
       if (!normalised.includes(userRole)) {
-        logger.warn('Role authorization denied', {
+        logger.warn({
           user_id: req.user.user_id,
           role: req.user.role_name,
           required: allowedRoles,
           path: req.originalUrl,
-        });
+        }, 'Role authorization denied');
 
         return res.status(403).json({
           success: false,
@@ -42,7 +42,7 @@ export const requireRole = (allowedRoles = []) => {
 
       return next();
     } catch (err) {
-      logger.error('requireRole middleware error', { error: err.message, stack: err.stack });
+      logger.error({ error: err.message, stack: err.stack }, 'requireRole middleware error');
       return res.status(500).json({ success: false, message: 'Internal server error' });
     }
   };

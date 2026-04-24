@@ -217,7 +217,7 @@ export const generateStudentReport = async (req, res) => {
         doc.moveDown(0.8);
 
         doc.end();
-        logger.info('generateStudentReport: PDF generated', { studentId: id });
+        logger.info({ studentId: id }, 'generateStudentReport: PDF generated');
 
     } catch (err) {
         if (!res.headersSent) {

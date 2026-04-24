@@ -33,7 +33,7 @@ export async function initKafka() {
     ]);
     logger.info("✅ Kafka connected successfully");
   } catch (err) {
-    logger.error("❌ Kafka connection failed", { error: err.message });
+    logger.error({ error: err.message }, "❌ Kafka connection failed");
     logger.warn("⚠️  Application will continue without Kafka");
   }
 }
@@ -57,12 +57,12 @@ export async function sendMessage(topic, message, options = {}) {
       ]
     });
 
-    logger.info(`📤 Message sent to ${topic}`, { metadata });
+    logger.info({ metadata }, `📤 Message sent to ${topic}`);
     return metadata;
   } catch (err) {
-    logger.error(`❌ Failed to send message to ${topic}`, {
+    logger.error({
       error: err.message
-    });
+    }, `❌ Failed to send message to ${topic}`);
     throw err;
   }
 }

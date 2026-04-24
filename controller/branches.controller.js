@@ -28,7 +28,7 @@ export const createBranch = (req, res) => {
 
   try {
     const updated = addBranch(value.code, value.name);
-    logger.info('Branch added', { code: value.code, by: req.user?.user_id });
+    logger.info({ code: value.code, by: req.user?.user_id }, 'Branch added');
     return res.status(201).json({ success: true, data: updated });
   } catch (err) {
     return handleError(err, res, 'createBranch');
@@ -43,7 +43,7 @@ export const deleteBranch = (req, res) => {
 
   try {
     const updated = removeBranch(code);
-    logger.info('Branch removed', { code, by: req.user?.user_id });
+    logger.info({ code, by: req.user?.user_id }, 'Branch removed');
     return res.status(200).json({ success: true, data: updated });
   } catch (err) {
     return handleError(err, res, 'deleteBranch');

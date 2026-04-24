@@ -45,28 +45,28 @@ const REQUIRED_COLUMNS = ['student_id'];
 // Create a new student certification record (with file upload)
 export const createStudentCertification = async (req, res) => {
     try {
-        logger.info('createStudentCertification', { student_id: req.body.student_id });
+        logger.info({ student_id: req.body.student_id }, 'createStudentCertification');
         const { error, value } = studentCertificationSchema.validate(req.body);
         if (error) {
-            logger.warn('createStudentCertification: validation failed', { message: error.details[0].message });
+            logger.warn({ message: error.details[0].message }, 'createStudentCertification: validation failed');
             return res.status(400).json({ message: error.details[0].message });
         }
 
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            logger.info('createStudentCertification: uploading to R2', {
+            logger.info({
                 filename: req.file.originalname,
                 mimetype: req.file.mimetype,
                 sizeBytes: req.file.size,
-            });
+            }, 'createStudentCertification: uploading to R2');
             const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_CERTIFICATIONS", req.file.mimetype);
             value.certificate_file = r2Result.url;
-            logger.info('createStudentCertification: upload success', { url: r2Result.url });
+            logger.info({ url: r2Result.url }, 'createStudentCertification: upload success');
         } else {
             value.certificate_file = null;
         }
 
         const certification = await studentCertificationService.createStudentCertification(value);
-        logger.info('createStudentCertification: success', { student_id: value.student_id });
+        logger.info({ student_id: value.student_id }, 'createStudentCertification: success');
         res.status(201).json(certification);
     } catch (err) {
         return handleError(err, res, 'createStudentCertification');
@@ -88,11 +88,11 @@ export const getAllStudentCertifications = async (req, res) => {
 export const getStudentCertificationById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('getStudentCertificationById', { id });
+        logger.info({ id }, 'getStudentCertificationById');
         const result = await studentCertificationService.getStudentCertificationById(id);
 
         if (!result.success) {
-            logger.warn('getStudentCertificationById: not found', { id });
+            logger.warn({ id }, 'getStudentCertificationById: not found');
             return res.status(404).json(result);
         }
 
@@ -105,7 +105,7 @@ export const getStudentCertificationById = async (req, res) => {
 // Get all certifications for a specific student
 export const getCertificationsByStudentId = async (req, res) => {
     try {
-        logger.info('getCertificationsByStudentId', { studentId: req.params.studentId });
+        logger.info({ studentId: req.params.studentId }, 'getCertificationsByStudentId');
         const { studentId } = req.params;
         const result = await studentCertificationService.getCertificationsByStudentId(studentId);
         res.status(200).json(result);
@@ -117,7 +117,7 @@ export const getCertificationsByStudentId = async (req, res) => {
 // Search certifications by skill name
 export const searchCertificationsBySkill = async (req, res) => {
     try {
-        logger.info('searchCertificationsBySkill', { skill: req.query.skill });
+        logger.info({ skill: req.query.skill }, 'searchCertificationsBySkill');
         const { skill } = req.query;
 
         if (!skill || skill.trim() === '') {
@@ -138,33 +138,33 @@ export const searchCertificationsBySkill = async (req, res) => {
 export const updateStudentCertificationById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('updateStudentCertificationById', { id });
+        logger.info({ id }, 'updateStudentCertificationById');
         const { error, value } = updateCertificationSchema.validate(req.body);
 
         if (error) {
-            logger.warn('updateStudentCertificationById: validation failed', { message: error.details[0].message });
+            logger.warn({ message: error.details[0].message }, 'updateStudentCertificationById: validation failed');
             return res.status(400).json({ message: error.details[0].message });
         }
 
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            logger.info('updateStudentCertificationById: replacing file in R2', {
+            logger.info({
                 filename: req.file.originalname,
                 mimetype: req.file.mimetype,
                 sizeBytes: req.file.size,
-            });
+            }, 'updateStudentCertificationById: replacing file in R2');
             const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_CERTIFICATIONS", req.file.mimetype);
             value.certificate_file = r2Result.url;
-            logger.info('updateStudentCertificationById: upload success', { url: r2Result.url });
+            logger.info({ url: r2Result.url }, 'updateStudentCertificationById: upload success');
         }
 
         const result = await studentCertificationService.updateStudentCertificationById(id, value);
 
         if (!result.success) {
-            logger.warn('updateStudentCertificationById: not found', { id });
+            logger.warn({ id }, 'updateStudentCertificationById: not found');
             return res.status(404).json(result);
         }
 
-        logger.info('updateStudentCertificationById: success', { id });
+        logger.info({ id }, 'updateStudentCertificationById: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'updateStudentCertification');
@@ -175,15 +175,15 @@ export const updateStudentCertificationById = async (req, res) => {
 export const deleteStudentCertificationById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('deleteStudentCertificationById', { id });
+        logger.info({ id }, 'deleteStudentCertificationById');
         const result = await studentCertificationService.deleteStudentCertificationById(id);
 
         if (!result.success) {
-            logger.warn('deleteStudentCertificationById: not found', { id });
+            logger.warn({ id }, 'deleteStudentCertificationById: not found');
             return res.status(404).json(result);
         }
 
-        logger.info('deleteStudentCertificationById: success', { id });
+        logger.info({ id }, 'deleteStudentCertificationById: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentCertifications');
@@ -193,7 +193,7 @@ export const deleteStudentCertificationById = async (req, res) => {
 // Import student certifications from Excel file
 export const importFromExcel = async (req, res) => {
     try {
-        logger.info('importFromExcel', { filename: req.file?.originalname });
+        logger.info({ filename: req.file?.originalname }, 'importFromExcel');
         if (!req.file || !req.file.buffer) {
             return res.status(400).json({
                 success: false,
@@ -246,7 +246,7 @@ export const importFromExcel = async (req, res) => {
         }
 
         const result = await studentCertificationService.bulkInsertStudentCertifications(validatedData);
-        if (result.success) logger.info('importFromExcel: success', { inserted: result.inserted });
+        if (result.success) logger.info({ inserted: result.inserted }, 'importFromExcel: success');
         res.status(result.success ? 201 : 400).json(result);
     } catch (err) {
         return handleError(err, res, 'studentCertifications');

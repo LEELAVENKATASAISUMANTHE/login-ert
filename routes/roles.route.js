@@ -14,13 +14,13 @@ const router = express.Router();
 
 // Middleware to log all role route requests
 router.use((req, res, next) => {
-  logger.info('Role route accessed', {
+  logger.info({
     method: req.method,
     url: req.originalUrl,
     ip: req.ip,
     userAgent: req.get('User-Agent'),
     timestamp: new Date().toISOString()
-  });
+  }, 'Role route accessed');
   next();
 });
 
@@ -120,14 +120,14 @@ router.get('/check/:role_name', checkRoleExists);
 router.get('/search/:searchTerm', async (req, res) => {
   try {
     const { searchTerm } = req.params;
-    logger.info('Role search request received', { searchTerm, ip: req.ip });
+    logger.info({ searchTerm, ip: req.ip }, 'Role search request received');
     res.status(200).json({
       success: true,
       message: 'Search endpoint - not implemented yet',
       searchTerm: searchTerm
     });
   } catch (error) {
-    logger.error('Error in role search', { error: error.message, searchTerm: req.params.searchTerm });
+    logger.error({ error: error.message, searchTerm: req.params.searchTerm }, 'Error in role search');
     res.status(500).json({ success: false, message: 'Search failed', error: 'Something went wrong' });
   }
 });
@@ -144,10 +144,10 @@ router.get('/search/:searchTerm', async (req, res) => {
  */
 router.get('/count/total', async (req, res) => {
   try {
-    logger.info('Role count request received', { ip: req.ip });
+    logger.info({ ip: req.ip }, 'Role count request received');
     res.status(200).json({ success: true, message: 'Count endpoint - not implemented yet', data: { count: 0 } });
   } catch (error) {
-    logger.error('Error getting role count', { error: error.message });
+    logger.error({ error: error.message }, 'Error getting role count');
     res.status(500).json({ success: false, message: 'Count failed', error: 'Something went wrong' });
   }
 });
@@ -235,7 +235,7 @@ router.delete('/:role_id', (req, res, next) => {
 
 // ===== ERROR HANDLING =====
 router.use('*', (req, res) => {
-  logger.warn('Role route not found', { method: req.method, url: req.originalUrl, ip: req.ip });
+  logger.warn({ method: req.method, url: req.originalUrl, ip: req.ip }, 'Role route not found');
   res.status(404).json({
     success: false,
     message: 'Role endpoint not found',
@@ -244,7 +244,7 @@ router.use('*', (req, res) => {
 });
 
 router.use((error, req, res, next) => {
-  logger.error('Role route error', { error: error.message, stack: error.stack, method: req.method, url: req.originalUrl, ip: req.ip });
+  logger.error({ error: error.message, stack: error.stack, method: req.method, url: req.originalUrl, ip: req.ip }, 'Role route error');
   res.status(500).json({ success: false, message: 'Internal server error in role routes', error: 'Something went wrong' });
 });
 

@@ -107,11 +107,11 @@ export const createUser = async (data) => {
 
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`createUser: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             username: data.username,
             email: data.email
-        });
+        }, `createUser: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -196,7 +196,7 @@ export const getAllUsers = async (params) => {
         };
 
     } catch (error) {
-        logger.error(`getAllUsers: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `getAllUsers: ${error.message}`);
         throw new Error('Failed to retrieve users');
     }
 };

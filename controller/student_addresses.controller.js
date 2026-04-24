@@ -32,15 +32,15 @@ const updateStudentAddressSchema = joi.object({
 // Create a new student address
 export const createStudentAddress = async (req, res) => {
     try {
-        logger.info('createStudentAddress', { student_id: req.body.student_id });
+        logger.info({ student_id: req.body.student_id }, 'createStudentAddress');
         const { error, value } = studentAddressSchema.validate(req.body);
         if (error) {
-            logger.warn('createStudentAddress: validation failed', { message: error.details[0].message });
+            logger.warn({ message: error.details[0].message }, 'createStudentAddress: validation failed');
             return res.status(400).json({ message: error.details[0].message });
         }
 
         const address = await studentAddressService.createStudentAddress(value);
-        logger.info('createStudentAddress: success', { student_id: value.student_id });
+        logger.info({ student_id: value.student_id }, 'createStudentAddress: success');
         res.status(201).json(address);
     } catch (err) {
         return handleError(err, res, 'createStudentAddress');
@@ -62,11 +62,11 @@ export const getAllStudentAddresses = async (req, res) => {
 export const getStudentAddressById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('getStudentAddressById', { id });
+        logger.info({ id }, 'getStudentAddressById');
         const result = await studentAddressService.getStudentAddressById(id);
 
         if (!result.success) {
-            logger.warn('getStudentAddressById: not found', { id });
+            logger.warn({ id }, 'getStudentAddressById: not found');
             return res.status(404).json(result);
         }
         
@@ -80,11 +80,11 @@ export const getStudentAddressById = async (req, res) => {
 export const getAddressByStudentId = async (req, res) => {
     try {
         const { studentId } = req.params;
-        logger.info('getAddressByStudentId', { studentId });
+        logger.info({ studentId }, 'getAddressByStudentId');
         const result = await studentAddressService.getAddressByStudentId(studentId);
 
         if (!result.success) {
-            logger.warn('getAddressByStudentId: not found', { id: studentId });
+            logger.warn({ id: studentId }, 'getAddressByStudentId: not found');
             return res.status(404).json(result);
         }
         
@@ -98,22 +98,22 @@ export const getAddressByStudentId = async (req, res) => {
 export const updateStudentAddressById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('updateStudentAddressById', { id });
+        logger.info({ id }, 'updateStudentAddressById');
         const { error, value } = updateStudentAddressSchema.validate(req.body);
 
         if (error) {
-            logger.warn('updateStudentAddressById: validation failed', { message: error.details[0].message });
+            logger.warn({ message: error.details[0].message }, 'updateStudentAddressById: validation failed');
             return res.status(400).json({ message: error.details[0].message });
         }
 
         const result = await studentAddressService.updateStudentAddressById(id, value);
 
         if (!result.success) {
-            logger.warn('updateStudentAddressById: not found', { id });
+            logger.warn({ id }, 'updateStudentAddressById: not found');
             return res.status(404).json(result);
         }
 
-        logger.info('updateStudentAddressById: success', { id });
+        logger.info({ id }, 'updateStudentAddressById: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'updateStudentAddress');
@@ -124,22 +124,22 @@ export const updateStudentAddressById = async (req, res) => {
 export const patchStudentAddressById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('patchStudentAddressById', { id });
+        logger.info({ id }, 'patchStudentAddressById');
         const { error, value } = updateStudentAddressSchema.validate(req.body);
 
         if (error) {
-            logger.warn('patchStudentAddressById: validation failed', { message: error.details[0].message });
+            logger.warn({ message: error.details[0].message }, 'patchStudentAddressById: validation failed');
             return res.status(400).json({ message: error.details[0].message });
         }
 
         const result = await studentAddressService.patchStudentAddressById(id, value);
 
         if (!result.success) {
-            logger.warn('patchStudentAddressById: not found', { id });
+            logger.warn({ id }, 'patchStudentAddressById: not found');
             return res.status(404).json(result);
         }
 
-        logger.info('patchStudentAddressById: success', { id });
+        logger.info({ id }, 'patchStudentAddressById: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'patchStudentAddress');
@@ -150,15 +150,15 @@ export const patchStudentAddressById = async (req, res) => {
 export const deleteStudentAddressById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('deleteStudentAddressById', { id });
+        logger.info({ id }, 'deleteStudentAddressById');
         const result = await studentAddressService.deleteStudentAddressById(id);
 
         if (!result.success) {
-            logger.warn('deleteStudentAddressById: not found', { id });
+            logger.warn({ id }, 'deleteStudentAddressById: not found');
             return res.status(404).json(result);
         }
 
-        logger.info('deleteStudentAddressById: success', { id });
+        logger.info({ id }, 'deleteStudentAddressById: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentAddresses');
@@ -168,7 +168,7 @@ export const deleteStudentAddressById = async (req, res) => {
 // Get students menu (student_id, full_name, address_id for search bar)
 export const getStudentsMenu = async (req, res) => {
     try {
-        logger.info('getStudentsMenu', { search: req.query.search });
+        logger.info({ search: req.query.search }, 'getStudentsMenu');
         const { search, searchField } = req.query;
         
         const searchParams = {

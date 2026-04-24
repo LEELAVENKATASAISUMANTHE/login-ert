@@ -51,19 +51,19 @@ export const permissionIdSchema = Joi.object({
 
 export const createPermission = async (req, res) => {
     try {
-        logger.info('POST /permissions - Create permission request received', {
+        logger.info({
             body: req.body,
             ip: req.ip,
             userAgent: req.get('User-Agent'),
             timestamp: new Date().toISOString()
-        });
+        }, 'POST /permissions - Create permission request received');
 
         const { error, value } = createPermissionSchema.validate(req.body);
         if (error) {
-            logger.warn('Permission creation validation failed', {
+            logger.warn({
                 error: error.details[0].message,
                 body: req.body
-            });
+            }, 'Permission creation validation failed');
             return res.status(400).json({
                 success: false,
                 message: error.details[0].message
@@ -72,9 +72,9 @@ export const createPermission = async (req, res) => {
 
         const existingPermission = await permissionDB.permissionExistsByName(value.permission_name);
         if (existingPermission) {
-            logger.warn('Permission creation failed - name already exists', {
+            logger.warn({
                 permission_name: value.permission_name
-            });
+            }, 'Permission creation failed - name already exists');
             return res.status(409).json({
                 success: false,
                 message: 'Permission name already exists'
@@ -82,10 +82,10 @@ export const createPermission = async (req, res) => {
         }
 
         const result = await permissionDB.createPermission(value);
-        logger.info('Permission created successfully', {
+        logger.info({
             permission_id: result.data.permission_id,
             permission_name: result.data.permission_name
-        });
+        }, 'Permission created successfully');
 
         return res.status(201).json({
             success: true,
@@ -93,11 +93,11 @@ export const createPermission = async (req, res) => {
             message: 'Permission created successfully'
         });
     } catch (error) {
-        logger.error('Error in createPermission controller', {
+        logger.error({
             error: error.message,
             stack: error.stack,
             body: req.body
-        });
+        }, 'Error in createPermission controller');
         return handleError(error, res, 'permissions');
     }
 };
@@ -105,10 +105,10 @@ export const createPermission = async (req, res) => {
 
 export const getAllPermissions = async (req, res) => {
     try {
-        logger.info('GET /permissions - Get all permissions request received', {
+        logger.info({
             query: req.query,
             ip: req.ip
-        });
+        }, 'GET /permissions - Get all permissions request received');
 
         const options = {
             page: parseInt(req.query.page) || 1,
@@ -118,10 +118,10 @@ export const getAllPermissions = async (req, res) => {
         };
 
         const result = await permissionDB.getAllPermissions(options);
-        logger.info('Permissions retrieved successfully', {
+        logger.info({
             count: result.data.length,
             pagination: result.pagination
-        });
+        }, 'Permissions retrieved successfully');
 
         return res.status(200).json({
             success: true,
@@ -130,11 +130,11 @@ export const getAllPermissions = async (req, res) => {
             message: 'Permissions retrieved successfully'
         });
     } catch (error) {
-        logger.error('Error in getAllPermissions controller', {
+        logger.error({
             error: error.message,
             stack: error.stack,
             query: req.query
-        });
+        }, 'Error in getAllPermissions controller');
         return handleError(error, res, 'permissions');
     }
 };
@@ -144,13 +144,13 @@ export const getPermissionById = async (req, res) => {
     try {
         const permissionId = parseInt(req.params.id);
         
-        logger.info('GET /permissions/:id - Get permission by ID request received', {
+        logger.info({
             permissionId,
             ip: req.ip
-        });
+        }, 'GET /permissions/:id - Get permission by ID request received');
 
         if (!permissionId || isNaN(permissionId)) {
-            logger.warn('Invalid permission ID provided', { permissionId: req.params.id });
+            logger.warn({ permissionId: req.params.id }, 'Invalid permission ID provided');
             return res.status(400).json({
                 success: false,
                 message: 'Invalid permission ID'
@@ -160,17 +160,17 @@ export const getPermissionById = async (req, res) => {
         const result = await permissionDB.getPermissionById(permissionId);
 
         if (!result.success) {
-            logger.warn('Permission not found', { permissionId });
+            logger.warn({ permissionId }, 'Permission not found');
             return res.status(404).json({
                 success: false,
                 message: 'Permission not found'
             });
         }
 
-        logger.info('Permission retrieved successfully', {
+        logger.info({
             permissionId,
             permission_name: result.data.permission_name
-        });
+        }, 'Permission retrieved successfully');
 
         return res.status(200).json({
             success: true,
@@ -178,11 +178,11 @@ export const getPermissionById = async (req, res) => {
             message: 'Permission retrieved successfully'
         });
     } catch (error) {
-        logger.error('Error in getPermissionById controller', {
+        logger.error({
             error: error.message,
             stack: error.stack,
             permissionId: req.params.id
-        });
+        }, 'Error in getPermissionById controller');
         return handleError(error, res, 'permissions');
     }
 };
@@ -191,14 +191,14 @@ export const updatePermission = async (req, res) => {
     try {
         const permissionId = parseInt(req.params.id);
         
-        logger.info('PUT /permissions/:id - Update permission request received', {
+        logger.info({
             permissionId,
             body: req.body,
             ip: req.ip
-        });
+        }, 'PUT /permissions/:id - Update permission request received');
 
         if (!permissionId || isNaN(permissionId)) {
-            logger.warn('Invalid permission ID provided for update', { permissionId: req.params.id });
+            logger.warn({ permissionId: req.params.id }, 'Invalid permission ID provided for update');
             return res.status(400).json({
                 success: false,
                 message: 'Invalid permission ID'
@@ -207,11 +207,11 @@ export const updatePermission = async (req, res) => {
 
         const { error, value } = updatePermissionSchema.validate(req.body);
         if (error) {
-            logger.warn('Permission update validation failed', {
+            logger.warn({
                 error: error.details[0].message,
                 body: req.body,
                 permissionId
-            });
+            }, 'Permission update validation failed');
             return res.status(400).json({
                 success: false,
                 message: error.details[0].message
@@ -220,7 +220,7 @@ export const updatePermission = async (req, res) => {
 
         const existingPermission = await permissionDB.getPermissionById(permissionId);
         if (!existingPermission.success) {
-            logger.warn('Permission not found for update', { permissionId });
+            logger.warn({ permissionId }, 'Permission not found for update');
             return res.status(404).json({
                 success: false,
                 message: 'Permission not found'
@@ -231,11 +231,11 @@ export const updatePermission = async (req, res) => {
         if (value.permission_name !== existingPermission.data.permission_name) {
             const nameExists = await permissionDB.permissionExistsByName(value.permission_name);
             if (nameExists) {
-                logger.warn('Permission update failed - name already exists', {
+                logger.warn({
                     permissionId,
                     existing_name: existingPermission.data.permission_name,
                     new_name: value.permission_name
-                });
+                }, 'Permission update failed - name already exists');
                 return res.status(409).json({
                     success: false,
                     message: 'Permission name already exists'
@@ -246,18 +246,18 @@ export const updatePermission = async (req, res) => {
         const result = await permissionDB.updatePermission(permissionId, value);
 
         if (!result.success) {
-            logger.warn('Permission update failed', { permissionId });
+            logger.warn({ permissionId }, 'Permission update failed');
             return res.status(404).json({
                 success: false,
                 message: 'Permission not found'
             });
         }
 
-        logger.info('Permission updated successfully', {
+        logger.info({
             permissionId,
             old_name: existingPermission.data.permission_name,
             new_name: result.data.permission_name
-        });
+        }, 'Permission updated successfully');
 
         return res.status(200).json({
             success: true,
@@ -265,12 +265,12 @@ export const updatePermission = async (req, res) => {
             message: 'Permission updated successfully'
         });
     } catch (error) {
-        logger.error('Error in updatePermission controller', {
+        logger.error({
             error: error.message,
             stack: error.stack,
             permissionId: req.params.id,
             body: req.body
-        });
+        }, 'Error in updatePermission controller');
         return handleError(error, res, 'permissions');
     }
 };
@@ -279,13 +279,13 @@ export const deletePermission = async (req, res) => {
     try {
         const permissionId = parseInt(req.params.id);
         
-        logger.info('DELETE /permissions/:id - Delete permission request received', {
+        logger.info({
             permissionId,
             ip: req.ip
-        });
+        }, 'DELETE /permissions/:id - Delete permission request received');
 
         if (!permissionId || isNaN(permissionId)) {
-            logger.warn('Invalid permission ID provided for deletion', { permissionId: req.params.id });
+            logger.warn({ permissionId: req.params.id }, 'Invalid permission ID provided for deletion');
             return res.status(400).json({
                 success: false,
                 message: 'Invalid permission ID'
@@ -294,7 +294,7 @@ export const deletePermission = async (req, res) => {
 
         const existingPermission = await permissionDB.getPermissionById(permissionId);
         if (!existingPermission.success) {
-            logger.warn('Permission not found for deletion', { permissionId });
+            logger.warn({ permissionId }, 'Permission not found for deletion');
             return res.status(404).json({
                 success: false,
                 message: 'Permission not found'
@@ -304,17 +304,17 @@ export const deletePermission = async (req, res) => {
         const result = await permissionDB.deletePermission(permissionId);
 
         if (!result.success) {
-            logger.warn('Permission deletion failed', { permissionId });
+            logger.warn({ permissionId }, 'Permission deletion failed');
             return res.status(404).json({
                 success: false,
                 message: 'Permission not found'
             });
         }
 
-        logger.info('Permission deleted successfully', {
+        logger.info({
             permissionId,
             permission_name: existingPermission.data.permission_name
-        });
+        }, 'Permission deleted successfully');
 
         return res.status(200).json({
             success: true,
@@ -322,11 +322,11 @@ export const deletePermission = async (req, res) => {
             message: 'Permission deleted successfully'
         });
     } catch (error) {
-        logger.error('Error in deletePermission controller', {
+        logger.error({
             error: error.message,
             stack: error.stack,
             permissionId: req.params.id
-        });
+        }, 'Error in deletePermission controller');
         return handleError(error, res, 'permissions');
     }
 };
@@ -335,10 +335,10 @@ export const checkPermissionExists = async (req, res) => {
     try {
         const { permission_name } = req.params;
         
-        logger.info('GET /permissions/check/:permission_name - Check permission exists request received', {
+        logger.info({
             permission_name,
             ip: req.ip
-        });
+        }, 'GET /permissions/check/:permission_name - Check permission exists request received');
 
         if (!permission_name || permission_name.trim().length === 0) {
             return res.status(400).json({
@@ -349,10 +349,10 @@ export const checkPermissionExists = async (req, res) => {
 
         const exists = await permissionDB.permissionExistsByName(permission_name);
 
-        logger.info('Permission existence check completed', {
+        logger.info({
             permission_name,
             exists
-        });
+        }, 'Permission existence check completed');
 
         return res.status(200).json({
             success: true,
@@ -360,11 +360,11 @@ export const checkPermissionExists = async (req, res) => {
             data: { exists, permission_name }
         });
     } catch (error) {
-        logger.error('Error in checkPermissionExists controller', {
+        logger.error({
             error: error.message,
             stack: error.stack,
             permission_name: req.params.permission_name
-        });
+        }, 'Error in checkPermissionExists controller');
         return handleError(error, res, 'permissions');
     }
 }; 

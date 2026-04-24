@@ -53,14 +53,14 @@ export const createCompany = async (req, res) => {
         }
 
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            logger.info('createCompany: uploading logo to R2', {
+            logger.info({
                 filename: req.file.originalname,
                 mimetype: req.file.mimetype,
                 sizeBytes: req.file.size,
-            });
+            }, 'createCompany: uploading logo to R2');
             const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_COMPANIES", req.file.mimetype);
             value.company_logo = r2Result.url;
-            logger.info('createCompany: logo uploaded', { url: r2Result.url });
+            logger.info({ url: r2Result.url }, 'createCompany: logo uploaded');
         }
 
         const result = await companyService.createCompany(value);
@@ -144,14 +144,14 @@ export const updateCompany = async (req, res) => {
         }
 
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            logger.info('updateCompany: replacing logo in R2', {
+            logger.info({
                 filename: req.file.originalname,
                 mimetype: req.file.mimetype,
                 sizeBytes: req.file.size,
-            });
+            }, 'updateCompany: replacing logo in R2');
             const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_COMPANIES", req.file.mimetype);
             value.company_logo = r2Result.url;
-            logger.info('updateCompany: logo replaced', { url: r2Result.url });
+            logger.info({ url: r2Result.url }, 'updateCompany: logo replaced');
         }
 
         const { id } = req.params;

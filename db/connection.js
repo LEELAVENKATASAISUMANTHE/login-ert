@@ -32,10 +32,10 @@ pool.on('connect', () => {
 });
 
 pool.on('error', (err) => {
-  logger.error('❌ Database connection error:', {
+  logger.error({
     error: err.message,
     stack: err.stack
-  });
+  }, '❌ Database connection error:');
 });
 
 // Test connection on startup
@@ -43,14 +43,14 @@ async function testConnection() {
   try {
     const client = await pool.connect();
     const result = await client.query('SELECT NOW() as current_time, version()');
-    logger.info('✅ Database connection test successful', {
+    logger.info({
       timestamp: result.rows[0].current_time,
       version: result.rows[0].version.split(' ')[0] + ' ' + result.rows[0].version.split(' ')[1]
-    });
+    }, '✅ Database connection test successful');
     client.release();
     return true;
   } catch (error) {
-    logger.error('❌ Database connection test failed:', {
+    logger.error({
       error: error.message,
       code: error.code,
       config: {
@@ -59,7 +59,7 @@ async function testConnection() {
         database: dbConfig.database,
         user: dbConfig.user
       }
-    });
+    }, '❌ Database connection test failed:');
     
     // Don't throw error - let app start anyway for testing
     logger.warn('⚠️  Application starting without database connection');

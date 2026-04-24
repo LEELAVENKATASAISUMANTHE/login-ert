@@ -121,11 +121,11 @@ export async function publishJobCreatedEligibilityEvent(input) {
       }
     });
   } catch (error) {
-    logger.error('Failed to publish JOB_CREATED eligibility event', {
+    logger.error({
       jobId: eventPayload.jobId,
       topic: TOPICS.JOB_ELIGIBILITY,
       error: error.message
-    });
+    }, 'Failed to publish JOB_CREATED eligibility event');
     throw error;
   }
 

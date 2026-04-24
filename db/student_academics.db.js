@@ -5,7 +5,7 @@ import pool from './connection.js';
 export const getStudentsMenu = async (searchParams = {}) => {
     const client = await pool.connect();
     try {
-        logger.info('getStudentsMenu (academics): Fetching students menu list', { searchParams });
+        logger.info({ searchParams }, 'getStudentsMenu (academics): Fetching students menu list');
 
         const { search, searchField } = searchParams;
         const values = [];
@@ -45,9 +45,9 @@ export const getStudentsMenu = async (searchParams = {}) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getStudentsMenu (academics): ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `getStudentsMenu (academics): ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -122,10 +122,10 @@ export const createStudentAcademic = async (academic) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`createStudentAcademic: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             academic
-        });
+        }, `createStudentAcademic: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -152,10 +152,10 @@ export const getStudentAcademicById = async (studentId) => {
             message: 'Student academic record fetched successfully'
         };
     } catch (error) {
-        logger.error(`getStudentAcademicById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId
-        });
+        }, `getStudentAcademicById: ${error.message}`);
         throw error;
     }
 };
@@ -201,9 +201,9 @@ export const getAllStudentAcademics = async () => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getAllStudentAcademics: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `getAllStudentAcademics: ${error.message}`);
         throw error;
     }
 };
@@ -279,11 +279,11 @@ export const updateStudentAcademicById = async (studentId, academic) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`updateStudentAcademicById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId,
             academic
-        });
+        }, `updateStudentAcademicById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -351,11 +351,11 @@ export const patchStudentAcademicById = async (studentId, updates) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`patchStudentAcademicById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId,
             updates
-        });
+        }, `patchStudentAcademicById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -388,10 +388,10 @@ export const deleteStudentAcademicById = async (studentId) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteStudentAcademicById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId
-        });
+        }, `deleteStudentAcademicById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -420,10 +420,10 @@ export const getAcademicsByCategory = async (category) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getAcademicsByCategory: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             category
-        });
+        }, `getAcademicsByCategory: ${error.message}`);
         throw error;
     }
 };
@@ -431,7 +431,7 @@ export const getAcademicsByCategory = async (category) => {
 // Get academics with filters
 export const getAcademicsWithFilters = async (filters = {}) => {
     try {
-        logger.info('getAcademicsWithFilters: Fetching academics with filters', { filters });
+        logger.info({ filters }, 'getAcademicsWithFilters: Fetching academics with filters');
 
         const conditions = [];
         const values = [];
@@ -488,10 +488,10 @@ export const getAcademicsWithFilters = async (filters = {}) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getAcademicsWithFilters: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             filters
-        });
+        }, `getAcademicsWithFilters: ${error.message}`);
         throw error;
     }
 };

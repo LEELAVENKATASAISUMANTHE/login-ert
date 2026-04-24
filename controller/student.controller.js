@@ -45,10 +45,10 @@ const updateStudentSchema = joi.object({
 
 export const createStudent = async (req, res) => {
     try {
-        logger.info('createStudent', { student_id: req.body.student_id });
+        logger.info({ student_id: req.body.student_id }, 'createStudent');
         const { error, value } = studentSchema.validate(req.body);
         if (error) {
-            logger.warn('createStudent: validation failed', { message: error.details[0].message });
+            logger.warn({ message: error.details[0].message }, 'createStudent: validation failed');
             return res.status(400).json({ message: error.details[0].message });
         }
 
@@ -61,21 +61,21 @@ export const createStudent = async (req, res) => {
         }
 
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            logger.info('createStudent: uploading photo to R2', {
+            logger.info({
                 filename: req.file.originalname,
                 mimetype: req.file.mimetype,
                 sizeBytes: req.file.size,
-            });
+            }, 'createStudent: uploading photo to R2');
             const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_STUDENTS", req.file.mimetype);
             value.student_photo_path = r2Result.url;
-            logger.info('createStudent: photo uploaded', { url: r2Result.url });
+            logger.info({ url: r2Result.url }, 'createStudent: photo uploaded');
         } else {
             logger.info('createStudent: no photo provided');
             value.student_photo_path = null;
         }
 
         const student = await studentService.createStudent(value);
-        logger.info('createStudent: success', { student_id: value.student_id });
+        logger.info({ student_id: value.student_id }, 'createStudent: success');
         res.status(201).json(student);
     } catch (err) {
         return handleError(err, res, 'createStudent');
@@ -97,11 +97,11 @@ export const getAllStudents = async (req, res) => {
 export const getStudentById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('getStudentById', { id });
+        logger.info({ id }, 'getStudentById');
         const result = await studentService.getStudentById(id);
 
         if (!result.success) {
-            logger.warn('getStudentById: not found', { id });
+            logger.warn({ id }, 'getStudentById: not found');
             return res.status(404).json(result);
         }
 
@@ -115,35 +115,35 @@ export const getStudentById = async (req, res) => {
 export const updateStudentById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('updateStudentById', { id });
+        logger.info({ id }, 'updateStudentById');
         const { error, value } = updateStudentSchema.validate(req.body);
 
         if (error) {
-            logger.warn('updateStudentById: validation failed', { message: error.details[0].message });
+            logger.warn({ message: error.details[0].message }, 'updateStudentById: validation failed');
             return res.status(400).json({ message: error.details[0].message });
         }
 
 
 
         if (req.file) {
-            logger.info('student upload: uploading replacement photo to R2', {
+            logger.info({
                 filename: req.file.originalname,
                 mimetype: req.file.mimetype,
                 sizeBytes: req.file.size,
-            });
+            }, 'student upload: uploading replacement photo to R2');
             const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_STUDENTS", req.file.mimetype);
             value.student_photo_path = r2Result.url;
-            logger.info('student upload: photo replaced', { url: r2Result.url });
+            logger.info({ url: r2Result.url }, 'student upload: photo replaced');
         }
 
         const result = await studentService.updateStudentById(id, value);
 
         if (!result.success) {
-            logger.warn('updateStudentById: not found', { id });
+            logger.warn({ id }, 'updateStudentById: not found');
             return res.status(404).json(result);
         }
 
-        logger.info('updateStudentById: success', { id });
+        logger.info({ id }, 'updateStudentById: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'updateStudentById');
@@ -154,35 +154,35 @@ export const updateStudentById = async (req, res) => {
 export const patchStudentById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('patchStudentById', { id });
+        logger.info({ id }, 'patchStudentById');
         const { error, value } = updateStudentSchema.validate(req.body);
 
         if (error) {
-            logger.warn('patchStudentById: validation failed', { message: error.details[0].message });
+            logger.warn({ message: error.details[0].message }, 'patchStudentById: validation failed');
             return res.status(400).json({ message: error.details[0].message });
         }
 
 
 
         if (req.file) {
-            logger.info('student upload: uploading replacement photo to R2', {
+            logger.info({
                 filename: req.file.originalname,
                 mimetype: req.file.mimetype,
                 sizeBytes: req.file.size,
-            });
+            }, 'student upload: uploading replacement photo to R2');
             const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_STUDENTS", req.file.mimetype);
             value.student_photo_path = r2Result.url;
-            logger.info('student upload: photo replaced', { url: r2Result.url });
+            logger.info({ url: r2Result.url }, 'student upload: photo replaced');
         }
 
         const result = await studentService.patchStudentById(id, value);
 
         if (!result.success) {
-            logger.warn('patchStudentById: not found', { id });
+            logger.warn({ id }, 'patchStudentById: not found');
             return res.status(404).json(result);
         }
 
-        logger.info('patchStudentById: success', { id });
+        logger.info({ id }, 'patchStudentById: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'patchStudentById');
@@ -193,15 +193,15 @@ export const patchStudentById = async (req, res) => {
 export const deleteStudentById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('deleteStudentById', { id });
+        logger.info({ id }, 'deleteStudentById');
         const result = await studentService.deleteStudentById(id);
 
         if (!result.success) {
-            logger.warn('deleteStudentById: not found', { id });
+            logger.warn({ id }, 'deleteStudentById: not found');
             return res.status(404).json(result);
         }
 
-        logger.info('deleteStudentById: success', { id });
+        logger.info({ id }, 'deleteStudentById: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'deleteStudentById');

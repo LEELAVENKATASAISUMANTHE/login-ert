@@ -44,10 +44,10 @@ export const createStudentFamily = async (family) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`createStudentFamily: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             family
-        });
+        }, `createStudentFamily: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -79,9 +79,9 @@ export const getAllStudentFamilies = async () => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getAllStudentFamilies: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `getAllStudentFamilies: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -93,7 +93,7 @@ export const getStudentFamilyById = async (studentId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('getStudentFamilyById: Fetching student family by student ID', { studentId });
+        logger.info({ studentId }, 'getStudentFamilyById: Fetching student family by student ID');
 
         const selectQuery = `
             SELECT 
@@ -119,10 +119,10 @@ export const getStudentFamilyById = async (studentId) => {
             message: 'Student family record fetched successfully'
         };
     } catch (error) {
-        logger.error(`getStudentFamilyById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId
-        });
+        }, `getStudentFamilyById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -134,7 +134,7 @@ export const updateStudentFamilyById = async (studentId, family) => {
     const client = await pool.connect();
 
     try {
-        logger.info('updateStudentFamilyById: Updating student family', { studentId });
+        logger.info({ studentId }, 'updateStudentFamilyById: Updating student family');
         await client.query('BEGIN');
 
         const updateQuery = `
@@ -181,11 +181,11 @@ export const updateStudentFamilyById = async (studentId, family) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`updateStudentFamilyById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId,
             family
-        });
+        }, `updateStudentFamilyById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -197,7 +197,7 @@ export const deleteStudentFamilyById = async (studentId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('deleteStudentFamilyById: Deleting student family', { studentId });
+        logger.info({ studentId }, 'deleteStudentFamilyById: Deleting student family');
         await client.query('BEGIN');
 
         const deleteQuery = `
@@ -225,10 +225,10 @@ export const deleteStudentFamilyById = async (studentId) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteStudentFamilyById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId
-        });
+        }, `deleteStudentFamilyById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -240,9 +240,9 @@ export const bulkInsertStudentFamilies = async (families) => {
     const client = await pool.connect();
 
     try {
-        logger.info('bulkInsertStudentFamilies: Bulk inserting student family records', {
+        logger.info({
             count: families.length
-        });
+        }, 'bulkInsertStudentFamilies: Bulk inserting student family records');
         await client.query('BEGIN');
 
         const results = {
@@ -313,9 +313,9 @@ export const bulkInsertStudentFamilies = async (families) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`bulkInsertStudentFamilies: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `bulkInsertStudentFamilies: ${error.message}`);
         throw error;
     } finally {
         client.release();

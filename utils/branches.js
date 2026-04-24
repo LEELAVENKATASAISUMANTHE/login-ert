@@ -19,7 +19,7 @@ export const readBranches = () => {
     const raw = fs.readFileSync(filePath, 'utf-8');
     return JSON.parse(raw);
   } catch (err) {
-    logger.error('Failed to read branches config', { filePath, error: err.message });
+    logger.error({ filePath, error: err.message }, 'Failed to read branches config');
     throw new Error('Could not load branches configuration');
   }
 };
@@ -32,7 +32,7 @@ const writeBranches = (branches) => {
   try {
     fs.writeFileSync(filePath, JSON.stringify(branches, null, 2), 'utf-8');
   } catch (err) {
-    logger.error('Failed to write branches config', { filePath, error: err.message });
+    logger.error({ filePath, error: err.message }, 'Failed to write branches config');
     throw new Error('Could not save branches configuration');
   }
 };

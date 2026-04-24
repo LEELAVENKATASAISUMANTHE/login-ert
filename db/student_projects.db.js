@@ -38,10 +38,10 @@ export const createStudentProject = async (project) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`createStudentProject: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             project
-        });
+        }, `createStudentProject: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -73,9 +73,9 @@ export const getAllStudentProjects = async () => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getAllStudentProjects: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `getAllStudentProjects: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -87,7 +87,7 @@ export const getStudentProjectById = async (projectId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('getStudentProjectById: Fetching student project by ID', { projectId });
+        logger.info({ projectId }, 'getStudentProjectById: Fetching student project by ID');
 
         const selectQuery = `
             SELECT 
@@ -113,10 +113,10 @@ export const getStudentProjectById = async (projectId) => {
             message: 'Student project fetched successfully'
         };
     } catch (error) {
-        logger.error(`getStudentProjectById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             projectId
-        });
+        }, `getStudentProjectById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -128,7 +128,7 @@ export const getProjectsByStudentId = async (studentId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('getProjectsByStudentId: Fetching projects for student', { studentId });
+        logger.info({ studentId }, 'getProjectsByStudentId: Fetching projects for student');
 
         const selectQuery = `
             SELECT 
@@ -149,10 +149,10 @@ export const getProjectsByStudentId = async (studentId) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getProjectsByStudentId: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId
-        });
+        }, `getProjectsByStudentId: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -164,7 +164,7 @@ export const searchProjectsByTools = async (tools) => {
     const client = await pool.connect();
 
     try {
-        logger.info('searchProjectsByTools: Searching projects by tools', { tools });
+        logger.info({ tools }, 'searchProjectsByTools: Searching projects by tools');
 
         // Split tools by comma and create ILIKE conditions for each
         const toolsArray = tools.split(',').map(t => t.trim().toLowerCase());
@@ -193,10 +193,10 @@ export const searchProjectsByTools = async (tools) => {
             searchedTools: toolsArray
         };
     } catch (error) {
-        logger.error(`searchProjectsByTools: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             tools
-        });
+        }, `searchProjectsByTools: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -208,7 +208,7 @@ export const updateStudentProjectById = async (projectId, project) => {
     const client = await pool.connect();
 
     try {
-        logger.info('updateStudentProjectById: Updating student project', { projectId });
+        logger.info({ projectId }, 'updateStudentProjectById: Updating student project');
         await client.query('BEGIN');
 
         const updateQuery = `
@@ -251,11 +251,11 @@ export const updateStudentProjectById = async (projectId, project) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`updateStudentProjectById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             projectId,
             project
-        });
+        }, `updateStudentProjectById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -267,7 +267,7 @@ export const deleteStudentProjectById = async (projectId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('deleteStudentProjectById: Deleting student project', { projectId });
+        logger.info({ projectId }, 'deleteStudentProjectById: Deleting student project');
         await client.query('BEGIN');
 
         const deleteQuery = `
@@ -295,10 +295,10 @@ export const deleteStudentProjectById = async (projectId) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteStudentProjectById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             projectId
-        });
+        }, `deleteStudentProjectById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -310,9 +310,9 @@ export const bulkInsertStudentProjects = async (projects) => {
     const client = await pool.connect();
 
     try {
-        logger.info('bulkInsertStudentProjects: Bulk inserting student projects', {
+        logger.info({
             count: projects.length
-        });
+        }, 'bulkInsertStudentProjects: Bulk inserting student projects');
         await client.query('BEGIN');
 
         const results = {
@@ -378,9 +378,9 @@ export const bulkInsertStudentProjects = async (projects) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`bulkInsertStudentProjects: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `bulkInsertStudentProjects: ${error.message}`);
         throw error;
     } finally {
         client.release();

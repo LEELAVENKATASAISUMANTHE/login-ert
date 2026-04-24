@@ -35,10 +35,10 @@ export const createStudentDocument = async (document) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`createStudentDocument: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             document
-        });
+        }, `createStudentDocument: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -70,9 +70,9 @@ export const getAllStudentDocuments = async () => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getAllStudentDocuments: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `getAllStudentDocuments: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -84,7 +84,7 @@ export const getStudentDocumentById = async (docId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('getStudentDocumentById: Fetching student document by ID', { docId });
+        logger.info({ docId }, 'getStudentDocumentById: Fetching student document by ID');
 
         const selectQuery = `
             SELECT 
@@ -110,10 +110,10 @@ export const getStudentDocumentById = async (docId) => {
             message: 'Student document fetched successfully'
         };
     } catch (error) {
-        logger.error(`getStudentDocumentById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             docId
-        });
+        }, `getStudentDocumentById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -125,7 +125,7 @@ export const getDocumentsByStudentId = async (studentId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('getDocumentsByStudentId: Fetching documents for student', { studentId });
+        logger.info({ studentId }, 'getDocumentsByStudentId: Fetching documents for student');
 
         const selectQuery = `
             SELECT 
@@ -146,10 +146,10 @@ export const getDocumentsByStudentId = async (studentId) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getDocumentsByStudentId: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId
-        });
+        }, `getDocumentsByStudentId: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -161,7 +161,7 @@ export const updateStudentDocumentById = async (docId, document) => {
     const client = await pool.connect();
 
     try {
-        logger.info('updateStudentDocumentById: Updating student document', { docId });
+        logger.info({ docId }, 'updateStudentDocumentById: Updating student document');
         await client.query('BEGIN');
 
         const updateQuery = `
@@ -200,11 +200,11 @@ export const updateStudentDocumentById = async (docId, document) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`updateStudentDocumentById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             docId,
             document
-        });
+        }, `updateStudentDocumentById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -216,7 +216,7 @@ export const deleteStudentDocumentById = async (docId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('deleteStudentDocumentById: Deleting student document', { docId });
+        logger.info({ docId }, 'deleteStudentDocumentById: Deleting student document');
         await client.query('BEGIN');
 
         const deleteQuery = `
@@ -244,10 +244,10 @@ export const deleteStudentDocumentById = async (docId) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteStudentDocumentById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             docId
-        });
+        }, `deleteStudentDocumentById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -259,9 +259,9 @@ export const bulkInsertStudentDocuments = async (documents) => {
     const client = await pool.connect();
 
     try {
-        logger.info('bulkInsertStudentDocuments: Bulk inserting student documents', {
+        logger.info({
             count: documents.length
-        });
+        }, 'bulkInsertStudentDocuments: Bulk inserting student documents');
         await client.query('BEGIN');
 
         const results = {
@@ -324,9 +324,9 @@ export const bulkInsertStudentDocuments = async (documents) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`bulkInsertStudentDocuments: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `bulkInsertStudentDocuments: ${error.message}`);
         throw error;
     } finally {
         client.release();

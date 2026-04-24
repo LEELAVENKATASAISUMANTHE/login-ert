@@ -10,7 +10,7 @@ const ALLOWED_ADDRESS_FIELDS = [
 export const getStudentsMenu = async (searchParams = {}) => {
     const client = await pool.connect();
     try {
-        logger.info('getStudentsMenu: Fetching students menu list', { searchParams });
+        logger.info({ searchParams }, 'getStudentsMenu: Fetching students menu list');
         
         const { search, searchField } = searchParams;
         const values = [];
@@ -57,9 +57,9 @@ export const getStudentsMenu = async (searchParams = {}) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getStudentsMenu: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `getStudentsMenu: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -114,10 +114,10 @@ export const createStudentAddress = async (address) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`createStudentAddress: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             address
-        });
+        }, `createStudentAddress: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -143,10 +143,10 @@ export const getStudentAddressById = async (addressId) => {
             message: 'Student address fetched successfully'
         };
     } catch (error) {
-        logger.error(`getStudentAddressById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             addressId
-        });
+        }, `getStudentAddressById: ${error.message}`);
         throw error;
     }
 };
@@ -170,10 +170,10 @@ export const getAddressByStudentId = async (studentId) => {
             message: 'Student address fetched successfully'
         };
     } catch (error) {
-        logger.error(`getAddressByStudentId: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId
-        });
+        }, `getAddressByStudentId: ${error.message}`);
         throw error;
     }
 };
@@ -212,9 +212,9 @@ export const getAllStudentAddresses = async () => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getAllStudentAddresses: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `getAllStudentAddresses: ${error.message}`);
         throw error;
     }
 };
@@ -273,11 +273,11 @@ export const updateStudentAddressById = async (addressId, updateFields) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`updateStudentAddressById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             addressId,
             updateFields
-        });
+        }, `updateStudentAddressById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -333,11 +333,11 @@ export const patchStudentAddressById = async (addressId, updateFields) => {
             message: 'Student address updated successfully'
         };
     } catch (error) {
-        logger.error(`patchStudentAddressById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             addressId,
             updateFields
-        });
+        }, `patchStudentAddressById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -367,10 +367,10 @@ export const deleteStudentAddressById = async (addressId) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteStudentAddressById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             addressId
-        });
+        }, `deleteStudentAddressById: ${error.message}`);
         throw error;
     } finally {
         client.release();

@@ -54,15 +54,15 @@ const REQUIRED_COLUMNS = ['student_id'];
 // Create a new student internship record
 export const createStudentInternship = async (req, res) => {
     try {
-        logger.info('createStudentInternship', { student_id: req.body.student_id });
+        logger.info({ student_id: req.body.student_id }, 'createStudentInternship');
         const { error, value } = studentInternshipSchema.validate(req.body);
         if (error) {
-            logger.warn('createStudentInternship: validation failed', { message: error.details[0].message });
+            logger.warn({ message: error.details[0].message }, 'createStudentInternship: validation failed');
             return res.status(400).json({ message: error.details[0].message });
         }
 
         const internship = await studentInternshipService.createStudentInternship(value);
-        logger.info('createStudentInternship: success', { student_id: value.student_id });
+        logger.info({ student_id: value.student_id }, 'createStudentInternship: success');
         res.status(201).json(internship);
     } catch (err) {
         return handleError(err, res, 'createStudentInternship');
@@ -84,11 +84,11 @@ export const getAllStudentInternships = async (req, res) => {
 export const getStudentInternshipById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('getStudentInternshipById', { id });
+        logger.info({ id }, 'getStudentInternshipById');
         const result = await studentInternshipService.getStudentInternshipById(id);
 
         if (!result.success) {
-            logger.warn('getStudentInternshipById: not found', { id });
+            logger.warn({ id }, 'getStudentInternshipById: not found');
             return res.status(404).json(result);
         }
 
@@ -101,7 +101,7 @@ export const getStudentInternshipById = async (req, res) => {
 // Get all internships for a specific student
 export const getInternshipsByStudentId = async (req, res) => {
     try {
-        logger.info('getInternshipsByStudentId', { studentId: req.params.studentId });
+        logger.info({ studentId: req.params.studentId }, 'getInternshipsByStudentId');
         const { studentId } = req.params;
         const result = await studentInternshipService.getInternshipsByStudentId(studentId);
         res.status(200).json(result);
@@ -114,22 +114,22 @@ export const getInternshipsByStudentId = async (req, res) => {
 export const updateStudentInternshipById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('updateStudentInternshipById', { id });
+        logger.info({ id }, 'updateStudentInternshipById');
         const { error, value } = studentInternshipSchema.validate(req.body);
 
         if (error) {
-            logger.warn('updateStudentInternshipById: validation failed', { message: error.details[0].message });
+            logger.warn({ message: error.details[0].message }, 'updateStudentInternshipById: validation failed');
             return res.status(400).json({ message: error.details[0].message });
         }
 
         const result = await studentInternshipService.updateStudentInternshipById(id, value);
 
         if (!result.success) {
-            logger.warn('updateStudentInternshipById: not found', { id });
+            logger.warn({ id }, 'updateStudentInternshipById: not found');
             return res.status(404).json(result);
         }
 
-        logger.info('updateStudentInternshipById: success', { id });
+        logger.info({ id }, 'updateStudentInternshipById: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'updateStudentInternship');
@@ -140,15 +140,15 @@ export const updateStudentInternshipById = async (req, res) => {
 export const deleteStudentInternshipById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('deleteStudentInternshipById', { id });
+        logger.info({ id }, 'deleteStudentInternshipById');
         const result = await studentInternshipService.deleteStudentInternshipById(id);
 
         if (!result.success) {
-            logger.warn('deleteStudentInternshipById: not found', { id });
+            logger.warn({ id }, 'deleteStudentInternshipById: not found');
             return res.status(404).json(result);
         }
 
-        logger.info('deleteStudentInternshipById: success', { id });
+        logger.info({ id }, 'deleteStudentInternshipById: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentInternships');
@@ -158,7 +158,7 @@ export const deleteStudentInternshipById = async (req, res) => {
 // Import student internships from Excel file
 export const importFromExcel = async (req, res) => {
     try {
-        logger.info('importFromExcel', { filename: req.file?.originalname });
+        logger.info({ filename: req.file?.originalname }, 'importFromExcel');
         // Check if file exists
         if (!req.file || !req.file.buffer) {
             return res.status(400).json({
@@ -229,7 +229,7 @@ export const importFromExcel = async (req, res) => {
         // Bulk insert validated data
         const result = await studentInternshipService.bulkInsertStudentInternships(validatedData);
 
-        if (result.success) logger.info('importFromExcel: success', { inserted: result.inserted });
+        if (result.success) logger.info({ inserted: result.inserted }, 'importFromExcel: success');
         res.status(result.success ? 201 : 400).json(result);
     } catch (err) {
         return handleError(err, res, 'studentInternships');

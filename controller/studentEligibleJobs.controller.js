@@ -30,11 +30,11 @@ export const getEligibleJobs = async (req, res) => {
             data: result,
         });
     } catch (err) {
-        logger.error("Error fetching eligible jobs", {
+        logger.error({
             studentId: req.params.studentId,
             error: err.message,
             stack: err.stack,
-        });
+        }, "Error fetching eligible jobs");
         return handleError(err, res, 'getEligibleJobs');
     }
 };

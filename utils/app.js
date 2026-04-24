@@ -107,7 +107,7 @@ app.use(cors({
       return callback(null, true);
     }
 
-    logger.warn('CORS blocked request', { origin });
+    logger.warn({ origin }, 'CORS blocked request');
     return callback(null, false);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -135,13 +135,13 @@ app.use(morgan('combined', {
 
 // Request logging middleware
 app.use((req, res, next) => {
-  logger.info('Incoming request', {
+  logger.info({
     method: req.method,
     url: req.originalUrl,
     ip: req.ip,
     userAgent: req.get('User-Agent'),
     timestamp: new Date().toISOString()
-  });
+  }, 'Incoming request');
   next();
 });
 
@@ -156,14 +156,14 @@ app.use((req, res, next) => {
     const cpuPercent = (cpuUsage.user + cpuUsage.system) / 1000; // microseconds to milliseconds
 
     if (duration > 1000) {
-      logger.warn('⚠️ SLOW REQUEST DETECTED', {
+      logger.warn({
         method: req.method,
         url: req.originalUrl,
         duration: `${duration}ms`,
         statusCode: res.statusCode,
         cpuTime: `${cpuPercent.toFixed(2)}ms`,
         ip: req.ip
-      });
+      }, '⚠️ SLOW REQUEST DETECTED');
     }
   });
   next();
@@ -203,10 +203,10 @@ app.get('/api/health/database', async (req, res) => {
     // Release the client back to the pool
     client.release();
 
-    logger.info('Database health check successful', {
+    logger.info({
       responseTime: `${responseTime}ms`,
       timestamp: result.rows[0].current_time
-    });
+    }, 'Database health check successful');
 
     res.status(200).json({
       success: true,
@@ -225,11 +225,11 @@ app.get('/api/health/database', async (req, res) => {
     });
 
   } catch (error) {
-    logger.error('Database health check failed', {
+    logger.error({
       error: error.message,
       code: error.code,
       stack: error.stack
-    });
+    }, 'Database health check failed');
 
     res.status(503).json({
       success: false,
@@ -290,9 +290,9 @@ app.get('/api/health/complete', async (req, res) => {
     };
 
   } catch (error) {
-    logger.error('Database check failed in complete health check', {
+    logger.error({
       error: error.message
-    });
+    }, 'Database check failed in complete health check');
 
     healthStatus.database = {
       status: 'DISCONNECTED',
@@ -315,9 +315,9 @@ app.get('/api/health/complete', async (req, res) => {
       ping: pong
     };
   } catch (error) {
-    logger.error('Redis check failed in complete health check', {
+    logger.error({
       error: error.message
-    });
+    }, 'Redis check failed in complete health check');
 
     healthStatus.redis = {
       status: 'DISCONNECTED',
@@ -410,11 +410,11 @@ app.get('/api', (req, res) => {
 
 // 404 handler
 app.use('*', (req, res) => {
-  logger.warn('Route not found', {
+  logger.warn({
     method: req.method,
     url: req.originalUrl,
     ip: req.ip
-  });
+  }, 'Route not found');
 
   res.status(404).json({
     success: false,
@@ -453,14 +453,14 @@ app.use((error, req, res, next) => {
     responseBody.stack = error.stack;
   }
 
-  logger.error('Global error handler', {
+  logger.error({
     error: error.message,
     stack: error.stack,
     statusCode,
     method: req.method,
     url: req.originalUrl,
     ip: req.ip
-  });
+  }, 'Global error handler');
 
   return res.status(statusCode).json(responseBody);
 });

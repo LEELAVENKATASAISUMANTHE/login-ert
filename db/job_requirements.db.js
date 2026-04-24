@@ -87,10 +87,10 @@ export const getAllJobRequirements = async (params = {}) => {
             message: 'Job requirements retrieved successfully'
         };
     } catch (error) {
-        logger.error(`getAllJobRequirements: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             params
-        });
+        }, `getAllJobRequirements: ${error.message}`);
         throw error;
     }
 };
@@ -123,10 +123,10 @@ export const getJobRequirementById = async (requirementId) => {
             message: 'Job requirement fetched successfully'
         };
     } catch (error) {
-        logger.error(`getJobRequirementById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             requirementId
-        });
+        }, `getJobRequirementById: ${error.message}`);
         throw error;
     }
 };
@@ -159,10 +159,10 @@ export const getJobRequirementByJobId = async (jobId) => {
             message: 'Job requirement fetched successfully'
         };
     } catch (error) {
-        logger.error(`getJobRequirementByJobId: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             jobId
-        });
+        }, `getJobRequirementByJobId: ${error.message}`);
         throw error;
     }
 };
@@ -195,10 +195,10 @@ export const deleteJobRequirement = async (requirementId) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteJobRequirement: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             requirementId
-        });
+        }, `deleteJobRequirement: ${error.message}`);
         throw error;
     } finally {
         client.release();

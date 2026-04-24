@@ -6,7 +6,7 @@ export const getStudentFullReport = async (studentId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('getStudentFullReport: Fetching complete student data', { studentId });
+        logger.info({ studentId }, 'getStudentFullReport: Fetching complete student data');
 
         // Fetch student basic info
         const studentQuery = `
@@ -38,7 +38,7 @@ export const getStudentFullReport = async (studentId) => {
             const addressQuery = `SELECT * FROM student_addresses WHERE student_id = $1`;
             addressResult = await client.query(addressQuery, [studentId]);
         } catch (e) {
-            logger.warn('student_addresses table not found or error', { error: e.message });
+            logger.warn({ error: e.message }, 'student_addresses table not found or error');
         }
 
         // Fetch student academics
@@ -46,7 +46,7 @@ export const getStudentFullReport = async (studentId) => {
             const academicsQuery = `SELECT * FROM student_academics WHERE student_id = $1`;
             academicsResult = await client.query(academicsQuery, [studentId]);
         } catch (e) {
-            logger.warn('student_academics table not found or error', { error: e.message });
+            logger.warn({ error: e.message }, 'student_academics table not found or error');
         }
 
         // Fetch student family
@@ -54,7 +54,7 @@ export const getStudentFullReport = async (studentId) => {
             const familyQuery = `SELECT * FROM student_family WHERE student_id = $1`;
             familyResult = await client.query(familyQuery, [studentId]);
         } catch (e) {
-            logger.warn('student_family table not found or error', { error: e.message });
+            logger.warn({ error: e.message }, 'student_family table not found or error');
         }
 
         // Fetch student languages
@@ -62,7 +62,7 @@ export const getStudentFullReport = async (studentId) => {
             const languagesQuery = `SELECT * FROM student_languages WHERE student_id = $1`;
             languagesResult = await client.query(languagesQuery, [studentId]);
         } catch (e) {
-            logger.warn('student_languages table not found or error', { error: e.message });
+            logger.warn({ error: e.message }, 'student_languages table not found or error');
         }
 
         // Fetch student internships
@@ -70,7 +70,7 @@ export const getStudentFullReport = async (studentId) => {
             const internshipsQuery = `SELECT * FROM student_internships WHERE student_id = $1 ORDER BY start_date DESC`;
             internshipsResult = await client.query(internshipsQuery, [studentId]);
         } catch (e) {
-            logger.warn('student_internships table not found or error', { error: e.message });
+            logger.warn({ error: e.message }, 'student_internships table not found or error');
         }
 
         // Fetch student projects
@@ -78,7 +78,7 @@ export const getStudentFullReport = async (studentId) => {
             const projectsQuery = `SELECT * FROM student_projects WHERE student_id = $1 ORDER BY project_id DESC`;
             projectsResult = await client.query(projectsQuery, [studentId]);
         } catch (e) {
-            logger.warn('student_projects table not found or error', { error: e.message });
+            logger.warn({ error: e.message }, 'student_projects table not found or error');
         }
 
         // Fetch student certifications
@@ -86,7 +86,7 @@ export const getStudentFullReport = async (studentId) => {
             const certificationsQuery = `SELECT * FROM student_certifications WHERE student_id = $1 ORDER BY cert_id DESC`;
             certificationsResult = await client.query(certificationsQuery, [studentId]);
         } catch (e) {
-            logger.warn('student_certifications table not found or error', { error: e.message });
+            logger.warn({ error: e.message }, 'student_certifications table not found or error');
         }
 
         // Fetch student documents
@@ -94,7 +94,7 @@ export const getStudentFullReport = async (studentId) => {
             const documentsQuery = `SELECT * FROM student_documents WHERE student_id = $1 ORDER BY uploaded_at DESC`;
             documentsResult = await client.query(documentsQuery, [studentId]);
         } catch (e) {
-            logger.warn('student_documents table not found or error', { error: e.message });
+            logger.warn({ error: e.message }, 'student_documents table not found or error');
         }
 
         return {
@@ -113,10 +113,10 @@ export const getStudentFullReport = async (studentId) => {
             message: 'Student report data fetched successfully'
         };
     } catch (error) {
-        logger.error(`getStudentFullReport: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId
-        });
+        }, `getStudentFullReport: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -163,9 +163,9 @@ export const getAllStudentsSummary = async () => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getAllStudentsSummary: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `getAllStudentsSummary: ${error.message}`);
         throw error;
     } finally {
         client.release();

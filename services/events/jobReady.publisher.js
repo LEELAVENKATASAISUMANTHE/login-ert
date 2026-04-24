@@ -26,11 +26,11 @@ export async function publishJobReadyEvent(input) {
       }
     });
   } catch (error) {
-    logger.error('Failed to publish JOB_READY event', {
+    logger.error({
       jobId: eventPayload.jobId,
       topic: TOPICS.JOB_READY,
       error: error.message
-    });
+    }, 'Failed to publish JOB_READY event');
     throw error;
   }
 

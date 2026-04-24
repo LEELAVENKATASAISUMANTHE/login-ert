@@ -40,13 +40,13 @@ export const uploadToStorage = async (fileBuffer, bucketEnvKey, mimeType = "") =
   const ext = mimeType ? `.${mimeType.split("/")[1].split(";")[0]}` : "";
   const key = `${randomUUID()}${ext}`;
 
-  logger.info("r2: uploading object", {
+  logger.info({
     bucket,
     key,
     mimeType,
     sizeBytes: fileBuffer.length,
     isPublic: !!PUBLIC_DOMAINS[bucketEnvKey],
-  });
+  }, "r2: uploading object");
 
   try {
     await r2Client.send(
@@ -58,20 +58,20 @@ export const uploadToStorage = async (fileBuffer, bucketEnvKey, mimeType = "") =
       })
     );
   } catch (err) {
-    logger.error("r2: upload failed", {
+    logger.error({
       bucket,
       key,
       mimeType,
       error: err.message,
       code: err.Code ?? err.code,
-    });
+    }, "r2: upload failed");
     throw err;
   }
 
   const publicDomain = PUBLIC_DOMAINS[bucketEnvKey];
   const url = publicDomain ? `${publicDomain.replace(/\/$/, "")}/${key}` : null;
 
-  logger.info("r2: upload success", { bucket, key, url: url ?? "(private)" });
+  logger.info({ bucket, key, url: url ?? "(private)" }, "r2: upload success");
 
   return { key, url };
 };

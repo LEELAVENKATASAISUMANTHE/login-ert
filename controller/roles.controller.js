@@ -50,19 +50,19 @@ export const roleIdSchema = Joi.object({
  */
 export const createRole = async (req, res) => {
   try {
-    logger.info('POST /roles - Create role request received', {
+    logger.info({
       body: req.body,
       ip: req.ip,
       userAgent: req.get('User-Agent')
-    });
+    }, 'POST /roles - Create role request received');
 
     // Validate request body
     const { error, value } = createRoleSchema.validate(req.body);
     if (error) {
-      logger.warn('Role creation validation failed', {
+      logger.warn({
         error: error.details[0].message,
         body: req.body
-      });
+      }, 'Role creation validation failed');
       return res.status(400).json({
         success: false,
         message: error.details[0].message
@@ -72,9 +72,9 @@ export const createRole = async (req, res) => {
     // Check if role already exists
     const exists = await roleDB.roleExistsByName(value.role_name);
     if (exists) {
-      logger.warn('Role creation failed - role already exists', {
+      logger.warn({
         role_name: value.role_name
-      });
+      }, 'Role creation failed - role already exists');
       return res.status(409).json({
         success: false,
         message: 'Role name already exists'
@@ -84,9 +84,9 @@ export const createRole = async (req, res) => {
     // Create the role
     const result = await roleDB.createRole(value);
     
-    logger.info('Role created successfully', {
+    logger.info({
       role: result.data
-    });
+    }, 'Role created successfully');
 
     return res.status(201).json({
       success: true,
@@ -95,11 +95,11 @@ export const createRole = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error('Error in createRole controller', {
+    logger.error({
       error: error.message,
       stack: error.stack,
       body: req.body
-    });
+    }, 'Error in createRole controller');
 
     return handleError(error, res, 'roles');
   }
@@ -112,18 +112,18 @@ export const createRole = async (req, res) => {
  */
 export const getAllRoles = async (req, res) => {
   try {
-    logger.info('GET /roles - Get all roles request received', {
+    logger.info({
       query: req.query,
       ip: req.ip
-    });
+    }, 'GET /roles - Get all roles request received');
 
     // Validate query parameters
     const { error, value } = getRolesSchema.validate(req.query);
     if (error) {
-      logger.warn('Get roles validation failed', {
+      logger.warn({
         error: error.details[0].message,
         query: req.query
-      });
+      }, 'Get roles validation failed');
       return res.status(400).json({
         success: false,
         message: error.details[0].message
@@ -133,10 +133,10 @@ export const getAllRoles = async (req, res) => {
     // Get roles from database
     const result = await roleDB.getAllRoles(value);
 
-    logger.info('Roles retrieved successfully', {
+    logger.info({
       count: result.data.length,
       pagination: result.pagination
-    });
+    }, 'Roles retrieved successfully');
 
     return res.status(200).json({
       success: true,
@@ -146,11 +146,11 @@ export const getAllRoles = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error('Error in getAllRoles controller', {
+    logger.error({
       error: error.message,
       stack: error.stack,
       query: req.query
-    });
+    }, 'Error in getAllRoles controller');
 
     return handleError(error, res, 'roles');
   }
@@ -165,14 +165,14 @@ export const getRoleById = async (req, res) => {
   try {
     const roleId = parseInt(req.params.id);
     
-    logger.info('GET /roles/:id - Get role by ID request received', {
+    logger.info({
       roleId,
       ip: req.ip
-    });
+    }, 'GET /roles/:id - Get role by ID request received');
 
     // Validate role ID
     if (!roleId || isNaN(roleId)) {
-      logger.warn('Invalid role ID provided', { roleId: req.params.id });
+      logger.warn({ roleId: req.params.id }, 'Invalid role ID provided');
       return res.status(400).json({
         success: false,
         message: 'Invalid role ID'
@@ -183,17 +183,17 @@ export const getRoleById = async (req, res) => {
     const result = await roleDB.getRoleById(roleId);
 
     if (!result.success) {
-      logger.warn('Role not found', { roleId });
+      logger.warn({ roleId }, 'Role not found');
       return res.status(404).json({
         success: false,
         message: 'Role not found'
       });
     }
 
-    logger.info('Role retrieved successfully', {
+    logger.info({
       roleId,
       role_name: result.data.role_name
-    });
+    }, 'Role retrieved successfully');
 
     return res.status(200).json({
       success: true,
@@ -202,11 +202,11 @@ export const getRoleById = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error('Error in getRoleById controller', {
+    logger.error({
       error: error.message,
       stack: error.stack,
       roleId: req.params.id
-    });
+    }, 'Error in getRoleById controller');
 
     return handleError(error, res, 'roles');
   }
@@ -221,15 +221,15 @@ export const updateRole = async (req, res) => {
   try {
     const roleId = parseInt(req.params.id);
     
-    logger.info('PUT /roles/:id - Update role request received', {
+    logger.info({
       roleId,
       body: req.body,
       ip: req.ip
-    });
+    }, 'PUT /roles/:id - Update role request received');
 
     // Validate role ID
     if (!roleId || isNaN(roleId)) {
-      logger.warn('Invalid role ID provided for update', { roleId: req.params.id });
+      logger.warn({ roleId: req.params.id }, 'Invalid role ID provided for update');
       return res.status(400).json({
         success: false,
         message: 'Invalid role ID'
@@ -239,11 +239,11 @@ export const updateRole = async (req, res) => {
     // Validate request body
     const { error, value } = updateRoleSchema.validate(req.body);
     if (error) {
-      logger.warn('Role update validation failed', {
+      logger.warn({
         error: error.details[0].message,
         body: req.body,
         roleId
-      });
+      }, 'Role update validation failed');
       return res.status(400).json({
         success: false,
         message: error.details[0].message
@@ -254,7 +254,7 @@ export const updateRole = async (req, res) => {
     const validation = await roleDB.validateRoleUpdate(roleId, value.role_name);
     
     if (!validation.roleExists) {
-      logger.warn('Role not found for update', { roleId });
+      logger.warn({ roleId }, 'Role not found for update');
       return res.status(404).json({
         success: false,
         message: 'Role not found'
@@ -262,11 +262,11 @@ export const updateRole = async (req, res) => {
     }
 
     if (validation.nameExists) {
-      logger.warn('Role update failed - name already exists', {
+      logger.warn({
         roleId,
         existing_name: validation.oldName,
         new_name: value.role_name
-      });
+      }, 'Role update failed - name already exists');
       return res.status(409).json({
         success: false,
         message: 'Role name already exists'
@@ -277,18 +277,18 @@ export const updateRole = async (req, res) => {
     const result = await roleDB.updateRole(roleId, value);
 
     if (!result.success) {
-      logger.warn('Role update failed', { roleId });
+      logger.warn({ roleId }, 'Role update failed');
       return res.status(404).json({
         success: false,
         message: 'Role not found'
       });
     }
 
-    logger.info('Role updated successfully', {
+    logger.info({
       roleId,
       old_name: validation.oldName,
       new_name: result.data.role_name
-    });
+    }, 'Role updated successfully');
 
     return res.status(200).json({
       success: true,
@@ -297,12 +297,12 @@ export const updateRole = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error('Error in updateRole controller', {
+    logger.error({
       error: error.message,
       stack: error.stack,
       roleId: req.params.id,
       body: req.body
-    });
+    }, 'Error in updateRole controller');
 
     return handleError(error, res, 'roles');
   }
@@ -317,14 +317,14 @@ export const deleteRole = async (req, res) => {
   try {
     const roleId = parseInt(req.params.id);
     
-    logger.info('DELETE /roles/:id - Delete role request received', {
+    logger.info({
       roleId,
       ip: req.ip
-    });
+    }, 'DELETE /roles/:id - Delete role request received');
 
     // Validate role ID
     if (!roleId || isNaN(roleId)) {
-      logger.warn('Invalid role ID provided for deletion', { roleId: req.params.id });
+      logger.warn({ roleId: req.params.id }, 'Invalid role ID provided for deletion');
       return res.status(400).json({
         success: false,
         message: 'Invalid role ID'
@@ -335,7 +335,7 @@ export const deleteRole = async (req, res) => {
     const validation = await roleDB.validateRoleDelete(roleId);
     
     if (!validation.roleExists) {
-      logger.warn('Role not found for deletion', { roleId });
+      logger.warn({ roleId }, 'Role not found for deletion');
       return res.status(404).json({
         success: false,
         message: 'Role not found'
@@ -346,17 +346,17 @@ export const deleteRole = async (req, res) => {
     const result = await roleDB.deleteRole(roleId);
 
     if (!result.success) {
-      logger.warn('Role deletion failed', { roleId });
+      logger.warn({ roleId }, 'Role deletion failed');
       return res.status(404).json({
         success: false,
         message: 'Role not found'
       });
     }
 
-    logger.info('Role deleted successfully', {
+    logger.info({
       roleId,
       role_name: validation.roleName
-    });
+    }, 'Role deleted successfully');
 
     return res.status(200).json({
       success: true,
@@ -365,11 +365,11 @@ export const deleteRole = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error('Error in deleteRole controller', {
+    logger.error({
       error: error.message,
       stack: error.stack,
       roleId: req.params.id
-    });
+    }, 'Error in deleteRole controller');
 
     return handleError(error, res, 'roles');
   }
@@ -384,10 +384,10 @@ export const checkRoleExists = async (req, res) => {
   try {
     const { role_name } = req.params;
     
-    logger.info('GET /roles/check/:role_name - Check role exists request received', {
+    logger.info({
       role_name,
       ip: req.ip
-    });
+    }, 'GET /roles/check/:role_name - Check role exists request received');
 
     if (!role_name || role_name.trim().length === 0) {
       return res.status(400).json({
@@ -398,10 +398,10 @@ export const checkRoleExists = async (req, res) => {
 
     const exists = await roleDB.roleExistsByName(role_name);
 
-    logger.info('Role existence check completed', {
+    logger.info({
       role_name,
       exists
-    });
+    }, 'Role existence check completed');
 
     return res.status(200).json({
       success: true,
@@ -410,11 +410,11 @@ export const checkRoleExists = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error('Error in checkRoleExists controller', {
+    logger.error({
       error: error.message,
       stack: error.stack,
       role_name: req.params.role_name
-    });
+    }, 'Error in checkRoleExists controller');
 
     return handleError(error, res, 'roles');
   }
@@ -436,10 +436,10 @@ export const getRolesformenu = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    logger.error('Error in getRolesformenu controller', {
+    logger.error({
       error: error.message,
       stack: error.stack
-    });
+    }, 'Error in getRolesformenu controller');
     return handleError(error, res, 'roles');
   }
 };  

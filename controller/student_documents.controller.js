@@ -37,28 +37,28 @@ const REQUIRED_COLUMNS = ['student_id'];
 // Create a new student document record (with file upload)
 export const createStudentDocument = async (req, res) => {
     try {
-        logger.info('createStudentDocument', { student_id: req.body.student_id });
+        logger.info({ student_id: req.body.student_id }, 'createStudentDocument');
         const { error, value } = studentDocumentSchema.validate(req.body);
         if (error) {
-            logger.warn('createStudentDocument: validation failed', { message: error.details[0].message });
+            logger.warn({ message: error.details[0].message }, 'createStudentDocument: validation failed');
             return res.status(400).json({ message: error.details[0].message });
         }
 
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            logger.info('createStudentDocument: uploading to R2', {
+            logger.info({
                 filename: req.file.originalname,
                 mimetype: req.file.mimetype,
                 sizeBytes: req.file.size,
-            });
+            }, 'createStudentDocument: uploading to R2');
             const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_DOCUMENTS", req.file.mimetype);
             value.file_path = r2Result.key;
-            logger.info('createStudentDocument: upload success', { key: r2Result.key });
+            logger.info({ key: r2Result.key }, 'createStudentDocument: upload success');
         } else {
             return res.status(400).json({ message: "Document file is required" });
         }
 
         const document = await studentDocumentService.createStudentDocument(value);
-        logger.info('createStudentDocument: success', { student_id: value.student_id });
+        logger.info({ student_id: value.student_id }, 'createStudentDocument: success');
         res.status(201).json(document);
     } catch (err) {
         return handleError(err, res, 'createStudentDocument');
@@ -80,11 +80,11 @@ export const getAllStudentDocuments = async (req, res) => {
 export const getStudentDocumentById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('getStudentDocumentById', { id });
+        logger.info({ id }, 'getStudentDocumentById');
         const result = await studentDocumentService.getStudentDocumentById(id);
 
         if (!result.success) {
-            logger.warn('getStudentDocumentById: not found', { id });
+            logger.warn({ id }, 'getStudentDocumentById: not found');
             return res.status(404).json(result);
         }
 
@@ -97,7 +97,7 @@ export const getStudentDocumentById = async (req, res) => {
 // Get all documents for a specific student
 export const getDocumentsByStudentId = async (req, res) => {
     try {
-        logger.info('getDocumentsByStudentId', { studentId: req.params.studentId });
+        logger.info({ studentId: req.params.studentId }, 'getDocumentsByStudentId');
         const { studentId } = req.params;
         const result = await studentDocumentService.getDocumentsByStudentId(studentId);
         res.status(200).json(result);
@@ -110,33 +110,33 @@ export const getDocumentsByStudentId = async (req, res) => {
 export const updateStudentDocumentById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('updateStudentDocumentById', { id });
+        logger.info({ id }, 'updateStudentDocumentById');
         const { error, value } = updateStudentDocumentSchema.validate(req.body);
 
         if (error) {
-            logger.warn('updateStudentDocumentById: validation failed', { message: error.details[0].message });
+            logger.warn({ message: error.details[0].message }, 'updateStudentDocumentById: validation failed');
             return res.status(400).json({ message: error.details[0].message });
         }
 
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            logger.info('updateStudentDocumentById: replacing file in R2', {
+            logger.info({
                 filename: req.file.originalname,
                 mimetype: req.file.mimetype,
                 sizeBytes: req.file.size,
-            });
+            }, 'updateStudentDocumentById: replacing file in R2');
             const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_DOCUMENTS", req.file.mimetype);
             value.file_path = r2Result.key;
-            logger.info('updateStudentDocumentById: upload success', { key: r2Result.key });
+            logger.info({ key: r2Result.key }, 'updateStudentDocumentById: upload success');
         }
 
         const result = await studentDocumentService.updateStudentDocumentById(id, value);
 
         if (!result.success) {
-            logger.warn('updateStudentDocumentById: not found', { id });
+            logger.warn({ id }, 'updateStudentDocumentById: not found');
             return res.status(404).json(result);
         }
 
-        logger.info('updateStudentDocumentById: success', { id });
+        logger.info({ id }, 'updateStudentDocumentById: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'updateStudentDocument');
@@ -147,15 +147,15 @@ export const updateStudentDocumentById = async (req, res) => {
 export const deleteStudentDocumentById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('deleteStudentDocumentById', { id });
+        logger.info({ id }, 'deleteStudentDocumentById');
         const result = await studentDocumentService.deleteStudentDocumentById(id);
 
         if (!result.success) {
-            logger.warn('deleteStudentDocumentById: not found', { id });
+            logger.warn({ id }, 'deleteStudentDocumentById: not found');
             return res.status(404).json(result);
         }
 
-        logger.info('deleteStudentDocumentById: success', { id });
+        logger.info({ id }, 'deleteStudentDocumentById: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentDocuments');
@@ -165,7 +165,7 @@ export const deleteStudentDocumentById = async (req, res) => {
 // Import student documents from Excel file (metadata only - file_path as URLs)
 export const importFromExcel = async (req, res) => {
     try {
-        logger.info('importFromExcel', { filename: req.file?.originalname });
+        logger.info({ filename: req.file?.originalname }, 'importFromExcel');
         // Check if file exists
         if (!req.file || !req.file.buffer) {
             return res.status(400).json({
@@ -225,7 +225,7 @@ export const importFromExcel = async (req, res) => {
         // Bulk insert validated data
         const result = await studentDocumentService.bulkInsertStudentDocuments(validatedData);
 
-        if (result.success) logger.info('importFromExcel: success', { inserted: result.inserted });
+        if (result.success) logger.info({ inserted: result.inserted }, 'importFromExcel: success');
         res.status(result.success ? 201 : 400).json(result);
     } catch (err) {
         return handleError(err, res, 'studentDocuments');

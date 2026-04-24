@@ -14,10 +14,10 @@ export const getRoles = async () => {
             message: 'Roles fetched successfully'
         };
     } catch (error) {
-        logger.error(`error in getRoles: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             error_message: error.message
-        });
+        }, `error in getRoles: ${error.message}`);
         throw new Error('Failed to fetch roles due to an unexpected error');
     }
 }   
@@ -43,11 +43,11 @@ export const createRole = async (data) => {
             message: 'Role created successfully'
         };
     } catch (error) {
-        logger.error(`error in createRole: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             role_name: data.role_name,
             error_message: error.message
-        });
+        }, `error in createRole: ${error.message}`);
 
         if (error.code === '23505') { // Unique constraint violation
             throw new AppError(409, 'Role name already exists');
@@ -84,11 +84,11 @@ export const updateRole = async (role_id, data) => {
             message: 'Role updated successfully'
         };
     } catch (error) {
-        logger.error(`error in updateRole: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             role_id: role_id,
             error_message: error.message
-        });
+        }, `error in updateRole: ${error.message}`);
 
         if (error.code === '23505') {
             throw new AppError(409, 'Role with this name already exists');
@@ -162,13 +162,13 @@ export const getAllRoles = async (options = {}) => {
             message: 'Roles retrieved successfully'
         };
     } catch (error) {
-        logger.error(`Error fetching roles: ${error.message}`, {
+        logger.error({
             page,
             limit,
             sortBy,
             error: error.message,
             stack: error.stack
-        });
+        }, `Error fetching roles: ${error.message}`);
         throw new Error(`Failed to retrieve roles: ${error.message}`);
     }
 };
@@ -206,11 +206,11 @@ export const getRoleById = async (roleId) => {
             message: 'Role retrieved successfully'
         };
     } catch (error) {
-        logger.error(`Error fetching role by ID: ${error.message}`, {
+        logger.error({
             roleId,
             error: error.message,
             stack: error.stack
-        });
+        }, `Error fetching role by ID: ${error.message}`);
         throw new Error(`Failed to retrieve role: ${error.message}`);
     }
 };
@@ -247,11 +247,11 @@ export const deleteRole = async (roleId) => {
             message: 'Role deleted successfully'
         };
     } catch (error) {
-        logger.error(`Error deleting role: ${error.message}`, {
+        logger.error({
             roleId,
             error: error.message,
             stack: error.stack
-        });
+        }, `Error deleting role: ${error.message}`);
         throw new Error(`Failed to delete role: ${error.message}`);
     }
 };
@@ -276,10 +276,10 @@ export const roleExistsByName = async (roleName) => {
         }
         logger.info(`Role exists check: Role name "${roleName}" does not exist.`);
     } catch (error) {
-        logger.error(`Error checking role existence: ${error.message}`, {
+        logger.error({
             roleName,
             error: error.message
-        });
+        }, `Error checking role existence: ${error.message}`);
         throw new Error(`Failed to check role existence: ${error.message}`);
     }
 };
@@ -318,11 +318,11 @@ export const validateRoleUpdate = async (roleId, newRoleName) => {
             oldDescription: row.old_description
         };
     } catch (error) {
-        logger.error(`Error in validateRoleUpdate: ${error.message}`, {
+        logger.error({
             roleId,
             newRoleName,
             error: error.message
-        });
+        }, `Error in validateRoleUpdate: ${error.message}`);
         throw new Error(`Failed to validate role update: ${error.message}`);
     }
 };
@@ -355,10 +355,10 @@ export const validateRoleDelete = async (roleId) => {
             roleDescription: result.rows[0].role_description
         };
     } catch (error) {
-        logger.error(`Error in validateRoleDelete: ${error.message}`, {
+        logger.error({
             roleId,
             error: error.message
-        });
+        }, `Error in validateRoleDelete: ${error.message}`);
         throw new Error(`Failed to validate role deletion: ${error.message}`);
     }
 };

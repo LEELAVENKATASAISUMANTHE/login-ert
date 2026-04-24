@@ -49,11 +49,11 @@ export const assignPermissionToRole = async (data) => {
         
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`assignPermissionToRole: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             role_id: data.role_id,
             permission_id: data.permission_id
-        });
+        }, `assignPermissionToRole: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -126,11 +126,11 @@ export const assignPermissionsToRole = async (data) => {
         
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`assignPermissionsToRole: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             role_id: data.role_id,
             permission_ids: data.permission_ids
-        });
+        }, `assignPermissionsToRole: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -195,12 +195,12 @@ export const getRolePermissions = async (params) => {
         };
         
     } catch (error) {
-        logger.error(`getRolePermissions: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             role_id,
             page,
             limit
-        });
+        }, `getRolePermissions: ${error.message}`);
         throw new Error('Failed to retrieve role permissions');
     }
 };
@@ -282,10 +282,10 @@ export const getAllRolePermissions = async (params) => {
         };
         
     } catch (error) {
-        logger.error(`getAllRolePermissions: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             params
-        });
+        }, `getAllRolePermissions: ${error.message}`);
         throw new Error('Failed to retrieve role permissions');
     }
 };
@@ -327,11 +327,11 @@ export const removePermissionFromRole = async (data) => {
         
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`removePermissionFromRole: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             role_id: data.role_id,
             permission_id: data.permission_id
-        });
+        }, `removePermissionFromRole: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -377,10 +377,10 @@ export const removeAllPermissionsFromRole = async (role_id) => {
         
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`removeAllPermissionsFromRole: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             role_id
-        });
+        }, `removeAllPermissionsFromRole: ${error.message}`);
         throw error;
     } finally {
         client.release();

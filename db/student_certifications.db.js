@@ -38,10 +38,10 @@ export const createStudentCertification = async (certification) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`createStudentCertification: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             certification
-        });
+        }, `createStudentCertification: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -73,9 +73,9 @@ export const getAllStudentCertifications = async () => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getAllStudentCertifications: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `getAllStudentCertifications: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -87,7 +87,7 @@ export const getStudentCertificationById = async (certId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('getStudentCertificationById: Fetching student certification by ID', { certId });
+        logger.info({ certId }, 'getStudentCertificationById: Fetching student certification by ID');
 
         const selectQuery = `
             SELECT 
@@ -113,10 +113,10 @@ export const getStudentCertificationById = async (certId) => {
             message: 'Student certification fetched successfully'
         };
     } catch (error) {
-        logger.error(`getStudentCertificationById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             certId
-        });
+        }, `getStudentCertificationById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -128,7 +128,7 @@ export const getCertificationsByStudentId = async (studentId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('getCertificationsByStudentId: Fetching certifications for student', { studentId });
+        logger.info({ studentId }, 'getCertificationsByStudentId: Fetching certifications for student');
 
         const selectQuery = `
             SELECT 
@@ -149,10 +149,10 @@ export const getCertificationsByStudentId = async (studentId) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getCertificationsByStudentId: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId
-        });
+        }, `getCertificationsByStudentId: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -164,7 +164,7 @@ export const searchCertificationsBySkill = async (skill) => {
     const client = await pool.connect();
 
     try {
-        logger.info('searchCertificationsBySkill: Searching certifications by skill', { skill });
+        logger.info({ skill }, 'searchCertificationsBySkill: Searching certifications by skill');
 
         const selectQuery = `
             SELECT 
@@ -185,10 +185,10 @@ export const searchCertificationsBySkill = async (skill) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`searchCertificationsBySkill: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             skill
-        });
+        }, `searchCertificationsBySkill: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -200,7 +200,7 @@ export const updateStudentCertificationById = async (certId, certification) => {
     const client = await pool.connect();
 
     try {
-        logger.info('updateStudentCertificationById: Updating student certification', { certId });
+        logger.info({ certId }, 'updateStudentCertificationById: Updating student certification');
         await client.query('BEGIN');
 
         const updateQuery = `
@@ -243,11 +243,11 @@ export const updateStudentCertificationById = async (certId, certification) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`updateStudentCertificationById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             certId,
             certification
-        });
+        }, `updateStudentCertificationById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -259,7 +259,7 @@ export const deleteStudentCertificationById = async (certId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('deleteStudentCertificationById: Deleting student certification', { certId });
+        logger.info({ certId }, 'deleteStudentCertificationById: Deleting student certification');
         await client.query('BEGIN');
 
         const deleteQuery = `
@@ -287,10 +287,10 @@ export const deleteStudentCertificationById = async (certId) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteStudentCertificationById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             certId
-        });
+        }, `deleteStudentCertificationById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -302,9 +302,9 @@ export const bulkInsertStudentCertifications = async (certifications) => {
     const client = await pool.connect();
 
     try {
-        logger.info('bulkInsertStudentCertifications: Bulk inserting student certifications', {
+        logger.info({
             count: certifications.length
-        });
+        }, 'bulkInsertStudentCertifications: Bulk inserting student certifications');
         await client.query('BEGIN');
 
         const results = {
@@ -369,9 +369,9 @@ export const bulkInsertStudentCertifications = async (certifications) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`bulkInsertStudentCertifications: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `bulkInsertStudentCertifications: ${error.message}`);
         throw error;
     } finally {
         client.release();

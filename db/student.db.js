@@ -76,10 +76,10 @@ export const createStudent = async (student) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`createStudent: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             student
-        });
+        }, `createStudent: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -105,10 +105,10 @@ export const getStudentById = async (studentId) => {
             message: 'Student fetched successfully'
         };
     } catch (error) {
-        logger.error(`getStudentById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId
-        });
+        }, `getStudentById: ${error.message}`);
         throw error;
     }
 };
@@ -135,10 +135,10 @@ export const deleteStudentById = async (studentId) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteStudentById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId
-        });
+        }, `deleteStudentById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -194,11 +194,11 @@ export const patchStudentById = async (studentId, updateFields) => {
             message: 'Student updated successfully'
         };
     } catch (error) {
-        logger.error(`patchStudentById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId,
             updateFields
-        });
+        }, `patchStudentById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -242,9 +242,9 @@ export const getAllStudents = async () => {
             message: 'Students fetched successfully'
         };
     } catch (error) {
-        logger.error(`getAllStudents: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `getAllStudents: ${error.message}`);
         throw error;
     }
 };
@@ -318,11 +318,11 @@ export const updateStudentById = async (studentId, student) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`updateStudentById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId,
             student
-        });
+        }, `updateStudentById: ${error.message}`);
         throw error;
     } finally {
         client.release();

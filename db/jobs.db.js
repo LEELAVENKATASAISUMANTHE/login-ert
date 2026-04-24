@@ -34,7 +34,7 @@ export const createJob = async (job) => {
         const res = await pool.query(insertQuery, values);
         return { success: true, data: res.rows[0], message: 'Job created successfully' };
     } catch (err) {
-        logger.error('createJob failed', { error: err.message, job });
+        logger.error({ error: err.message, job }, 'createJob failed');
         throw err;
     }
 };
@@ -90,7 +90,7 @@ export const getAllJobs = async (params = {}) => {
             }
         };
     } catch (err) {
-        logger.error('getAllJobs failed', { error: err.message, params });
+        logger.error({ error: err.message, params }, 'getAllJobs failed');
         throw err;
     }
 };
@@ -121,7 +121,7 @@ export const getJobById = async (jobId) => {
 
         return { success: true, data: { job: row, requirements }, message: 'Job fetched successfully' };
     } catch (err) {
-        logger.error('getJobById failed', { error: err.message, jobId });
+        logger.error({ error: err.message, jobId }, 'getJobById failed');
         throw err;
     }
 };
@@ -171,7 +171,7 @@ export const getJobsByCompanyId = async (companyId, params = {}) => {
             }
         };
     } catch (err) {
-        logger.error('getJobsByCompanyId failed', { error: err.message, companyId, params });
+        logger.error({ error: err.message, companyId, params }, 'getJobsByCompanyId failed');
         throw err;
     }
 };
@@ -214,7 +214,7 @@ export const updateJob = async (jobId, job) => {
         if (res.rowCount === 0) throw new AppError(404, 'Job not found');
         return { success: true, data: res.rows[0], message: 'Job updated successfully' };
     } catch (err) {
-        logger.error('updateJob failed', { error: err.message, jobId, job });
+        logger.error({ error: err.message, jobId, job }, 'updateJob failed');
         throw err;
     }
 };
@@ -226,7 +226,7 @@ export const deleteJob = async (jobId) => {
         if (res.rowCount === 0) throw new AppError(404, 'Job not found');
         return { success: true, data: res.rows[0], message: 'Job deleted successfully' };
     } catch (err) {
-        logger.error('deleteJob failed', { error: err.message, jobId });
+        logger.error({ error: err.message, jobId }, 'deleteJob failed');
         throw err;
     }
 };

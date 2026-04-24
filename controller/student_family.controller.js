@@ -51,15 +51,15 @@ const REQUIRED_COLUMNS = ['student_id'];
 // Create a new student family record
 export const createStudentFamily = async (req, res) => {
     try {
-        logger.info('createStudentFamily', { student_id: req.body.student_id });
+        logger.info({ student_id: req.body.student_id }, 'createStudentFamily');
         const { error, value } = studentFamilySchema.validate(req.body);
         if (error) {
-            logger.warn('createStudentFamily: validation failed', { message: error.details[0].message });
+            logger.warn({ message: error.details[0].message }, 'createStudentFamily: validation failed');
             return res.status(400).json({ message: error.details[0].message });
         }
 
         const family = await studentFamilyService.createStudentFamily(value);
-        logger.info('createStudentFamily: success', { student_id: value.student_id });
+        logger.info({ student_id: value.student_id }, 'createStudentFamily: success');
         res.status(201).json(family);
     } catch (err) {
         return handleError(err, res, 'createStudentFamily');
@@ -81,11 +81,11 @@ export const getAllStudentFamilies = async (req, res) => {
 export const getStudentFamilyById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('getStudentFamilyById', { id });
+        logger.info({ id }, 'getStudentFamilyById');
         const result = await studentFamilyService.getStudentFamilyById(id);
 
         if (!result.success) {
-            logger.warn('getStudentFamilyById: not found', { id });
+            logger.warn({ id }, 'getStudentFamilyById: not found');
             return res.status(404).json(result);
         }
 
@@ -99,22 +99,22 @@ export const getStudentFamilyById = async (req, res) => {
 export const updateStudentFamilyById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('updateStudentFamilyById', { id });
+        logger.info({ id }, 'updateStudentFamilyById');
         const { error, value } = studentFamilySchema.validate(req.body);
 
         if (error) {
-            logger.warn('updateStudentFamilyById: validation failed', { message: error.details[0].message });
+            logger.warn({ message: error.details[0].message }, 'updateStudentFamilyById: validation failed');
             return res.status(400).json({ message: error.details[0].message });
         }
 
         const result = await studentFamilyService.updateStudentFamilyById(id, value);
 
         if (!result.success) {
-            logger.warn('updateStudentFamilyById: not found', { id });
+            logger.warn({ id }, 'updateStudentFamilyById: not found');
             return res.status(404).json(result);
         }
 
-        logger.info('updateStudentFamilyById: success', { id });
+        logger.info({ id }, 'updateStudentFamilyById: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentFamily');
@@ -125,15 +125,15 @@ export const updateStudentFamilyById = async (req, res) => {
 export const deleteStudentFamilyById = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.info('deleteStudentFamilyById', { id });
+        logger.info({ id }, 'deleteStudentFamilyById');
         const result = await studentFamilyService.deleteStudentFamilyById(id);
 
         if (!result.success) {
-            logger.warn('deleteStudentFamilyById: not found', { id });
+            logger.warn({ id }, 'deleteStudentFamilyById: not found');
             return res.status(404).json(result);
         }
 
-        logger.info('deleteStudentFamilyById: success', { id });
+        logger.info({ id }, 'deleteStudentFamilyById: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentFamily');
@@ -143,7 +143,7 @@ export const deleteStudentFamilyById = async (req, res) => {
 // Import student family records from Excel file
 export const importFromExcel = async (req, res) => {
     try {
-        logger.info('importFromExcel', { filename: req.file?.originalname });
+        logger.info({ filename: req.file?.originalname }, 'importFromExcel');
         if (!req.file || !req.file.buffer) {
             return res.status(400).json({
                 success: false,
@@ -196,7 +196,7 @@ export const importFromExcel = async (req, res) => {
         }
 
         const result = await studentFamilyService.bulkInsertStudentFamilies(validatedData);
-        if (result.success) logger.info('importFromExcel: success', { inserted: result.inserted });
+        if (result.success) logger.info({ inserted: result.inserted }, 'importFromExcel: success');
         res.status(result.success ? 201 : 400).json(result);
     } catch (err) {
         return handleError(err, res, 'studentFamily');

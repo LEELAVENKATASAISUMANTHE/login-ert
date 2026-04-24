@@ -23,12 +23,12 @@ export const createPermission = async (data) => {
             message: 'Permission created successfully'
         };
     } catch (error) {
-        logger.error(`error in createPermission: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             permission_name: data.permission_name,
             module: data.module,
             error_message: error.message
-        });
+        }, `error in createPermission: ${error.message}`);
 
         if (error.code === '23505') { // Unique constraint violation
             throw new AppError(409, 'Permission name already exists');
@@ -62,11 +62,11 @@ export const updatePermission = async (permission_id, data) => {
             message: 'Permission updated successfully'
         };
     } catch (error) {
-        logger.error(`error in updatePermission: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             permission_id: permission_id,
             error_message: error.message
-        });
+        }, `error in updatePermission: ${error.message}`);
 
         if (error.code === '23505') {
             throw new AppError(409, 'Permission with this name already exists');
@@ -127,10 +127,10 @@ export const getAllPermissions = async (options = {}) => {
             message: 'Permissions retrieved successfully'
         };
     } catch (error) {
-        logger.error(`Error fetching permissions: ${error.message}`, {
+        logger.error({
             error: error.message,
             stack: error.stack
-        });
+        }, `Error fetching permissions: ${error.message}`);
         throw new Error(`Failed to retrieve permissions: ${error.message}`);
     }
 };
@@ -161,11 +161,11 @@ export const getPermissionById = async (permissionId) => {
             message: 'Permission retrieved successfully'
         };
     } catch (error) {
-        logger.error(`Error fetching permission by ID: ${error.message}`, {
+        logger.error({
             permissionId,
             error: error.message,
             stack: error.stack
-        });
+        }, `Error fetching permission by ID: ${error.message}`);
         throw new Error(`Failed to retrieve permission: ${error.message}`);
     }
 };
@@ -195,11 +195,11 @@ export const deletePermission = async (permissionId) => {
             message: 'Permission deleted successfully'
         };
     } catch (error) {
-        logger.error(`Error deleting permission: ${error.message}`, {
+        logger.error({
             permissionId,
             error: error.message,
             stack: error.stack
-        });
+        }, `Error deleting permission: ${error.message}`);
         throw new Error(`Failed to delete permission: ${error.message}`);
     }
 };
@@ -213,10 +213,10 @@ export const permissionExistsByName = async (permissionName) => {
         const result = await pool.query(queryText, [permissionName]);
         return result.rows.length > 0;
     } catch (error) {
-        logger.error(`Error checking permission existence: ${error.message}`, {
+        logger.error({
             permissionName,
             error: error.message
-        });
+        }, `Error checking permission existence: ${error.message}`);
         throw new Error(`Failed to check permission existence: ${error.message}`);
     }
 };

@@ -79,10 +79,10 @@ export const createStudentOffer = async (offer) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`createStudentOffer: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             offer
-        });
+        }, `createStudentOffer: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -198,10 +198,10 @@ export const getAllStudentOffers = async (params = {}) => {
             message: 'Student offers retrieved successfully'
         };
     } catch (error) {
-        logger.error(`getAllStudentOffers: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             params
-        });
+        }, `getAllStudentOffers: ${error.message}`);
         throw error;
     }
 };
@@ -239,10 +239,10 @@ export const getStudentOfferById = async (offerId) => {
             message: 'Student offer fetched successfully'
         };
     } catch (error) {
-        logger.error(`getStudentOfferById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             offerId
-        });
+        }, `getStudentOfferById: ${error.message}`);
         throw error;
     }
 };
@@ -253,10 +253,10 @@ export const getOffersByStudentId = async (studentId, params = {}) => {
         logger.info(`getOffersByStudentId: Fetching offers for student ${studentId}`);
         return await getAllStudentOffers({ ...params, student_id: studentId });
     } catch (error) {
-        logger.error(`getOffersByStudentId: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId
-        });
+        }, `getOffersByStudentId: ${error.message}`);
         throw error;
     }
 };
@@ -267,10 +267,10 @@ export const getOffersByJobId = async (jobId, params = {}) => {
         logger.info(`getOffersByJobId: Fetching offers for job ${jobId}`);
         return await getAllStudentOffers({ ...params, job_id: jobId });
     } catch (error) {
-        logger.error(`getOffersByJobId: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             jobId
-        });
+        }, `getOffersByJobId: ${error.message}`);
         throw error;
     }
 };
@@ -328,11 +328,11 @@ export const updateStudentOffer = async (offerId, offer) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`updateStudentOffer: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             offerId,
             offer
-        });
+        }, `updateStudentOffer: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -365,10 +365,10 @@ export const deleteStudentOffer = async (offerId) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteStudentOffer: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             offerId
-        });
+        }, `deleteStudentOffer: ${error.message}`);
         throw error;
     } finally {
         client.release();

@@ -24,7 +24,7 @@ redis.on("ready", () => {
 });
 
 redis.on("error", (err) => {
-  logger.error("❌ Redis error", { error: err.message });
+  logger.error({ error: err.message }, "❌ Redis error");
 });
 
 redis.on("close", () => {
@@ -43,10 +43,10 @@ export async function connectRedis() {
     logger.info("✅ Redis PING → " + pong);
     return true;
   } catch (err) {
-    logger.error("❌ Redis connection failed", {
+    logger.error({
       url: REDIS_URL,
       error: err.message,
-    });
+    }, "❌ Redis connection failed");
     logger.warn("⚠️  Application will continue without Redis");
     return false;
   }

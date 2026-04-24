@@ -33,7 +33,7 @@ export const createStudentLanguage = async (data) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`createStudentLanguage: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `createStudentLanguage: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -44,7 +44,7 @@ export const createStudentLanguage = async (data) => {
 export const bulkCreateStudentLanguages = async (studentId, languages) => {
     const client = await pool.connect();
     try {
-        logger.info('bulkCreateStudentLanguages: Bulk inserting languages', { studentId, count: Object.keys(languages).length });
+        logger.info({ studentId, count: Object.keys(languages).length }, 'bulkCreateStudentLanguages: Bulk inserting languages');
         await client.query('BEGIN');
 
         const insertedRecords = [];
@@ -70,7 +70,7 @@ export const bulkCreateStudentLanguages = async (studentId, languages) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`bulkCreateStudentLanguages: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `bulkCreateStudentLanguages: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -99,7 +99,7 @@ export const getAllStudentLanguages = async () => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getAllStudentLanguages: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `getAllStudentLanguages: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -135,7 +135,7 @@ export const getStudentLanguageById = async (langId) => {
             message: 'Language record fetched successfully'
         };
     } catch (error) {
-        logger.error(`getStudentLanguageById: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `getStudentLanguageById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -165,7 +165,7 @@ export const getLanguagesByStudentId = async (studentId) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getLanguagesByStudentId: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `getLanguagesByStudentId: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -195,7 +195,7 @@ export const getStudentTopLanguages = async (studentId, minLevel = 7) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getStudentTopLanguages: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `getStudentTopLanguages: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -225,7 +225,7 @@ export const getStudentsByLanguage = async (language) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getStudentsByLanguage: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `getStudentsByLanguage: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -255,7 +255,7 @@ export const getLanguageExperts = async (language, minLevel = 7) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getLanguageExperts: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `getLanguageExperts: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -285,7 +285,7 @@ export const getProficientStudents = async (minLevel = 7) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getProficientStudents: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `getProficientStudents: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -296,7 +296,7 @@ export const getProficientStudents = async (minLevel = 7) => {
 export const searchStudentLanguages = async (searchParams) => {
     const client = await pool.connect();
     try {
-        logger.info('searchStudentLanguages: Performing advanced search', { searchParams });
+        logger.info({ searchParams }, 'searchStudentLanguages: Performing advanced search');
 
         const { language, minLevel, maxLevel, studentId, search } = searchParams;
         const conditions = [];
@@ -352,7 +352,7 @@ export const searchStudentLanguages = async (searchParams) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`searchStudentLanguages: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `searchStudentLanguages: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -363,7 +363,7 @@ export const searchStudentLanguages = async (searchParams) => {
 export const getStudentLanguagesMenu = async (searchParams = {}) => {
     const client = await pool.connect();
     try {
-        logger.info('getStudentLanguagesMenu: Fetching menu', { searchParams });
+        logger.info({ searchParams }, 'getStudentLanguagesMenu: Fetching menu');
 
         const { search, searchField } = searchParams;
         const values = [];
@@ -404,7 +404,7 @@ export const getStudentLanguagesMenu = async (searchParams = {}) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getStudentLanguagesMenu: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `getStudentLanguagesMenu: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -457,7 +457,7 @@ export const updateStudentLanguageById = async (langId, updateData) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`updateStudentLanguageById: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `updateStudentLanguageById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -468,7 +468,7 @@ export const updateStudentLanguageById = async (langId, updateData) => {
 export const bulkUpdateStudentLanguages = async (studentId, languages) => {
     const client = await pool.connect();
     try {
-        logger.info('bulkUpdateStudentLanguages: Bulk updating languages', { studentId });
+        logger.info({ studentId }, 'bulkUpdateStudentLanguages: Bulk updating languages');
         await client.query('BEGIN');
 
         const updatedRecords = [];
@@ -494,7 +494,7 @@ export const bulkUpdateStudentLanguages = async (studentId, languages) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`bulkUpdateStudentLanguages: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `bulkUpdateStudentLanguages: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -527,7 +527,7 @@ export const deleteStudentLanguageById = async (langId) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteStudentLanguageById: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `deleteStudentLanguageById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -553,7 +553,7 @@ export const deleteAllStudentLanguages = async (studentId) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteAllStudentLanguages: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `deleteAllStudentLanguages: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -586,7 +586,7 @@ export const deleteStudentSpecificLanguage = async (studentId, language) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteStudentSpecificLanguage: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `deleteStudentSpecificLanguage: ${error.message}`);
         throw error;
     } finally {
         client.release();

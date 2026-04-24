@@ -53,7 +53,7 @@ export const parseExcelBuffer = (buffer, options = {}) => {
         };
 
     } catch (error) {
-        logger.error(`parseExcelBuffer: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `parseExcelBuffer: ${error.message}`);
         return {
             success: false,
             message: `Failed to parse Excel file: ${error.message}`,
@@ -130,7 +130,7 @@ export const generateExcelTemplate = (columns, sampleData = [], sheetName = 'Tem
         return buffer;
 
     } catch (error) {
-        logger.error(`generateExcelTemplate: ${error.message}`, { stack: error.stack });
+        logger.error({ stack: error.stack }, `generateExcelTemplate: ${error.message}`);
         throw error;
     }
 };

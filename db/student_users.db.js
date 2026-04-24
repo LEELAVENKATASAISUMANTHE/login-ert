@@ -45,10 +45,10 @@ export const createStudentUser = async (data) => {
         
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`createStudentUser: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             user_id: data.user_id
-        });
+        }, `createStudentUser: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -132,10 +132,10 @@ export const getAllStudentUsers = async (params) => {
         };
         
     } catch (error) {
-        logger.error(`getAllStudentUsers: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             params
-        });
+        }, `getAllStudentUsers: ${error.message}`);
         throw new Error('Failed to retrieve student users');
     }
 };
@@ -178,10 +178,10 @@ export const getStudentUserById = async (student_id) => {
         };
         
     } catch (error) {
-        logger.error(`getStudentUserById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             student_id
-        });
+        }, `getStudentUserById: ${error.message}`);
         throw error;
     }
 };
@@ -224,10 +224,10 @@ export const getStudentUserByUserId = async (user_id) => {
         };
         
     } catch (error) {
-        logger.error(`getStudentUserByUserId: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             user_id
-        });
+        }, `getStudentUserByUserId: ${error.message}`);
         throw error;
     }
 };
@@ -283,11 +283,11 @@ export const updateStudentUser = async (student_id, data) => {
         
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`updateStudentUser: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             student_id,
             data
-        });
+        }, `updateStudentUser: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -325,10 +325,10 @@ export const deleteStudentUser = async (student_id) => {
         
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteStudentUser: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             student_id
-        });
+        }, `deleteStudentUser: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -410,10 +410,10 @@ export const getAllStudents = async (params) => {
         };
         
     } catch (error) {
-        logger.error(`getAllStudents: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             params
-        });
+        }, `getAllStudents: ${error.message}`);
         throw new Error('Failed to retrieve students');
     }
 };
@@ -480,10 +480,10 @@ export const bulkCreateStudentUsers = async (user_ids) => {
         
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`bulkCreateStudentUsers: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             user_ids
-        });
+        }, `bulkCreateStudentUsers: ${error.message}`);
         throw error;
     } finally {
         client.release();

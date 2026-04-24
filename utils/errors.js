@@ -58,9 +58,9 @@ export function classifyError(err) {
 export function handleError(err, res, ctx = 'unknown') {
   const status = classifyError(err);
   if (status < 500) {
-    logger.warn(`${ctx}: ${err.message}`, { statusCode: status });
+    logger.warn({ statusCode: status }, `${ctx}: ${err.message}`);
     return res.status(status).json({ success: false, message: err.message });
   }
-  logger.error(`${ctx}: ${err.message}`, { statusCode: status, stack: err.stack, pgCode: err.code });
+  logger.error({ statusCode: status, stack: err.stack, pgCode: err.code }, `${ctx}: ${err.message}`);
   return res.status(500).json({ success: false, message: 'Internal server error' });
 }

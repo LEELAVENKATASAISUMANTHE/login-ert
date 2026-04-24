@@ -126,10 +126,10 @@ export const getStudentJobViewByJobIdFromCache = async (jobId) => {
   try {
     return JSON.parse(cachedValue);
   } catch (error) {
-    logger.warn("Invalid JSON found in student job cache", {
+    logger.warn({
       key,
       error: error.message,
-    });
+    }, "Invalid JSON found in student job cache");
     return null;
   }
 };

@@ -44,10 +44,10 @@ export const createStudentInternship = async (internship) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`createStudentInternship: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             internship
-        });
+        }, `createStudentInternship: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -79,9 +79,9 @@ export const getAllStudentInternships = async () => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getAllStudentInternships: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `getAllStudentInternships: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -93,7 +93,7 @@ export const getStudentInternshipById = async (internshipId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('getStudentInternshipById: Fetching student internship by ID', { internshipId });
+        logger.info({ internshipId }, 'getStudentInternshipById: Fetching student internship by ID');
 
         const selectQuery = `
             SELECT 
@@ -119,10 +119,10 @@ export const getStudentInternshipById = async (internshipId) => {
             message: 'Student internship fetched successfully'
         };
     } catch (error) {
-        logger.error(`getStudentInternshipById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             internshipId
-        });
+        }, `getStudentInternshipById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -134,7 +134,7 @@ export const getInternshipsByStudentId = async (studentId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('getInternshipsByStudentId: Fetching internships for student', { studentId });
+        logger.info({ studentId }, 'getInternshipsByStudentId: Fetching internships for student');
 
         const selectQuery = `
             SELECT 
@@ -155,10 +155,10 @@ export const getInternshipsByStudentId = async (studentId) => {
             count: result.rows.length
         };
     } catch (error) {
-        logger.error(`getInternshipsByStudentId: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             studentId
-        });
+        }, `getInternshipsByStudentId: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -170,7 +170,7 @@ export const updateStudentInternshipById = async (internshipId, internship) => {
     const client = await pool.connect();
 
     try {
-        logger.info('updateStudentInternshipById: Updating student internship', { internshipId });
+        logger.info({ internshipId }, 'updateStudentInternshipById: Updating student internship');
         await client.query('BEGIN');
 
         const updateQuery = `
@@ -219,11 +219,11 @@ export const updateStudentInternshipById = async (internshipId, internship) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`updateStudentInternshipById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             internshipId,
             internship
-        });
+        }, `updateStudentInternshipById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -235,7 +235,7 @@ export const deleteStudentInternshipById = async (internshipId) => {
     const client = await pool.connect();
 
     try {
-        logger.info('deleteStudentInternshipById: Deleting student internship', { internshipId });
+        logger.info({ internshipId }, 'deleteStudentInternshipById: Deleting student internship');
         await client.query('BEGIN');
 
         const deleteQuery = `
@@ -263,10 +263,10 @@ export const deleteStudentInternshipById = async (internshipId) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`deleteStudentInternshipById: ${error.message}`, {
+        logger.error({
             stack: error.stack,
             internshipId
-        });
+        }, `deleteStudentInternshipById: ${error.message}`);
         throw error;
     } finally {
         client.release();
@@ -278,9 +278,9 @@ export const bulkInsertStudentInternships = async (internships) => {
     const client = await pool.connect();
 
     try {
-        logger.info('bulkInsertStudentInternships: Bulk inserting student internships', {
+        logger.info({
             count: internships.length
-        });
+        }, 'bulkInsertStudentInternships: Bulk inserting student internships');
         await client.query('BEGIN');
 
         const results = {
@@ -352,9 +352,9 @@ export const bulkInsertStudentInternships = async (internships) => {
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        logger.error(`bulkInsertStudentInternships: ${error.message}`, {
+        logger.error({
             stack: error.stack
-        });
+        }, `bulkInsertStudentInternships: ${error.message}`);
         throw error;
     } finally {
         client.release();

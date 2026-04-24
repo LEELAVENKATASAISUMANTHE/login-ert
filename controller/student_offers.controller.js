@@ -75,7 +75,7 @@ const jobIdSchema = joi.object({
 // Create a new student offer
 export const createStudentOffer = async (req, res) => {
     try {
-        logger.info('createStudentOffer', { student_id: req.body.student_id });
+        logger.info({ student_id: req.body.student_id }, 'createStudentOffer');
         const { error, value } = createStudentOfferSchema.validate(req.body);
         if (error) {
             logger.warn(`createStudentOffer: Validation failed - ${error.details[0].message}`);
@@ -86,7 +86,7 @@ export const createStudentOffer = async (req, res) => {
         }
 
         const result = await studentOfferService.createStudentOffer(value);
-        logger.info('createStudentOffer: success', { student_id: value.student_id });
+        logger.info({ student_id: value.student_id }, 'createStudentOffer: success');
         res.status(201).json(result);
     } catch (err) {
         return handleError(err, res, 'createStudentOffer');
@@ -96,7 +96,7 @@ export const createStudentOffer = async (req, res) => {
 // Get all student offers
 export const getAllStudentOffers = async (req, res) => {
     try {
-        logger.info('getAllStudentOffers', { query: req.query });
+        logger.info({ query: req.query }, 'getAllStudentOffers');
         const { error, value } = getStudentOffersSchema.validate(req.query);
         if (error) {
             logger.warn(`getAllStudentOffers: Validation failed - ${error.details[0].message}`);
@@ -116,7 +116,7 @@ export const getAllStudentOffers = async (req, res) => {
 // Get student offer by ID
 export const getStudentOfferById = async (req, res) => {
     try {
-        logger.info('getStudentOfferById', { id: req.params.id });
+        logger.info({ id: req.params.id }, 'getStudentOfferById');
         const { error } = idSchema.validate(req.params);
         if (error) {
             logger.warn(`getStudentOfferById: Validation failed - ${error.details[0].message}`);
@@ -142,7 +142,7 @@ export const getStudentOfferById = async (req, res) => {
 // Get offers by student ID
 export const getOffersByStudentId = async (req, res) => {
     try {
-        logger.info('getOffersByStudentId', { studentId: req.params.studentId });
+        logger.info({ studentId: req.params.studentId }, 'getOffersByStudentId');
         const { error: paramError } = studentIdSchema.validate(req.params);
         if (paramError) {
             logger.warn(`getOffersByStudentId: Param validation failed - ${paramError.details[0].message}`);
@@ -172,7 +172,7 @@ export const getOffersByStudentId = async (req, res) => {
 // Get offers by job ID
 export const getOffersByJobId = async (req, res) => {
     try {
-        logger.info('getOffersByJobId', { jobId: req.params.jobId });
+        logger.info({ jobId: req.params.jobId }, 'getOffersByJobId');
         const { error: paramError } = jobIdSchema.validate(req.params);
         if (paramError) {
             logger.warn(`getOffersByJobId: Param validation failed - ${paramError.details[0].message}`);
@@ -202,7 +202,7 @@ export const getOffersByJobId = async (req, res) => {
 // Update student offer by ID
 export const updateStudentOffer = async (req, res) => {
     try {
-        logger.info('updateStudentOffer', { id: req.params.id });
+        logger.info({ id: req.params.id }, 'updateStudentOffer');
         const { error: idError } = idSchema.validate(req.params);
         if (idError) {
             logger.warn(`updateStudentOffer: ID validation failed - ${idError.details[0].message}`);
@@ -230,7 +230,7 @@ export const updateStudentOffer = async (req, res) => {
 
         const { id } = req.params;
         const result = await studentOfferService.updateStudentOffer(id, value);
-        logger.info('updateStudentOffer: success', { id });
+        logger.info({ id }, 'updateStudentOffer: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'updateStudentOffer');
@@ -240,7 +240,7 @@ export const updateStudentOffer = async (req, res) => {
 // Delete student offer by ID
 export const deleteStudentOffer = async (req, res) => {
     try {
-        logger.info('deleteStudentOffer', { id: req.params.id });
+        logger.info({ id: req.params.id }, 'deleteStudentOffer');
         const { error } = idSchema.validate(req.params);
         if (error) {
             logger.warn(`deleteStudentOffer: Validation failed - ${error.details[0].message}`);
@@ -252,7 +252,7 @@ export const deleteStudentOffer = async (req, res) => {
 
         const { id } = req.params;
         const result = await studentOfferService.deleteStudentOffer(id);
-        logger.info('deleteStudentOffer: success', { id });
+        logger.info({ id }, 'deleteStudentOffer: success');
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'deleteStudentOffer');

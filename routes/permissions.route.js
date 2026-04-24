@@ -160,7 +160,7 @@ router.put('/:id', permissionController.updatePermission);
 router.delete('/:id', permissionController.deletePermission);
 
 // Log all permission route registrations
-logger.info('Permission routes registered successfully', {
+logger.info({
     routes: [
         'POST /',
         'GET /',
@@ -170,6 +170,6 @@ logger.info('Permission routes registered successfully', {
         'GET /check/:permission_name'
     ],
     module: 'permissions.route.js'
-});
+}, 'Permission routes registered successfully');
 
 export default router;
