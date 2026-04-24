@@ -60,13 +60,17 @@ export const createStudent = async (req, res) => {
             });
         }
 
-        // Check if file was uploaded
         if (req.file && req.file.buffer && req.file.buffer.length > 0) {
-            // Upload buffer to R2
+            logger.info('createStudent: uploading photo to R2', {
+                filename: req.file.originalname,
+                mimetype: req.file.mimetype,
+                sizeBytes: req.file.size,
+            });
             const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_STUDENTS", req.file.mimetype);
             value.student_photo_path = r2Result.url;
+            logger.info('createStudent: photo uploaded', { url: r2Result.url });
         } else {
-            // No file uploaded or empty buffer - set to null
+            logger.info('createStudent: no photo provided');
             value.student_photo_path = null;
         }
 
@@ -121,10 +125,15 @@ export const updateStudentById = async (req, res) => {
 
 
 
-        // Check if file was uploaded
         if (req.file) {
+            logger.info('student upload: uploading replacement photo to R2', {
+                filename: req.file.originalname,
+                mimetype: req.file.mimetype,
+                sizeBytes: req.file.size,
+            });
             const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_STUDENTS", req.file.mimetype);
             value.student_photo_path = r2Result.url;
+            logger.info('student upload: photo replaced', { url: r2Result.url });
         }
 
         const result = await studentService.updateStudentById(id, value);
@@ -155,10 +164,15 @@ export const patchStudentById = async (req, res) => {
 
 
 
-        // Check if file was uploaded
         if (req.file) {
+            logger.info('student upload: uploading replacement photo to R2', {
+                filename: req.file.originalname,
+                mimetype: req.file.mimetype,
+                sizeBytes: req.file.size,
+            });
             const r2Result = await uploadToStorage(req.file.buffer, "R2_BUCKET_STUDENTS", req.file.mimetype);
             value.student_photo_path = r2Result.url;
+            logger.info('student upload: photo replaced', { url: r2Result.url });
         }
 
         const result = await studentService.patchStudentById(id, value);

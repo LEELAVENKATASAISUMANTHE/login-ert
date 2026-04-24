@@ -29,9 +29,24 @@ const MESSAGE_PATTERN_MAP = [
   { pattern: /required/i,           status: 400 },
 ];
 
+// MulterError codes that map to client errors (not 500)
+const MULTER_CODE_MAP = {
+  LIMIT_FILE_SIZE:       413,
+  LIMIT_FILE_COUNT:      400,
+  LIMIT_FIELD_KEY:       400,
+  LIMIT_FIELD_VALUE:     400,
+  LIMIT_FIELD_COUNT:     400,
+  LIMIT_UNEXPECTED_FILE: 400,
+  LIMIT_PART_COUNT:      400,
+};
+
 export function classifyError(err) {
   if (err.isJoi) return 400;
   if (err.statusCode && Number.isInteger(err.statusCode)) return err.statusCode;
+  // MulterError — check its code before generic PG codes
+  if (err.constructor?.name === 'MulterError' && MULTER_CODE_MAP[err.code]) {
+    return MULTER_CODE_MAP[err.code];
+  }
   if (err.code && PG_CODE_MAP[err.code]) return PG_CODE_MAP[err.code];
   if (err.message) {
     for (const { pattern, status } of MESSAGE_PATTERN_MAP)

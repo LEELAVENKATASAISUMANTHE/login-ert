@@ -1,6 +1,7 @@
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "crypto";
+import logger from "./logger.js";
 
 const r2Client = new S3Client({
   region: "auto",
@@ -39,17 +40,38 @@ export const uploadToStorage = async (fileBuffer, bucketEnvKey, mimeType = "") =
   const ext = mimeType ? `.${mimeType.split("/")[1].split(";")[0]}` : "";
   const key = `${randomUUID()}${ext}`;
 
-  await r2Client.send(
-    new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: fileBuffer,
-      ContentType: mimeType || "application/octet-stream",
-    })
-  );
+  logger.info("r2: uploading object", {
+    bucket,
+    key,
+    mimeType,
+    sizeBytes: fileBuffer.length,
+    isPublic: !!PUBLIC_DOMAINS[bucketEnvKey],
+  });
+
+  try {
+    await r2Client.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: fileBuffer,
+        ContentType: mimeType || "application/octet-stream",
+      })
+    );
+  } catch (err) {
+    logger.error("r2: upload failed", {
+      bucket,
+      key,
+      mimeType,
+      error: err.message,
+      code: err.Code ?? err.code,
+    });
+    throw err;
+  }
 
   const publicDomain = PUBLIC_DOMAINS[bucketEnvKey];
   const url = publicDomain ? `${publicDomain.replace(/\/$/, "")}/${key}` : null;
+
+  logger.info("r2: upload success", { bucket, key, url: url ?? "(private)" });
 
   return { key, url };
 };
