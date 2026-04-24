@@ -26,6 +26,7 @@ const lokiTransport = new LokiTransport({
   labels: defaultLabels,
   json: true,
   format: winston.format.json(),
+   batching: false,
   replaceTimestamp: false,
   onConnectionError: (err) =>
     process.stderr.write(`[logger] Loki connection error: ${err.message}\n`),
