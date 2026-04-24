@@ -1,0 +1,5 @@
+networks:
+  placement-network:
+    external: true
+  dokploy-network:
+    external: true
