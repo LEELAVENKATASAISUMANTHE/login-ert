@@ -40,6 +40,7 @@ const transport = pino.transport({
         batching: true,
         interval: 1,
         silenceErrors: false,
+        propsToLabels: [],
       },
     },
     env.NODE_ENV === 'development'
