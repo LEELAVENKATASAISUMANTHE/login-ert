@@ -37,7 +37,7 @@ const transport = pino.transport({
       options: {
         host: env.LOKI_HOST,
         labels,
-        batching: true,
+        batching: false,
         interval: 1,
         silenceErrors: false,
         propsToLabels: [],
