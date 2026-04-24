@@ -25,8 +25,12 @@ export const updateUserSchema = Joi.object({
 
 export const createUser = async (req, res) => {
     try {
+        logger.info('createUser', { username: req.body.username, role_id: req.body.role_id, student_id: req.body.student_id });
         const { error } = createUserSchema.validate(req.body);
-        if (error) return res.status(400).json({ success: false, message: error.details[0].message });
+        if (error) {
+            logger.warn('createUser: validation failed', { message: error.details[0].message });
+            return res.status(400).json({ success: false, message: error.details[0].message });
+        }
 
         // If a role_id is given, resolve its name to enforce student_id requirement
         if (req.body.role_id) {
@@ -43,6 +47,7 @@ export const createUser = async (req, res) => {
         delete userData.password;
 
         const result = await userDB.createUser(userData);
+        logger.info('createUser: success', { id: result.data?.user_id ?? result.user_id });
         res.status(201).json(result);
     } catch (error) {
         return handleError(error, res, 'createUser');
@@ -51,6 +56,7 @@ export const createUser = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
     try {
+        logger.info('getAllUsers', { query: req.query });
         const result = await userDB.getAllUsers(req.query);
         res.status(200).json(result);
     } catch (error) {
@@ -60,6 +66,7 @@ export const getAllUsers = async (req, res) => {
 
 export const getUserById = async (req, res) => {
     try {
+        logger.info('getUserById', { id: req.params.id });
         const result = await userDB.getUserById(parseInt(req.params.id));
         res.status(200).json(result);
     } catch (error) {
@@ -69,10 +76,15 @@ export const getUserById = async (req, res) => {
 
 export const updateUser = async (req, res) => {
     try {
+        logger.info('updateUser', { id: req.params.id });
         const { error } = updateUserSchema.validate(req.body);
-        if (error) return res.status(400).json({ success: false, message: error.details[0].message });
+        if (error) {
+            logger.warn('updateUser: validation failed', { message: error.details[0].message });
+            return res.status(400).json({ success: false, message: error.details[0].message });
+        }
 
         const result = await userDB.updateUser(parseInt(req.params.id), req.body);
+        logger.info('updateUser: success', { id: req.params.id });
         res.status(200).json(result);
     } catch (error) {
         return handleError(error, res, 'updateUser');
@@ -81,7 +93,9 @@ export const updateUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
     try {
+        logger.info('deleteUser', { id: req.params.id });
         const result = await userDB.deleteUser(parseInt(req.params.id));
+        logger.info('deleteUser: success', { id: req.params.id });
         res.status(200).json(result);
     } catch (error) {
         return handleError(error, res, 'deleteUser');

@@ -59,6 +59,7 @@ export const userIdSchema = Joi.object({
 // Create a new student user association
 export const createStudentUser = async (req, res) => {
     try {
+        logger.info('createStudentUser', { student_id: req.body.student_id, user_id: req.body.user_id });
         const { error } = createStudentUserSchema.validate(req.body);
         if (error) {
             logger.warn(`createStudentUser: Validation failed: ${error.details[0].message}`);
@@ -69,7 +70,7 @@ export const createStudentUser = async (req, res) => {
         }
 
         const result = await studentUserDB.createStudentUser(req.body);
-        
+        logger.info('createStudentUser: success', { student_id: req.body.student_id });
         res.status(201).json(result);
     } catch (error) {
         return handleError(error, res, 'createStudentUser');
@@ -79,6 +80,7 @@ export const createStudentUser = async (req, res) => {
 // Get all student users with pagination and filtering
 export const getAllStudentUsers = async (req, res) => {
     try {
+        logger.info('getAllStudentUsers', { query: req.query });
         const { error } = getStudentUsersSchema.validate(req.query);
         if (error) {
             logger.warn(`getAllStudentUsers: Validation failed: ${error.details[0].message}`);
@@ -99,6 +101,7 @@ export const getAllStudentUsers = async (req, res) => {
 // Get a student user by student ID
 export const getStudentUserById = async (req, res) => {
     try {
+        logger.info('getStudentUserById', { id: req.params.id });
         const { error } = studentIdSchema.validate(req.params);
         if (error) {
             logger.warn(`getStudentUserById: Invalid student ID: ${error.details[0].message}`);
@@ -120,6 +123,7 @@ export const getStudentUserById = async (req, res) => {
 // Get student user by user ID
 export const getStudentUserByUserId = async (req, res) => {
     try {
+        logger.info('getStudentUserByUserId', { user_id: req.params.user_id });
         const { error } = userIdSchema.validate(req.params);
         if (error) {
             logger.warn(`getStudentUserByUserId: Invalid user ID: ${error.details[0].message}`);
@@ -141,6 +145,7 @@ export const getStudentUserByUserId = async (req, res) => {
 // Update a student user association
 export const updateStudentUser = async (req, res) => {
     try {
+        logger.info('updateStudentUser', { id: req.params.id });
         const { error: paramsError } = studentIdSchema.validate(req.params);
         if (paramsError) {
             logger.warn(`updateStudentUser: Invalid student ID: ${paramsError.details[0].message}`);

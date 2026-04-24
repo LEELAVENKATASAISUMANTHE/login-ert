@@ -47,6 +47,7 @@ export const getRolePermissionsSchema = Joi.object({
 // Assign a permission to a role
 export const assignPermissionToRole = async (req, res) => {
     try {
+        logger.info('assignPermissionToRole', { role_id: req.body.role_id, permission_id: req.body.permission_id });
         const { error } = assignPermissionSchema.validate(req.body);
         if (error) {
             logger.warn(`assignPermissionToRole: Validation failed: ${error.details[0].message}`);
@@ -57,7 +58,7 @@ export const assignPermissionToRole = async (req, res) => {
         }
 
         const result = await rolePermissionDB.assignPermissionToRole(req.body);
-        
+        logger.info('assignPermissionToRole: success', { role_id: req.body.role_id, permission_id: req.body.permission_id });
         res.status(201).json(result);
     } catch (error) {
         return handleError(error, res, 'assignPermissionToRole');
@@ -67,6 +68,7 @@ export const assignPermissionToRole = async (req, res) => {
 // Assign multiple permissions to a role
 export const assignPermissionsToRole = async (req, res) => {
     try {
+        logger.info('assignPermissionsToRole', { role_id: req.body.role_id, count: req.body.permission_ids?.length });
         const { error } = assignPermissionsToRoleSchema.validate(req.body);
         if (error) {
             logger.warn(`assignPermissionsToRole: Validation failed: ${error.details[0].message}`);
@@ -77,7 +79,7 @@ export const assignPermissionsToRole = async (req, res) => {
         }
 
         const result = await rolePermissionDB.assignPermissionsToRole(req.body);
-        
+        logger.info('assignPermissionsToRole: success', { role_id: req.body.role_id, count: req.body.permission_ids?.length });
         res.status(201).json(result);
     } catch (error) {
         return handleError(error, res, 'assignPermissionsToRole');
@@ -87,6 +89,7 @@ export const assignPermissionsToRole = async (req, res) => {
 // Get permissions for a specific role
 export const getRolePermissions = async (req, res) => {
     try {
+        logger.info('getRolePermissions', { role_id: req.params.role_id });
         const { error: paramsError } = roleIdSchema.validate(req.params);
         if (paramsError) {
             logger.warn(`getRolePermissions: Invalid role ID: ${paramsError.details[0].message}`);
@@ -119,6 +122,7 @@ export const getRolePermissions = async (req, res) => {
 // Get all role-permission assignments
 export const getAllRolePermissions = async (req, res) => {
     try {
+        logger.info('getAllRolePermissions', { query: req.query });
         const { error } = getRolePermissionsSchema.validate(req.query);
         if (error) {
             logger.warn(`getAllRolePermissions: Validation failed: ${error.details[0].message}`);
@@ -139,6 +143,7 @@ export const getAllRolePermissions = async (req, res) => {
 // Remove a permission from a role
 export const removePermissionFromRole = async (req, res) => {
     try {
+        logger.info('removePermissionFromRole', { role_id: req.body.role_id, permission_id: req.body.permission_id });
         const { error } = assignPermissionSchema.validate(req.body);
         if (error) {
             logger.warn(`removePermissionFromRole: Validation failed: ${error.details[0].message}`);
@@ -149,7 +154,7 @@ export const removePermissionFromRole = async (req, res) => {
         }
 
         const result = await rolePermissionDB.removePermissionFromRole(req.body);
-        
+        logger.info('removePermissionFromRole: success', { role_id: req.body.role_id, permission_id: req.body.permission_id });
         res.status(200).json(result);
     } catch (error) {
         return handleError(error, res, 'removePermissionFromRole');
@@ -159,6 +164,7 @@ export const removePermissionFromRole = async (req, res) => {
 // Remove all permissions from a role
 export const removeAllPermissionsFromRole = async (req, res) => {
     try {
+        logger.info('removeAllPermissionsFromRole', { role_id: req.params.role_id });
         const { error } = roleIdSchema.validate(req.params);
         if (error) {
             logger.warn(`removeAllPermissionsFromRole: Invalid role ID: ${error.details[0].message}`);
@@ -170,7 +176,7 @@ export const removeAllPermissionsFromRole = async (req, res) => {
 
         const role_id = parseInt(req.params.role_id);
         const result = await rolePermissionDB.removeAllPermissionsFromRole(role_id);
-        
+        logger.info('removeAllPermissionsFromRole: success', { role_id });
         res.status(200).json(result);
     } catch (error) {
         return handleError(error, res, 'removeAllPermissionsFromRole');

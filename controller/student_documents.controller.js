@@ -37,8 +37,10 @@ const REQUIRED_COLUMNS = ['student_id'];
 // Create a new student document record (with file upload)
 export const createStudentDocument = async (req, res) => {
     try {
+        logger.info('createStudentDocument', { student_id: req.body.student_id });
         const { error, value } = studentDocumentSchema.validate(req.body);
         if (error) {
+            logger.warn('createStudentDocument: validation failed', { message: error.details[0].message });
             return res.status(400).json({ message: error.details[0].message });
         }
 
@@ -51,6 +53,7 @@ export const createStudentDocument = async (req, res) => {
         }
 
         const document = await studentDocumentService.createStudentDocument(value);
+        logger.info('createStudentDocument: success', { student_id: value.student_id });
         res.status(201).json(document);
     } catch (err) {
         return handleError(err, res, 'createStudentDocument');
@@ -60,6 +63,7 @@ export const createStudentDocument = async (req, res) => {
 // Get all student documents
 export const getAllStudentDocuments = async (req, res) => {
     try {
+        logger.info('getAllStudentDocuments');
         const result = await studentDocumentService.getAllStudentDocuments();
         res.status(200).json(result);
     } catch (err) {
@@ -71,9 +75,11 @@ export const getAllStudentDocuments = async (req, res) => {
 export const getStudentDocumentById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('getStudentDocumentById', { id });
         const result = await studentDocumentService.getStudentDocumentById(id);
 
         if (!result.success) {
+            logger.warn('getStudentDocumentById: not found', { id });
             return res.status(404).json(result);
         }
 
@@ -86,6 +92,7 @@ export const getStudentDocumentById = async (req, res) => {
 // Get all documents for a specific student
 export const getDocumentsByStudentId = async (req, res) => {
     try {
+        logger.info('getDocumentsByStudentId', { studentId: req.params.studentId });
         const { studentId } = req.params;
         const result = await studentDocumentService.getDocumentsByStudentId(studentId);
         res.status(200).json(result);
@@ -98,9 +105,11 @@ export const getDocumentsByStudentId = async (req, res) => {
 export const updateStudentDocumentById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('updateStudentDocumentById', { id });
         const { error, value } = updateStudentDocumentSchema.validate(req.body);
 
         if (error) {
+            logger.warn('updateStudentDocumentById: validation failed', { message: error.details[0].message });
             return res.status(400).json({ message: error.details[0].message });
         }
 
@@ -113,9 +122,11 @@ export const updateStudentDocumentById = async (req, res) => {
         const result = await studentDocumentService.updateStudentDocumentById(id, value);
 
         if (!result.success) {
+            logger.warn('updateStudentDocumentById: not found', { id });
             return res.status(404).json(result);
         }
 
+        logger.info('updateStudentDocumentById: success', { id });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'updateStudentDocument');
@@ -126,12 +137,15 @@ export const updateStudentDocumentById = async (req, res) => {
 export const deleteStudentDocumentById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('deleteStudentDocumentById', { id });
         const result = await studentDocumentService.deleteStudentDocumentById(id);
 
         if (!result.success) {
+            logger.warn('deleteStudentDocumentById: not found', { id });
             return res.status(404).json(result);
         }
 
+        logger.info('deleteStudentDocumentById: success', { id });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentDocuments');
@@ -141,6 +155,7 @@ export const deleteStudentDocumentById = async (req, res) => {
 // Import student documents from Excel file (metadata only - file_path as URLs)
 export const importFromExcel = async (req, res) => {
     try {
+        logger.info('importFromExcel', { filename: req.file?.originalname });
         // Check if file exists
         if (!req.file || !req.file.buffer) {
             return res.status(400).json({
@@ -200,6 +215,7 @@ export const importFromExcel = async (req, res) => {
         // Bulk insert validated data
         const result = await studentDocumentService.bulkInsertStudentDocuments(validatedData);
 
+        if (result.success) logger.info('importFromExcel: success', { inserted: result.inserted });
         res.status(result.success ? 201 : 400).json(result);
     } catch (err) {
         return handleError(err, res, 'studentDocuments');
@@ -209,6 +225,7 @@ export const importFromExcel = async (req, res) => {
 // Download Excel template for import
 export const downloadTemplate = async (req, res) => {
     try {
+        logger.info('downloadTemplate');
         // Sample data to help users understand the format
         const sampleData = [
             ['STU001', 'Resume', 'https://example.com/resume.pdf'],

@@ -45,8 +45,10 @@ const REQUIRED_COLUMNS = ['student_id'];
 // Create a new student certification record (with file upload)
 export const createStudentCertification = async (req, res) => {
     try {
+        logger.info('createStudentCertification', { student_id: req.body.student_id });
         const { error, value } = studentCertificationSchema.validate(req.body);
         if (error) {
+            logger.warn('createStudentCertification: validation failed', { message: error.details[0].message });
             return res.status(400).json({ message: error.details[0].message });
         }
 
@@ -59,6 +61,7 @@ export const createStudentCertification = async (req, res) => {
         }
 
         const certification = await studentCertificationService.createStudentCertification(value);
+        logger.info('createStudentCertification: success', { student_id: value.student_id });
         res.status(201).json(certification);
     } catch (err) {
         return handleError(err, res, 'createStudentCertification');
@@ -68,6 +71,7 @@ export const createStudentCertification = async (req, res) => {
 // Get all student certifications
 export const getAllStudentCertifications = async (req, res) => {
     try {
+        logger.info('getAllStudentCertifications');
         const result = await studentCertificationService.getAllStudentCertifications();
         res.status(200).json(result);
     } catch (err) {
@@ -79,9 +83,11 @@ export const getAllStudentCertifications = async (req, res) => {
 export const getStudentCertificationById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('getStudentCertificationById', { id });
         const result = await studentCertificationService.getStudentCertificationById(id);
 
         if (!result.success) {
+            logger.warn('getStudentCertificationById: not found', { id });
             return res.status(404).json(result);
         }
 
@@ -94,6 +100,7 @@ export const getStudentCertificationById = async (req, res) => {
 // Get all certifications for a specific student
 export const getCertificationsByStudentId = async (req, res) => {
     try {
+        logger.info('getCertificationsByStudentId', { studentId: req.params.studentId });
         const { studentId } = req.params;
         const result = await studentCertificationService.getCertificationsByStudentId(studentId);
         res.status(200).json(result);
@@ -105,6 +112,7 @@ export const getCertificationsByStudentId = async (req, res) => {
 // Search certifications by skill name
 export const searchCertificationsBySkill = async (req, res) => {
     try {
+        logger.info('searchCertificationsBySkill', { skill: req.query.skill });
         const { skill } = req.query;
 
         if (!skill || skill.trim() === '') {
@@ -125,9 +133,11 @@ export const searchCertificationsBySkill = async (req, res) => {
 export const updateStudentCertificationById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('updateStudentCertificationById', { id });
         const { error, value } = updateCertificationSchema.validate(req.body);
 
         if (error) {
+            logger.warn('updateStudentCertificationById: validation failed', { message: error.details[0].message });
             return res.status(400).json({ message: error.details[0].message });
         }
 
@@ -140,9 +150,11 @@ export const updateStudentCertificationById = async (req, res) => {
         const result = await studentCertificationService.updateStudentCertificationById(id, value);
 
         if (!result.success) {
+            logger.warn('updateStudentCertificationById: not found', { id });
             return res.status(404).json(result);
         }
 
+        logger.info('updateStudentCertificationById: success', { id });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'updateStudentCertification');
@@ -153,12 +165,15 @@ export const updateStudentCertificationById = async (req, res) => {
 export const deleteStudentCertificationById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('deleteStudentCertificationById', { id });
         const result = await studentCertificationService.deleteStudentCertificationById(id);
 
         if (!result.success) {
+            logger.warn('deleteStudentCertificationById: not found', { id });
             return res.status(404).json(result);
         }
 
+        logger.info('deleteStudentCertificationById: success', { id });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentCertifications');
@@ -168,6 +183,7 @@ export const deleteStudentCertificationById = async (req, res) => {
 // Import student certifications from Excel file
 export const importFromExcel = async (req, res) => {
     try {
+        logger.info('importFromExcel', { filename: req.file?.originalname });
         if (!req.file || !req.file.buffer) {
             return res.status(400).json({
                 success: false,
@@ -220,6 +236,7 @@ export const importFromExcel = async (req, res) => {
         }
 
         const result = await studentCertificationService.bulkInsertStudentCertifications(validatedData);
+        if (result.success) logger.info('importFromExcel: success', { inserted: result.inserted });
         res.status(result.success ? 201 : 400).json(result);
     } catch (err) {
         return handleError(err, res, 'studentCertifications');
@@ -229,6 +246,7 @@ export const importFromExcel = async (req, res) => {
 // Download Excel template for import
 export const downloadTemplate = async (req, res) => {
     try {
+        logger.info('downloadTemplate');
         const sampleData = [
             ['STU001', 'AWS Solutions Architect', '3 months', 'Amazon Web Services', 'https://example.com/cert1.pdf'],
             ['STU002', 'Python Programming', '6 weeks', 'Coursera', 'https://example.com/cert2.pdf']

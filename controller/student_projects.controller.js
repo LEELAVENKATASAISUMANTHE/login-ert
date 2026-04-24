@@ -42,12 +42,15 @@ const REQUIRED_COLUMNS = ['student_id'];
 // Create a new student project record
 export const createStudentProject = async (req, res) => {
     try {
+        logger.info('createStudentProject', { student_id: req.body.student_id });
         const { error, value } = studentProjectSchema.validate(req.body);
         if (error) {
+            logger.warn('createStudentProject: validation failed', { message: error.details[0].message });
             return res.status(400).json({ message: error.details[0].message });
         }
 
         const project = await studentProjectService.createStudentProject(value);
+        logger.info('createStudentProject: success', { student_id: value.student_id });
         res.status(201).json(project);
     } catch (err) {
         return handleError(err, res, 'createStudentProject');
@@ -57,6 +60,7 @@ export const createStudentProject = async (req, res) => {
 // Get all student projects
 export const getAllStudentProjects = async (req, res) => {
     try {
+        logger.info('getAllStudentProjects');
         const result = await studentProjectService.getAllStudentProjects();
         res.status(200).json(result);
     } catch (err) {
@@ -68,9 +72,11 @@ export const getAllStudentProjects = async (req, res) => {
 export const getStudentProjectById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('getStudentProjectById', { id });
         const result = await studentProjectService.getStudentProjectById(id);
 
         if (!result.success) {
+            logger.warn('getStudentProjectById: not found', { id });
             return res.status(404).json(result);
         }
 
@@ -83,6 +89,7 @@ export const getStudentProjectById = async (req, res) => {
 // Get all projects for a specific student
 export const getProjectsByStudentId = async (req, res) => {
     try {
+        logger.info('getProjectsByStudentId', { studentId: req.params.studentId });
         const { studentId } = req.params;
         const result = await studentProjectService.getProjectsByStudentId(studentId);
         res.status(200).json(result);
@@ -94,6 +101,7 @@ export const getProjectsByStudentId = async (req, res) => {
 // Search projects by tools used
 export const searchProjectsByTools = async (req, res) => {
     try {
+        logger.info('searchProjectsByTools', { tools: req.query.tools });
         const { tools } = req.query;
 
         if (!tools || tools.trim() === '') {
@@ -114,18 +122,22 @@ export const searchProjectsByTools = async (req, res) => {
 export const updateStudentProjectById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('updateStudentProjectById', { id });
         const { error, value } = studentProjectSchema.validate(req.body);
 
         if (error) {
+            logger.warn('updateStudentProjectById: validation failed', { message: error.details[0].message });
             return res.status(400).json({ message: error.details[0].message });
         }
 
         const result = await studentProjectService.updateStudentProjectById(id, value);
 
         if (!result.success) {
+            logger.warn('updateStudentProjectById: not found', { id });
             return res.status(404).json(result);
         }
 
+        logger.info('updateStudentProjectById: success', { id });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'updateStudentProject');
@@ -136,12 +148,15 @@ export const updateStudentProjectById = async (req, res) => {
 export const deleteStudentProjectById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('deleteStudentProjectById', { id });
         const result = await studentProjectService.deleteStudentProjectById(id);
 
         if (!result.success) {
+            logger.warn('deleteStudentProjectById: not found', { id });
             return res.status(404).json(result);
         }
 
+        logger.info('deleteStudentProjectById: success', { id });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentProjects');
@@ -151,6 +166,7 @@ export const deleteStudentProjectById = async (req, res) => {
 // Import student projects from Excel file
 export const importFromExcel = async (req, res) => {
     try {
+        logger.info('importFromExcel', { filename: req.file?.originalname });
         // Check if file exists
         if (!req.file || !req.file.buffer) {
             return res.status(400).json({
@@ -210,6 +226,7 @@ export const importFromExcel = async (req, res) => {
         // Bulk insert validated data
         const result = await studentProjectService.bulkInsertStudentProjects(validatedData);
 
+        if (result.success) logger.info('importFromExcel: success', { inserted: result.inserted });
         res.status(result.success ? 201 : 400).json(result);
     } catch (err) {
         return handleError(err, res, 'studentProjects');
@@ -219,6 +236,7 @@ export const importFromExcel = async (req, res) => {
 // Download Excel template for import
 export const downloadTemplate = async (req, res) => {
     try {
+        logger.info('downloadTemplate');
         // Sample data to help users understand the format
         const sampleData = [
             ['STU001', 'E-Commerce Platform', 'Full-stack shopping website with payment integration', 'React, Node.js, MongoDB, Stripe', 'https://github.com/student/ecommerce'],

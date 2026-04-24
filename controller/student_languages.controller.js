@@ -42,15 +42,18 @@ const validateLanguagesObject = (languages) => {
 // Create single language
 export const createStudentLanguage = async (req, res) => {
     try {
+        logger.info('createStudentLanguage', { student_id: req.body.student_id });
         const { error, value } = singleLanguageSchema.validate(req.body);
         if (error) {
-            return res.status(400).json({ 
+            logger.warn('createStudentLanguage: validation failed', { message: error.details[0].message });
+            return res.status(400).json({
                 message: error.details[0].message,
                 allowedLanguages: ALLOWED_LANGUAGES
             });
         }
 
         const result = await studentLanguageService.createStudentLanguage(value);
+        logger.info('createStudentLanguage: success', { student_id: value.student_id });
         res.status(201).json(result);
     } catch (err) {
         return handleError(err, res, 'createStudentLanguage');
@@ -60,9 +63,11 @@ export const createStudentLanguage = async (req, res) => {
 // Bulk create languages
 export const bulkCreateStudentLanguages = async (req, res) => {
     try {
+        logger.info('bulkCreateStudentLanguages', { student_id: req.body.student_id });
         const { student_id, languages } = req.body;
 
         if (!student_id) {
+            logger.warn('bulkCreateStudentLanguages: validation failed', { message: 'student_id is required' });
             return res.status(400).json({ message: "student_id is required" });
         }
 
@@ -80,6 +85,7 @@ export const bulkCreateStudentLanguages = async (req, res) => {
         }
 
         const result = await studentLanguageService.bulkCreateStudentLanguages(student_id, languages);
+        logger.info('bulkCreateStudentLanguages: success', { student_id });
         res.status(201).json(result);
     } catch (err) {
         return handleError(err, res, 'bulkCreateStudentLanguages');
@@ -89,6 +95,7 @@ export const bulkCreateStudentLanguages = async (req, res) => {
 // Get all languages
 export const getAllStudentLanguages = async (req, res) => {
     try {
+        logger.info('getAllStudentLanguages');
         const result = await studentLanguageService.getAllStudentLanguages();
         res.status(200).json(result);
     } catch (err) {
@@ -100,9 +107,11 @@ export const getAllStudentLanguages = async (req, res) => {
 export const getStudentLanguageById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('getStudentLanguageById', { id });
         const result = await studentLanguageService.getStudentLanguageById(id);
 
         if (!result.success) {
+            logger.warn('getStudentLanguageById: not found', { id });
             return res.status(404).json(result);
         }
 
@@ -115,6 +124,7 @@ export const getStudentLanguageById = async (req, res) => {
 // Get all languages for a student
 export const getLanguagesByStudentId = async (req, res) => {
     try {
+        logger.info('getLanguagesByStudentId', { studentId: req.params.studentId });
         const { studentId } = req.params;
         const result = await studentLanguageService.getLanguagesByStudentId(studentId);
         res.status(200).json(result);
@@ -126,6 +136,7 @@ export const getLanguagesByStudentId = async (req, res) => {
 // Get student's top languages
 export const getStudentTopLanguages = async (req, res) => {
     try {
+        logger.info('getStudentTopLanguages', { studentId: req.params.studentId });
         const { studentId } = req.params;
         const minLevel = parseInt(req.query.minLevel) || 7;
         const result = await studentLanguageService.getStudentTopLanguages(studentId, minLevel);
@@ -138,6 +149,7 @@ export const getStudentTopLanguages = async (req, res) => {
 // Get all students who know a language
 export const getStudentsByLanguage = async (req, res) => {
     try {
+        logger.info('getStudentsByLanguage', { language: req.params.language });
         const { language } = req.params;
 
         // Validate language
@@ -159,6 +171,7 @@ export const getStudentsByLanguage = async (req, res) => {
 // Get experts in a language
 export const getLanguageExperts = async (req, res) => {
     try {
+        logger.info('getLanguageExperts', { language: req.params.language });
         const { language } = req.params;
         const minLevel = parseInt(req.query.minLevel) || 7;
 
@@ -181,6 +194,7 @@ export const getLanguageExperts = async (req, res) => {
 // Get proficient students
 export const getProficientStudents = async (req, res) => {
     try {
+        logger.info('getProficientStudents', { minLevel: req.query.minLevel });
         const minLevel = parseInt(req.query.minLevel) || 7;
 
         if (minLevel < 1 || minLevel > 10) {
@@ -197,6 +211,7 @@ export const getProficientStudents = async (req, res) => {
 // Advanced search
 export const searchStudentLanguages = async (req, res) => {
     try {
+        logger.info('searchStudentLanguages', { query: req.query });
         const { language, minLevel, maxLevel, studentId, search } = req.query;
 
         // Validate language if provided
@@ -229,6 +244,7 @@ export const searchStudentLanguages = async (req, res) => {
 // Menu for search bar
 export const getStudentLanguagesMenu = async (req, res) => {
     try {
+        logger.info('getStudentLanguagesMenu', { search: req.query.search });
         const { search, searchField } = req.query;
         const searchParams = {
             search: search || '',
@@ -244,6 +260,7 @@ export const getStudentLanguagesMenu = async (req, res) => {
 // Get allowed languages list
 export const getAllowedLanguages = async (req, res) => {
     try {
+        logger.info('getAllowedLanguages');
         res.status(200).json({
             success: true,
             data: ALLOWED_LANGUAGES,
@@ -259,10 +276,12 @@ export const getAllowedLanguages = async (req, res) => {
 export const updateStudentLanguageById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('updateStudentLanguageById', { id });
         const { error, value } = updateLanguageSchema.validate(req.body);
 
         if (error) {
-            return res.status(400).json({ 
+            logger.warn('updateStudentLanguageById: validation failed', { message: error.details[0].message });
+            return res.status(400).json({
                 message: error.details[0].message,
                 allowedLanguages: ALLOWED_LANGUAGES
             });
@@ -271,9 +290,11 @@ export const updateStudentLanguageById = async (req, res) => {
         const result = await studentLanguageService.updateStudentLanguageById(id, value);
 
         if (!result.success) {
+            logger.warn('updateStudentLanguageById: not found', { id });
             return res.status(404).json(result);
         }
 
+        logger.info('updateStudentLanguageById: success', { id });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'updateStudentLanguage');
@@ -284,9 +305,11 @@ export const updateStudentLanguageById = async (req, res) => {
 export const bulkUpdateStudentLanguages = async (req, res) => {
     try {
         const { studentId } = req.params;
+        logger.info('bulkUpdateStudentLanguages', { studentId });
         const { languages } = req.body;
 
         if (!languages || typeof languages !== 'object' || Object.keys(languages).length === 0) {
+            logger.warn('bulkUpdateStudentLanguages: validation failed', { message: 'languages object is required with at least one language' });
             return res.status(400).json({ message: "languages object is required with at least one language" });
         }
 
@@ -300,6 +323,7 @@ export const bulkUpdateStudentLanguages = async (req, res) => {
         }
 
         const result = await studentLanguageService.bulkUpdateStudentLanguages(studentId, languages);
+        logger.info('bulkUpdateStudentLanguages: success', { studentId });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'bulkUpdateStudentLanguages');
@@ -310,12 +334,15 @@ export const bulkUpdateStudentLanguages = async (req, res) => {
 export const deleteStudentLanguageById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('deleteStudentLanguageById', { id });
         const result = await studentLanguageService.deleteStudentLanguageById(id);
 
         if (!result.success) {
+            logger.warn('deleteStudentLanguageById: not found', { id });
             return res.status(404).json(result);
         }
 
+        logger.info('deleteStudentLanguageById: success', { id });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentLanguages');
@@ -326,7 +353,9 @@ export const deleteStudentLanguageById = async (req, res) => {
 export const deleteAllStudentLanguages = async (req, res) => {
     try {
         const { studentId } = req.params;
+        logger.info('deleteAllStudentLanguages', { studentId });
         const result = await studentLanguageService.deleteAllStudentLanguages(studentId);
+        logger.info('deleteAllStudentLanguages: success', { studentId });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentLanguages');
@@ -336,6 +365,7 @@ export const deleteAllStudentLanguages = async (req, res) => {
 // Delete specific language for a student
 export const deleteStudentSpecificLanguage = async (req, res) => {
     try {
+        logger.info('deleteStudentSpecificLanguage', { studentId: req.params.studentId, language: req.params.language });
         const { studentId, language } = req.params;
 
         // Validate language
@@ -350,9 +380,11 @@ export const deleteStudentSpecificLanguage = async (req, res) => {
         const result = await studentLanguageService.deleteStudentSpecificLanguage(studentId, matchedLang);
 
         if (!result.success) {
+            logger.warn('deleteStudentSpecificLanguage: not found', { studentId, language: matchedLang });
             return res.status(404).json(result);
         }
 
+        logger.info('deleteStudentSpecificLanguage: success', { studentId, language: matchedLang });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentLanguages');

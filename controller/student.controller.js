@@ -45,8 +45,10 @@ const updateStudentSchema = joi.object({
 
 export const createStudent = async (req, res) => {
     try {
+        logger.info('createStudent', { student_id: req.body.student_id });
         const { error, value } = studentSchema.validate(req.body);
         if (error) {
+            logger.warn('createStudent: validation failed', { message: error.details[0].message });
             return res.status(400).json({ message: error.details[0].message });
         }
 
@@ -69,6 +71,7 @@ export const createStudent = async (req, res) => {
         }
 
         const student = await studentService.createStudent(value);
+        logger.info('createStudent: success', { student_id: value.student_id });
         res.status(201).json(student);
     } catch (err) {
         return handleError(err, res, 'createStudent');
@@ -78,6 +81,7 @@ export const createStudent = async (req, res) => {
 // Get all students
 export const getAllStudents = async (req, res) => {
     try {
+        logger.info('getAllStudents');
         const result = await studentService.getAllStudents();
         res.status(200).json(result);
     } catch (err) {
@@ -89,9 +93,11 @@ export const getAllStudents = async (req, res) => {
 export const getStudentById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('getStudentById', { id });
         const result = await studentService.getStudentById(id);
 
         if (!result.success) {
+            logger.warn('getStudentById: not found', { id });
             return res.status(404).json(result);
         }
 
@@ -105,9 +111,11 @@ export const getStudentById = async (req, res) => {
 export const updateStudentById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('updateStudentById', { id });
         const { error, value } = updateStudentSchema.validate(req.body);
 
         if (error) {
+            logger.warn('updateStudentById: validation failed', { message: error.details[0].message });
             return res.status(400).json({ message: error.details[0].message });
         }
 
@@ -122,9 +130,11 @@ export const updateStudentById = async (req, res) => {
         const result = await studentService.updateStudentById(id, value);
 
         if (!result.success) {
+            logger.warn('updateStudentById: not found', { id });
             return res.status(404).json(result);
         }
 
+        logger.info('updateStudentById: success', { id });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'updateStudentById');
@@ -135,9 +145,11 @@ export const updateStudentById = async (req, res) => {
 export const patchStudentById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('patchStudentById', { id });
         const { error, value } = updateStudentSchema.validate(req.body);
 
         if (error) {
+            logger.warn('patchStudentById: validation failed', { message: error.details[0].message });
             return res.status(400).json({ message: error.details[0].message });
         }
 
@@ -152,9 +164,11 @@ export const patchStudentById = async (req, res) => {
         const result = await studentService.patchStudentById(id, value);
 
         if (!result.success) {
+            logger.warn('patchStudentById: not found', { id });
             return res.status(404).json(result);
         }
 
+        logger.info('patchStudentById: success', { id });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'patchStudentById');
@@ -165,12 +179,15 @@ export const patchStudentById = async (req, res) => {
 export const deleteStudentById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('deleteStudentById', { id });
         const result = await studentService.deleteStudentById(id);
 
         if (!result.success) {
+            logger.warn('deleteStudentById: not found', { id });
             return res.status(404).json(result);
         }
 
+        logger.info('deleteStudentById: success', { id });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'deleteStudentById');

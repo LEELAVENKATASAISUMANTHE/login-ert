@@ -74,8 +74,10 @@ const validateTwelfthDiplomaMutualExclusion = (data) => {
 // Create a new student academic record
 export const createStudentAcademic = async (req, res) => {
     try {
+        logger.info('createStudentAcademic', { student_id: req.body.student_id });
         const { error, value } = studentAcademicSchema.validate(req.body);
         if (error) {
+            logger.warn('createStudentAcademic: validation failed', { message: error.details[0].message });
             return res.status(400).json({ message: error.details[0].message });
         }
 
@@ -86,6 +88,7 @@ export const createStudentAcademic = async (req, res) => {
         }
 
         const academic = await studentAcademicService.createStudentAcademic(value);
+        logger.info('createStudentAcademic: success', { student_id: value.student_id });
         res.status(201).json(academic);
     } catch (err) {
         return handleError(err, res, 'createStudentAcademic');
@@ -95,6 +98,7 @@ export const createStudentAcademic = async (req, res) => {
 // Get all student academics
 export const getAllStudentAcademics = async (req, res) => {
     try {
+        logger.info('getAllStudentAcademics');
         const result = await studentAcademicService.getAllStudentAcademics();
         res.status(200).json(result);
     } catch (err) {
@@ -106,9 +110,11 @@ export const getAllStudentAcademics = async (req, res) => {
 export const getStudentAcademicById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('getStudentAcademicById', { id });
         const result = await studentAcademicService.getStudentAcademicById(id);
 
         if (!result.success) {
+            logger.warn('getStudentAcademicById: not found', { id });
             return res.status(404).json(result);
         }
 
@@ -121,6 +127,7 @@ export const getStudentAcademicById = async (req, res) => {
 // Get students menu for dropdowns
 export const getStudentsMenu = async (req, res) => {
     try {
+        logger.info('getStudentsMenu', { search: req.query.search });
         const { search, searchField } = req.query;
         const result = await studentAcademicService.getStudentsMenu({ search, searchField });
         res.status(200).json(result);
@@ -133,9 +140,11 @@ export const getStudentsMenu = async (req, res) => {
 export const updateStudentAcademicById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('updateStudentAcademicById', { id });
         const { error, value } = updateStudentAcademicSchema.validate(req.body);
 
         if (error) {
+            logger.warn('updateStudentAcademicById: validation failed', { message: error.details[0].message });
             return res.status(400).json({ message: error.details[0].message });
         }
 
@@ -148,9 +157,11 @@ export const updateStudentAcademicById = async (req, res) => {
         const result = await studentAcademicService.updateStudentAcademicById(id, value);
 
         if (!result.success) {
+            logger.warn('updateStudentAcademicById: not found', { id });
             return res.status(404).json(result);
         }
 
+        logger.info('updateStudentAcademicById: success', { id });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentAcademics');
@@ -161,9 +172,11 @@ export const updateStudentAcademicById = async (req, res) => {
 export const patchStudentAcademicById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('patchStudentAcademicById', { id });
         const { error, value } = updateStudentAcademicSchema.validate(req.body);
 
         if (error) {
+            logger.warn('patchStudentAcademicById: validation failed', { message: error.details[0].message });
             return res.status(400).json({ message: error.details[0].message });
         }
 
@@ -176,9 +189,11 @@ export const patchStudentAcademicById = async (req, res) => {
         const result = await studentAcademicService.patchStudentAcademicById(id, value);
 
         if (!result.success) {
+            logger.warn('patchStudentAcademicById: not found', { id });
             return res.status(404).json(result);
         }
 
+        logger.info('patchStudentAcademicById: success', { id });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentAcademics');
@@ -189,12 +204,15 @@ export const patchStudentAcademicById = async (req, res) => {
 export const deleteStudentAcademicById = async (req, res) => {
     try {
         const { id } = req.params;
+        logger.info('deleteStudentAcademicById', { id });
         const result = await studentAcademicService.deleteStudentAcademicById(id);
 
         if (!result.success) {
+            logger.warn('deleteStudentAcademicById: not found', { id });
             return res.status(404).json(result);
         }
 
+        logger.info('deleteStudentAcademicById: success', { id });
         res.status(200).json(result);
     } catch (err) {
         return handleError(err, res, 'studentAcademics');
@@ -204,6 +222,7 @@ export const deleteStudentAcademicById = async (req, res) => {
 // Get academics by category
 export const getAcademicsByCategory = async (req, res) => {
     try {
+        logger.info('getAcademicsByCategory', { category: req.params.category });
         const { category } = req.params;
         const result = await studentAcademicService.getAcademicsByCategory(category);
         res.status(200).json(result);
@@ -215,6 +234,7 @@ export const getAcademicsByCategory = async (req, res) => {
 // Get academics with filters
 export const getAcademicsWithFilters = async (req, res) => {
     try {
+        logger.info('getAcademicsWithFilters', { query: req.query });
         const {
             minTenthPercent,
             minTwelfthPercent,
