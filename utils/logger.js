@@ -72,11 +72,6 @@ const logger = pino(
     base: labels,
     level: env.LOG_LEVEL,
     timestamp: pino.stdTimeFunctions.isoTime,
-    formatters: {
-      level(label) {
-        return { level: label };
-      },
-    },
   },
   transport
 );
