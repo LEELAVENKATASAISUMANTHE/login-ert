@@ -13,7 +13,6 @@ const envSchema = z.object({
       return level;
     })
     .default('info'),
-  LOKI_HOST: z.string().url().default('http://loki:3100'),
   APP_NAME: z.string().min(1).default('placement-backend'),
   SERVICE_NAME: z.string().min(1).default('placement-backend'),
 });
@@ -31,18 +30,6 @@ const transport = pino.transport({
     autoEnd: false,
   },
   targets: [
-    {
-      target: 'pino-loki',
-      level: env.LOG_LEVEL,
-      options: {
-        host: env.LOKI_HOST,
-        labels,
-        batching: false,
-        interval: 1,
-        silenceErrors: false,
-        propsToLabels: [],
-      },
-    },
     env.NODE_ENV === 'development'
       ? {
           target: 'pino-pretty',
@@ -57,7 +44,7 @@ const transport = pino.transport({
           target: 'pino/file',
           level: env.LOG_LEVEL,
           options: {
-            destination: 1,
+            destination: 1, // stdout
           },
         },
   ],
@@ -86,9 +73,7 @@ async function shutdownLogger() {
   shutdownPromise = (async () => {
     try {
       logger.flush?.();
-    } catch {
-      // Ignore flush errors while shutting down.
-    }
+    } catch {}
 
     try {
       transport.end();
@@ -96,9 +81,7 @@ async function shutdownLogger() {
         once(transport, 'close'),
         new Promise((resolve) => setTimeout(resolve, 2000)),
       ]);
-    } catch {
-      // Ignore transport shutdown errors to avoid blocking process exit.
-    }
+    } catch {}
   })();
 
   return shutdownPromise;
