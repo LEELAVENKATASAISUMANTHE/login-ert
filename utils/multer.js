@@ -39,6 +39,34 @@ const blockedMimeTypes = [
 const logUpload = (level, message, meta = {}) =>
   logger[level]?.(message, { tag: "FILE_UPLOAD", ...meta });
 
+const getFileMeta = (file) => {
+  if (!file) return null;
+
+  return {
+    fieldname: file.fieldname,
+    originalname: file.originalname,
+    mimetype: file.mimetype,
+    size: file.size,
+  };
+};
+
+const logParsedRequest = (fieldName) => (req, res, next) => {
+  logUpload("info", "multer: parsed request", {
+    fieldName,
+    method: req.method,
+    url: req.originalUrl,
+    contentType: req.headers['content-type'],
+    contentLength: req.headers['content-length'],
+    bodyKeys: Object.keys(req.body || {}),
+    body: req.body,
+    file: getFileMeta(req.file),
+    ip: req.ip,
+    user: req.user?.user_id,
+  });
+
+  next();
+};
+
 // ------------------------------
 // Layer 1: MIME + EXT validation
 // ------------------------------
@@ -56,6 +84,9 @@ const fileFilter = (req, file, cb) => {
     isMimeValid,
     isExtValid,
     isBlocked,
+    contentType: req.headers['content-type'],
+    contentLength: req.headers['content-length'],
+    bodyKeys: Object.keys(req.body || {}),
     ip: req.ip,
     user: req.user?.user_id,
   });
@@ -110,7 +141,14 @@ const detectFileTypeFromBuffer = (buffer) => {
 const signatureGuard = (req, res, next) => {
   try {
     if (!req.file) {
-      logUpload("info", "signatureGuard: no file present, skipping");
+      logUpload("warn", "signatureGuard: no file present, skipping", {
+        contentType: req.headers['content-type'],
+        contentLength: req.headers['content-length'],
+        bodyKeys: Object.keys(req.body || {}),
+        body: req.body,
+        ip: req.ip,
+        user: req.user?.user_id,
+      });
       return next();
     }
 
@@ -122,6 +160,7 @@ const signatureGuard = (req, res, next) => {
       ext,
       detected,
       sizeBytes: req.file.size,
+      contentType: req.headers['content-type'],
     });
 
     const expectedByExt = {
@@ -178,6 +217,10 @@ const multerErrorHandler = (err, req, res, next) => {
       code: err.code,
       field: err.field,
       message: err.message,
+      contentType: req.headers['content-type'],
+      contentLength: req.headers['content-length'],
+      bodyKeys: Object.keys(req.body || {}),
+      body: req.body,
       ip: req.ip,
       user: req.user?.user_id,
     });
@@ -195,6 +238,10 @@ const multerErrorHandler = (err, req, res, next) => {
   // fileFilter errors (Invalid file type, Executable not allowed, etc.)
   if (err instanceof Error && (err.message.includes("file type") || err.message.includes("not allowed") || err.message.includes("Excel"))) {
     logUpload("warn", `multerErrorHandler: file rejected — ${err.message}`, {
+      contentType: req.headers['content-type'],
+      contentLength: req.headers['content-length'],
+      bodyKeys: Object.keys(req.body || {}),
+      body: req.body,
       ip: req.ip,
       user: req.user?.user_id,
     });
@@ -214,9 +261,9 @@ const multerInstance = multer({
 });
 
 export const upload = {
-  single:  (fieldName)          => [multerInstance.single(fieldName),          signatureGuard, multerErrorHandler],
-  array:   (fieldName, maxCount) => [multerInstance.array(fieldName, maxCount), signatureGuard, multerErrorHandler],
-  fields:  (fields)              => [multerInstance.fields(fields),             signatureGuard, multerErrorHandler],
+  single:  (fieldName)          => [multerInstance.single(fieldName),          logParsedRequest(fieldName), signatureGuard, multerErrorHandler],
+  array:   (fieldName, maxCount) => [multerInstance.array(fieldName, maxCount), logParsedRequest(fieldName), signatureGuard, multerErrorHandler],
+  fields:  (fields)              => [multerInstance.fields(fields),             logParsedRequest(fields.map((field) => field.name).join(',')), signatureGuard, multerErrorHandler],
   none:    ()                    => [multerInstance.none(),                                     multerErrorHandler],
 };
 

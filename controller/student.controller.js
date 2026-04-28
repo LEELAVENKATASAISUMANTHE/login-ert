@@ -45,6 +45,23 @@ const updateStudentSchema = joi.object({
 
 export const createStudent = async (req, res) => {
     try {
+        logger.info({
+            method: req.method,
+            url: req.originalUrl,
+            headers: {
+                contentType: req.headers['content-type'],
+                contentLength: req.headers['content-length'],
+            },
+            body: req.body,
+            bodyKeys: Object.keys(req.body || {}),
+            file: req.file ? {
+                fieldname: req.file.fieldname,
+                originalname: req.file.originalname,
+                mimetype: req.file.mimetype,
+                size: req.file.size,
+            } : null,
+        }, 'createStudent: received request');
+
         logger.info({ student_id: req.body.student_id }, 'createStudent');
         const { error, value } = studentSchema.validate(req.body);
         if (error) {
